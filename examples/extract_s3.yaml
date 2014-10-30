@@ -1,0 +1,10 @@
+name : example_extract_s3
+frequency : one-time
+load_time: 01:00  # Hour:Min in UTC
+
+description : |
+    This example creates an S3Node given a S3 Uri
+
+steps:
+-   type: extract-s3
+    uri: s3://elasticmapreduce/samples/wordcount/wordSplitter.py
