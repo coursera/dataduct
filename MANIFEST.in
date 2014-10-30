@@ -1,0 +1,6 @@
+include *.txt
+include *.md
+include *.sh
+include *.py
+recursive-include bin *
+recursive-include scripts *
