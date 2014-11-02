@@ -8,12 +8,6 @@ class DataPipeline(object):
     Datapipeline class contains all the metadata regarding the pipeline
     and has functionality to add steps to the pipeline
 
-    Attributes:
-      name (str): Name of the pipeline should be globally unique.
-      frequency (enum): Frequency of the pipeline. Can be
-      attr2 (list of str): Description of `attr2`.
-      attr3 (int): Description of `attr3`.
-
     """
     def __init__(self, name, frequency='one-time', production=False):
         """Example of docstring on the __init__ method.
@@ -25,13 +19,13 @@ class DataPipeline(object):
         convention to document the __init__ method and be consistent with it.
 
         Note:
-          Do not include the `self` parameter in the ``Args`` section.
+            Do not include the `self` parameter in the ``Args`` section.
 
         Args:
-          param1 (str): Description of `param1`.
-          param2 (list of str): Description of `param2`. Multiple
-            lines are supported.
-          param3 (int, optional): Description of `param3`, defaults to 0.
+            name (str): Name of the pipeline should be globally unique.
+            frequency (enum): Frequency of the pipeline. Can be
+            attr2 (list of str): Description of `attr2`.
+            attr3 (int): Description of `attr3`.
 
         """
         self.name = name
