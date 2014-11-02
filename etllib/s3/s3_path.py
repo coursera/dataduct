@@ -8,6 +8,15 @@ from re import sub
 
 def validate_inputs(key, bucket, uri):
     """Checks the input params are correct by parsing key, bucket and uri
+
+    Args:
+        key (str): Key for the S3 path
+        bucket (str): Bucket of the key provided
+        uri (str): Complete uri of the S3 path
+
+    Raises:
+        ValueError: if the inputs aren't as expected
+
     """
     if key is not None and bucket is None:
         raise ValueError('bucket should be specified if key is not none')
@@ -30,7 +39,7 @@ class S3Path(object):
 
     """
     def __init__(self, key=None, bucket=None, uri=None, is_directory=False):
-        """Constructor for the pipeline object
+        """Constructor for the S3 Path object
 
         If key is specified then bucket needs to be specified as well.
         You can only specify either uri or key & bucket pair
