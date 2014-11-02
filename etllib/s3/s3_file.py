@@ -1,9 +1,9 @@
 """
 Base class for storing a S3 File
 """
-from s3_path import S3Path
-from utils import upload_to_s3
-from utils import read_from_s3
+from .s3_path import S3Path
+from .utils import upload_to_s3
+from .utils import read_from_s3
 
 
 DEFAULT_FILE_NAME = 'file'
