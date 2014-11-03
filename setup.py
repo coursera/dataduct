@@ -13,14 +13,14 @@ setup(
     url='http://www.coursera.org',
     long_description=open('README.rst').read(),
     author_email='data-infra@coursera.org',
-    license='BSD License',
+    license='Apache License 2.0',
     description='Fix everything about datapipeline',
     install_requires=[
-        "setuptools",
+        'setuptools',
     ],
     classifiers=[
-        "Topic :: Utilities",
-        "License :: OSI Approved :: BSD License",
+        'Topic :: Utilities',
+        'License :: OSI Approved :: Apache Software License',
     ],
 )
 
