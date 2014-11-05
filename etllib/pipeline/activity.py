@@ -22,7 +22,7 @@ class Activity(PipelineObject):
         """
         super(Activity, self).__init__(
             dependsOn=dependsOn,
-            maximumRetries=maximumRetries
+            maximumRetries=maximumRetries,
             **kwargs
         )
 

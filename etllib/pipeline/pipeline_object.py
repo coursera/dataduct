@@ -19,7 +19,7 @@ class PipelineObject(object):
     setters) which provides access to all aws attributes.
 
     """
-    def __init__(self, unique_id, **kwargs):
+    def __init__(self, id, **kwargs):
         """Constructor for the pipeline object
 
         Note:
@@ -31,11 +31,13 @@ class PipelineObject(object):
             **kwargs: Arbitrary keyword arguments.
 
         """
-        self._id = unique_id
+        self._id = id
         self.fields = defaultdict(list)
 
+        # TODO: Check with Thomas about removing NONE values
         for key, value in kwargs.iteritems():
-            self[key] = value
+            if value is not None:
+                self[key] = value
 
         # additional s3 files that may not appear as an AWS field
         self.additional_s3_files = []
