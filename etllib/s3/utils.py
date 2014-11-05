@@ -5,6 +5,7 @@ import boto.s3
 import os
 
 from .s3_path import S3Path
+from ..utils.exceptions import ETLInputError
 
 
 def get_s3_bucket(bucket_name):
@@ -69,7 +70,7 @@ def copy_within_s3(s3_old_path, s3_new_path, raise_when_no_exist=True):
         raise_when_no_exist(bool, optional): Raise error if file not found
 
     Raises:
-        ValueError: If s3_old_path does not exist
+        ETLInputError: If s3_old_path does not exist
     """
     bucket = get_s3_bucket(s3_old_path.bucket)
     key = bucket.get_key(s3_old_path.key)
@@ -77,7 +78,7 @@ def copy_within_s3(s3_old_path, s3_new_path, raise_when_no_exist=True):
         key.copy(s3_new_path.bucket, s3_new_path.key)
 
     if raise_when_no_exist and not key:
-        raise ValueError('The key does not exist: %s' % s3_old_path.uri)
+        raise ETLInputError('The key does not exist: %s' % s3_old_path.uri)
 
 
 def upload_dir_to_s3(s3_path, local_path, filter_function=None):

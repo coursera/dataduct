@@ -5,6 +5,8 @@ from os.path import join
 from re import findall
 from re import sub
 
+from ..utils.exceptions import ETLInputError
+
 
 def validate_inputs(key, bucket, uri):
     """Checks the input params are correct by parsing key, bucket and uri
@@ -15,17 +17,17 @@ def validate_inputs(key, bucket, uri):
         uri (str): Complete uri of the S3 path
 
     Raises:
-        ValueError: if the inputs aren't as expected
+        ETLInputError: if the inputs aren't as expected
 
     """
     if key is not None and bucket is None:
-        raise ValueError('bucket should be specified if key is not none')
+        raise ETLInputError('bucket should be specified if key is not none')
     if key is None and bucket is not None:
-        raise ValueError('key should be specified if bucket is not none')
+        raise ETLInputError('key should be specified if bucket is not none')
     if key is not None and bucket is not None and uri is not None:
-        raise ValueError('key, bucket and uri can not all be provided')
+        raise ETLInputError('key, bucket and uri can not all be provided')
     if key is None and bucket is None and uri is None:
-        raise ValueError('uri or key & bucket should be provided')
+        raise ETLInputError('uri or key & bucket should be provided')
 
 
 class S3Path(object):

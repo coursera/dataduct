@@ -4,6 +4,7 @@ Base class for storing a S3 File
 from .s3_path import S3Path
 from .utils import upload_to_s3
 from .utils import read_from_s3
+from ..utils.exceptions import ETLInputError
 
 
 DEFAULT_FILE_NAME = 'file'
@@ -37,13 +38,16 @@ class S3File(object):
 
     def upload_to_s3(self):
         """Sends file to URI. This action is idempotent.
+
+        Raises:
+            ETLInputError: If no URL is provided
         """
         if self._s3_path:
             if self._path or self._text:
                 # There exists something locally to store
                 upload_to_s3(self._s3_path, self._path, self._text)
         else:
-            raise ValueError('No URI provided for the file to be uploaded')
+            raise ETLInputError('No URI provided for the file to be uploaded')
 
     @property
     def text(self):

@@ -2,7 +2,7 @@
 Class definition for DataPipeline
 """
 
-class DataPipeline(object):
+class ETLPipeline(object):
     """DataPipeline class with steps and metadata.
 
     Datapipeline class contains all the metadata regarding the pipeline

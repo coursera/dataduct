@@ -3,6 +3,8 @@ Script that parses the pipeline definition from the yaml schema
 """
 import yaml
 
+from .utils.exceptions import ETLInputError
+
 
 def read_pipeline_definition(file_path):
     """Function reads the yaml pipeline definitions.
@@ -17,11 +19,11 @@ def read_pipeline_definition(file_path):
       dict: parsed yaml definition as dictionary.
 
     Raises:
-      ValueError: If `file_path` extention is not yaml
+      ETLInputError: If `file_path` extention is not yaml
     """
     extention = file_path.split('.').pop()
     if extention != 'yaml':
-        raise ValueError('Pipeline definition should have a yaml extention')
+        raise ETLInputError('Pipeline definition should have a yaml extention')
     with open(file_path) as f:
         definition = yaml.load(f.read())
 
