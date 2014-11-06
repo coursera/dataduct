@@ -7,7 +7,7 @@ from ..constants import DATA_PIPELINE_TOPIC_ARN
 
 
 class SNSAlarm(PipelineObject):
-    """Default object added to all pipelines
+    """SNS object added to all pipelines
     """
 
     def __init__(self,
@@ -42,5 +42,4 @@ class SNSAlarm(PipelineObject):
             topicArn=DATA_PIPELINE_TOPIC_ARN,
             subject='Data Pipeline Failure',
             message=failure_message,
-            **kwargs
         )

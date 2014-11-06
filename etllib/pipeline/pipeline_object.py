@@ -6,6 +6,7 @@ from collections import defaultdict
 from ..s3.s3_path import S3Path
 from ..s3.s3_file import S3File
 from ..s3.s3_directory import S3Directory
+from ..utils.exceptions import ETLInputError
 
 
 class PipelineObject(object):
@@ -56,7 +57,7 @@ class PipelineObject(object):
         Returns:
             result(list of S3Files): List of files to be uploaded to s3
         """
-        result = self.additional_s3_files[:]
+        result = self.additional_s3_files
         for _, values in self.fields.iteritems():
             for value in values:
                 if isinstance(value, S3File) or isinstance(value, S3Directory):
@@ -103,9 +104,21 @@ class PipelineObject(object):
         if key == 'dependsOn':
             self.fields[key] = list(set(self.fields[key]))
 
-    def aws_format(self):
+    def add_additional_files(self, new_files):
+        """Add new s3 files
+
+        Args:
+            new_files(S3File): list of new S3 files for the activity
         """
-        Output: the AWS-readable dict format.
+        for new_file in new_files:
+            if not isinstance(new_file, S3File):
+                raise ETLInputError('File must be an S3 File object')
+            self.additional_s3_files.append(new_file)
+
+    def aws_format(self):
+        """Create the aws readable format of object
+        Returns:
+            result: The AWS-readable dict format of the object
         """
         fields = []
         for key, values in self.fields.iteritems():

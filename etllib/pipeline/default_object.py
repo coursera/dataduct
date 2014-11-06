@@ -36,6 +36,5 @@ class DefaultObject(PipelineObject):
             failureAndRerunMode=failureAndRerunMode,
             role=DEFAULT_ROLE,
             resourceRole=DEFAULT_RESOURCE_ROLE,
-            onFail=sns,
-            **kwargs
+            onFail=sns
         )
