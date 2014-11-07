@@ -3,6 +3,7 @@ Script that parses the pipeline definition from the yaml schema
 """
 import yaml
 
+from .etl_pipeline import ETLPipeline
 from .utils.exceptions import ETLInputError
 
 
@@ -33,8 +34,16 @@ def read_pipeline_definition(file_path):
 
     return definition
 
-def create_pipeline():
+
+def create_pipeline(definition):
     """Creates the pipeline and add the steps specified to the pipeline
+    Args:
+        definition(dict): YAML definition parsed from the datapipeline
     """
-    # TODO: Create a pipeline object and add all the steps required
-    pass
+    steps = definition.pop('steps')
+    etl = ETLPipeline(**definition)
+
+    # Add the steps to the pipeline object
+    etl.create_steps(steps)
+    return etl
+

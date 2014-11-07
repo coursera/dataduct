@@ -135,3 +135,20 @@ def list_pipeline_instances(pipeline_id, conn=None, increment=25):
             instances.append(pipeline_dict)
 
     return instances
+
+def list_pipelines(conn=None):
+    """Fetch a list of all pipelines with boto
+
+    Args:
+        conn(DataPipelineConnection): boto connection to datapipeline
+
+    Returns:
+        pipelines(list): list of pipelines fetched with boto
+    """
+    if conn is None:
+        conn = DataPipelineConnection()
+
+    return get_list_from_boto(
+        conn.list_pipelines,
+        'pipelineIdList',
+    )

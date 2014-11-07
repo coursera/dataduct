@@ -40,7 +40,8 @@ class S3Path(object):
         We don't connect with S3 using boto for any checks here.
 
     """
-    def __init__(self, key=None, bucket=None, uri=None, is_directory=False):
+    def __init__(self, key=None, bucket=None, uri=None, parent_dir=None,
+                 is_directory=False):
         """Constructor for the S3 Path object
 
         If key is specified then bucket needs to be specified as well.
@@ -65,6 +66,12 @@ class S3Path(object):
         if uri is not None:
             self.bucket = findall(r's3://([^/]+)', uri)[0]
             self.key = sub(r's3://[^/]+/', '', uri.rstrip('/'))
+        elif parent_dir is not None:
+            self.bucket = parent_dir.bucket
+            self.key = parent_dir.key
+            self.is_directory = True
+            if key:
+                self.append(key, is_directory)
         else:
             self.key = key
             self.bucket = bucket
@@ -87,7 +94,7 @@ class S3Path(object):
         # Remove duplicate, leading, and trailing '/'
         new_key = [a for a in new_key.split("/") if a != ""]
 
-        # TODO: AWS BUG prevents us from using periods in paths.
+        # TODO: AWS prevents us from using periods in paths
         # Substitute them with '_'
         if is_directory:
             directory_path = new_key
