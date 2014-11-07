@@ -12,7 +12,7 @@ from ..s3.s3_file import S3File
 from ..utils.exceptions import ETLInputError
 
 
-class EtlStep(object):
+class ETLStep(object):
     """ETL step class with activities and metadata.
 
     An ETL Step is an abstraction over the set of each database object. It
@@ -29,7 +29,7 @@ class EtlStep(object):
                  s3_source_dir=None, schedule=None, resource=None,
                  input_node=None, required_steps=None,
                  max_retries=DEFAULT_MAX_RETRIES):
-        """Constructor for the EtlStep object
+        """Constructor for the ETLStep object
 
         Args:
             unique_id (str): Unique id for the pipeline
@@ -79,7 +79,7 @@ class EtlStep(object):
         """Add dependencies for this step
 
         Args:
-            required_steps(list of EtlStep): dependencies of current step
+            required_steps(list of ETLStep): dependencies of current step
         """
 
         self._required_steps.extend(required_steps)
