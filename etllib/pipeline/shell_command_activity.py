@@ -25,8 +25,7 @@ class ShellCommandActivity(Activity):
                  command=None,
                  max_retries=None,
                  depends_on=None,
-                 additional_s3_files=None,
-                 **kwargs):
+                 additional_s3_files=None):
         """Constructor for the ShellCommandActivity class
 
         Args:
@@ -41,7 +40,6 @@ class ShellCommandActivity(Activity):
             max_retries(int): number of retries for the activity
             depends_on(list of activities): dependendent pipelines steps
             additional_s3_files(list of s3File): additional files for activity
-            **kwargs(optional): Keyword arguments directly passed to base class
         """
 
         # Validate inputs
