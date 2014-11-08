@@ -2,17 +2,21 @@
 Class definition for DataPipeline
 """
 from datetime import datetime
+import yaml
 
 from .constants import DEFAULT_MAX_RETRIES
 from .constants import ETL_BUCKET
 from .constants import BOOTSTRAP_STEPS_DEFINITION
 
 from .pipeline.default_object import DefaultObject
+from .pipeline.data_pipeline import DataPipeline
 from .pipeline.ec2_resource import Ec2Resource
 from .pipeline.s3_node import S3Node
 from .pipeline.schedule import Schedule
 from .pipeline.sns_alarm import SNSAlarm
+from .pipeline.utils import list_pipelines
 
+from .s3.s3_file import S3File
 from .s3.s3_path import S3Path
 from .s3.s3_log_path import S3LogPath
 
@@ -74,6 +78,8 @@ class ETLPipeline(object):
         self.version_ts = datetime.utcnow()
         self.version_name = "version_" + \
             self.version_ts.strftime('%Y%m%d%H%M%S')
+        self.pipeline = None
+        self.errors = None
 
         self._base_objects = dict()
         self._intermediate_nodes = dict()
@@ -210,7 +216,7 @@ class ETLPipeline(object):
         return self._s3_uri(SRC_STR)
 
     @property
-    def _ec2_resource(self):
+    def ec2_resource(self):
         """Get the ec2 resource associated with the pipeline
 
         Note:
@@ -229,6 +235,19 @@ class ETLPipeline(object):
             self.create_bootstrap_steps(EC2_RESOURCE_STR)
         return self._ec2_resource
 
+    @property
+    def emr_cluster(self):
+        """Get the emr resource associated with the pipeline
+
+        Note:
+            This will create the step if it doesn't exist
+
+        Returns: lazily-constructed emr_resource
+        """
+        if not self._emr_cluster:
+            self._emr_cluster = None
+        return self._emr_cluster
+
     def step(self, step_id):
         """Fetch a single step from the pipeline
         Args:
@@ -240,25 +259,66 @@ class ETLPipeline(object):
         return self._steps.get(step_id, None)
 
     def determine_step_class(self, type, step_args):
-        """A
+        """Determine step class from input to correct ETL step types
+
+        Args:
+            type(str): string specifing type of the objects
+            step_args(dict): dictionary of step arguments
+
+        Returns:
+            step_class(ETLStep): Class object for the specific type
+            step_args(dict): dictionary of step arguments
         """
         if type == 'transform':
             step_class = TransformStep
             if step_args.get('resource', None) == 'emr-cluster':
-                step_args['resource'] = self._emr_cluster
+                step_args['resource'] = self.emr_cluster
         else:
             raise ETLInputError('Step type %s not recogonized' % type)
 
         return step_class, step_args
 
     def translate_input_nodes(self, input_node):
-        """A
+        """Translate names from YAML to input_nodes
+
+        For steps which may take s3 as input, check whether they require
+        multiple inputs. These inputs will be represented as a dictionary
+        mapping step-names to filenames used in that step. E.g.
+            {
+                "step1": "eventing_activity_table",
+                "step2": "activity_type_table"
+            }
+
+        When this is the case, we translate this to a dictionary in the
+        following form, and pass that as the 'input_form':
+            {
+                "eventing_activity_table": [node for step1],
+                "activity_type_table": [node for step2]
+            }
+
+        Args:
+            input_node(dict): map of input node string
+
+        Returns:
+            output(dict of S3Node): map of string : S3Node
         """
-        print self._intermediate_nodes
-        return input_node
+        output = dict()
+        for key, value in input_node.iteritems():
+            if key not in self._intermediate_nodes:
+                raise ETLInputError('Input reference does not exist')
+            output[value] = self._intermediate_nodes[key]
+        return output
 
     def parse_step_args(self, type, **kwargs):
-        """A
+        """Parse step arguments from input to correct ETL step types
+
+        Args:
+            type(str): string specifing type of the objects
+            **kwargs: Keyword arguments read from YAML
+
+        Returns:
+            step_class(ETLStep): Class object for the specific type
+            step_args(dict): dictionary of step arguments
         """
 
         if not isinstance(type, str):
@@ -309,7 +369,7 @@ class ETLPipeline(object):
 
         # Set resource for the step
         if step_args.get('resource') is None:
-            step_args['resource'] = self._ec2_resource
+            step_args['resource'] = self.ec2_resource
 
         # Set the name if name not provided
         if 'name' in step_args:
@@ -401,9 +461,9 @@ class ETLPipeline(object):
                 can be ec2 / emr
         """
         if resource_type == EMR_CLUSTER_STR:
-            resource = self._emr_cluster
+            resource = self.emr_cluster
         elif resource_type == EC2_RESOURCE_STR:
-            resource = self._ec2_resource
+            resource = self.ec2_resource
         else:
             raise ETLInputError('Unknown resource type found')
 
@@ -416,3 +476,86 @@ class ETLPipeline(object):
         steps = self.create_steps(step_params, True)
         self._bootstrap_steps.extend(steps)
         return steps
+
+    def pipeline_objects(self):
+        """Get all pipeline objects associated with the ETL
+        Returns:
+            result(list of PipelineObject): All steps related to the ETL
+                i.e. all base objects as well as ones owned by steps
+        """
+        result = self._base_objects.values()
+        # Add all steps owned by the ETL steps
+        for step in self._steps.values():
+            result.extend(step.pipeline_objects)
+        return result
+
+    def delete_if_exists(self):
+        """Delete the pipelines with the same name as current pipeline
+        """
+
+        # This will delete all pipelines with the same name
+        for p_iter in list_pipelines():
+            if p_iter['name'] == self.name:
+                pipeline_instance = DataPipeline(pipeline_id=p_iter['id'])
+                pipeline_instance.delete()
+
+    def s3_files(self):
+        """Get all s3 files associated with the ETL
+        Returns:
+            result(list of s3files): All s3files related to the ETL
+        """
+        result = list()
+        for pipeline_object in self.pipeline_objects():
+            result.extend(pipeline_object.s3_files)
+        return result
+
+    def validate(self):
+        """Validate the given pipeline definition by creating a pipeline
+
+        Returns:
+            errors(list): list of errors in the pipeline, empty if no errors
+        """
+
+        # Create AwsPipeline and add objects to it
+        self.pipeline = DataPipeline(self.name)
+        for pipeline_object in self.pipeline_objects():
+            self.pipeline.add_object(pipeline_object)
+
+        # Check for errors
+        self.errors = self.pipeline.validate_pipeline_definition()
+        if len(self.errors) > 0:
+            print '\nThere are errors with your pipeline:\n', self.errors
+
+        # Update pipeline definition
+        self.pipeline.update_pipeline_definition()
+        return self.errors
+
+    def activate(self):
+        """Activate the given pipeline definition
+
+        Activates an existing data pipeline & uploads all required files to s3
+        """
+
+        if self.errors is None:
+            raise ETLInputError('Pipeline has not been validated yet')
+        elif len(self.errors) > 0:
+            raise ETLInputError('Pipeline has errors %s' % self.errors)
+
+        # Upload any files that need to be uploaded
+        for s3_file in self.s3_files():
+            s3_file.upload_to_s3()
+
+        # Upload pipeline definition
+        pipeline_definition_path = S3Path(
+            key='pipeline_definition.yaml',
+            parent_dir=self.s3_source_dir
+        )
+
+        pipeline_definition = S3File(
+            text=yaml.dump(self.pipeline.aws_format),
+            s3_path=pipeline_definition_path
+        )
+        pipeline_definition.upload_to_s3()
+
+        # Activate the pipeline with AWS
+        self.pipeline.activate()
