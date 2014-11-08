@@ -18,6 +18,8 @@ from .pipeline.schedule import Schedule
 from .pipeline.sns_alarm import SNSAlarm
 from .pipeline.utils import list_pipelines
 
+from .steps.transform_step import TransformStep
+
 from .s3.s3_file import S3File
 from .s3.s3_path import S3Path
 from .s3.s3_log_path import S3LogPath

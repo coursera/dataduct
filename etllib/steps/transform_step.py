@@ -2,11 +2,8 @@
 ETL step wrapper for shell command activity can be executed on Ec2 / EMR
 """
 from .etl_step import ETLStep
-
 from ..pipeline.shell_command_activity import ShellCommandActivity
-
 from ..s3.s3_file import S3File
-
 from ..utils.helpers import exactly_one
 from ..utils.exceptions import ETLInputError
 
@@ -22,10 +19,9 @@ class TransformStep(ETLStep):
                  script_arguments=None,
                  additional_s3_files=None,
                  **kwargs):
-        """Constructor for the Ec2Resource class
+        """Constructor for the TransformStep class
 
         Args:
-            id(str): id of the object
             command(str): s3 directory for pipeline logs
             script(path): pipeline schedule used for the machine
             output(dict): time to terminate the ec2resource after
