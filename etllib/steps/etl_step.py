@@ -310,11 +310,11 @@ class ETLStep(object):
         return self.max_retries
 
     @property
-    def aws_objects(self):
-        """Get  all aws objects that are created for this step
+    def pipeline_objects(self):
+        """Get  all pipeline objects that are created for this step
 
         Returns:
-            result: All aws objects that are created for this step
+            result: All pipeline objects that are created for this step
         """
         return self._objects.values()
 
