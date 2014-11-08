@@ -11,6 +11,7 @@ from .constants import BOOTSTRAP_STEPS_DEFINITION
 from .pipeline.default_object import DefaultObject
 from .pipeline.data_pipeline import DataPipeline
 from .pipeline.ec2_resource import Ec2Resource
+from .pipeline.emr_resource import EmrResource
 from .pipeline.s3_node import S3Node
 from .pipeline.schedule import Schedule
 from .pipeline.sns_alarm import SNSAlarm
@@ -245,7 +246,31 @@ class ETLPipeline(object):
         Returns: lazily-constructed emr_resource
         """
         if not self._emr_cluster:
-            self._emr_cluster = None
+            # Process the boostrap input
+            bootstrap = self.emr_cluster_config.get('bootstrap', None)
+            if bootstrap:
+                if isinstance(bootstrap, dict):
+                    # If bootstrap script is not a path to local file
+                    param_type = bootstrap['type']
+                    bootstrap = bootstrap['value']
+                else:
+                    # Default the type to path of a local file
+                    param_type = 'path'
+
+                if param_type == 'path':
+                    bootstrap = S3File(path=bootstrap)
+                    # Set the S3 Path for the bootstrap script
+                    bootstrap.s3_path = self.s3_source_dir
+                self.emr_cluster_config['bootstrap'] = bootstrap
+
+            self._emr_cluster = self.create_pipeline_object(
+                object_class=EmrResource,
+                s3_log_dir=self.s3_log_dir,
+                schedule=self.schedule,
+                **self.emr_cluster_config
+            )
+
+            self.create_bootstrap_steps(EMR_CLUSTER_STR)
         return self._emr_cluster
 
     def step(self, step_id):

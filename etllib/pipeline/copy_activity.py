@@ -29,7 +29,7 @@ class CopyActivity(Activity):
             id(str): id of the object
             input_node(S3Node / list of S3Nodes): input nodes for the activity
             output_node(S3Node / list of S3Nodes): output nodes for activity
-            resource(Ec2Resource / EMRResource): resource to run the activity on
+            resource(Ec2Resource / EmrResource): resource to run the activity on
             schedule(Schedule): schedule of the pipeline
             max_retries(int): number of retries for the activity
             depends_on(list of activities): dependendent pipelines steps
