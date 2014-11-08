@@ -23,6 +23,10 @@ class RedshiftDatabase(PipelineObject):
 
         Args:
             id(str): id of the object
+            database_name(str): host name of the database
+            cluster_id(str): identifier for the redshift database across aws
+            username(str): username for the database
+            password(str): password for the database
         """
 
         kwargs = {
