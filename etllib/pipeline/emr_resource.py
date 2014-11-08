@@ -1,5 +1,5 @@
 """
-Pipeline object class for ec2 resource
+Pipeline object class for emr resource
 """
 from ..constants import DEFAULT_NUM_CORE_INSTANCES
 from ..constants import DEFAULT_CORE_INSTANCE_TYPE

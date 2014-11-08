@@ -12,6 +12,7 @@ from .pipeline.default_object import DefaultObject
 from .pipeline.data_pipeline import DataPipeline
 from .pipeline.ec2_resource import Ec2Resource
 from .pipeline.emr_resource import EmrResource
+from .pipeline.redshift_database import RedshiftDatabase
 from .pipeline.s3_node import S3Node
 from .pipeline.schedule import Schedule
 from .pipeline.sns_alarm import SNSAlarm
@@ -221,7 +222,7 @@ class ETLPipeline(object):
         """Get the ec2 resource associated with the pipeline
 
         Note:
-            This will create the step if it doesn't exist
+            This will create the object if it doesn't exist
 
         Returns: lazily-constructed ec2_resource
         """
@@ -241,7 +242,7 @@ class ETLPipeline(object):
         """Get the emr resource associated with the pipeline
 
         Note:
-            This will create the step if it doesn't exist
+            This will create the object if it doesn't exist
 
         Returns: lazily-constructed emr_resource
         """
@@ -272,6 +273,21 @@ class ETLPipeline(object):
 
             self.create_bootstrap_steps(EMR_CLUSTER_STR)
         return self._emr_cluster
+
+    @property
+    def redshift_database(self):
+        """Get the redshift database associated with the pipeline
+
+        Note:
+            This will create the object if it doesn't exist
+
+        Returns: lazily-constructed redshift database object
+        """
+        if not self._redshift_database:
+            self._redshift_database = self.create_pipeline_object(
+                object_class=RedshiftDatabase
+            )
+        return self._redshift_database
 
     def step(self, step_id):
         """Fetch a single step from the pipeline
