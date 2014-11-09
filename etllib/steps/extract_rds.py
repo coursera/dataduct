@@ -1,23 +1,25 @@
 """
-ETL step wrapper for RedshiftCopyActivity to extract data to S3
+ETL step wrapper to extract data from RDS to S3
 """
 from .etl_step import ETLStep
-from ..pipeline.redshift_node import RedshiftNode
-from ..pipeline.redshift_copy_activity import RedshiftCopyActivity
-
+from ..pipeline.copy_activity import CopyActivity
+from ..pipeline.mysql_node import MysqlNode
+from ..pipeline.shell_command_activity import ShellCommandActivity
+from ..s3.s3_file import S3File
+from ..utils.exceptions import ETLInputError
 
 class ExtractRdsStep(ETLStep):
     """Extract Redshift Step class that helps get data out of redshift
     """
 
     def __init__(self,
-                 schema,
-                 table,
-                 redshift_database,
-                 insert_mode="TRUNCATE",
+                 table=None,
+                 sql=None,
+                 host_name=None,
+                 database=None,
                  depends_on=None,
                  **kwargs):
-        """Constructor for the ExtractRedshiftStep class
+        """Constructor for the ExtractRdsStep class
 
         Args:
             schema(str): schema from which table should be extracted
@@ -26,30 +28,59 @@ class ExtractRdsStep(ETLStep):
             redshift_database(RedshiftDatabase): database to excute the query
             **kwargs(optional): Keyword arguments directly passed to base class
         """
-        super(ExtractRedshiftStep, self).__init__(**kwargs)
+        super(ExtractRdsStep, self).__init__(**kwargs)
 
         if depends_on is not None:
             self.depends_on = depends_on
 
-        # Create input node
-        self._input_node = self.create_pipeline_object(
-            object_class=RedshiftNode,
+        if table:
+            script = S3File(text='select * from %s;' % table)
+        elif sql:
+            script = S3File(path=sql)
+        else:
+            raise ETLInputError('Provide a sql statement or a table name')
+
+        input_node = self.create_pipeline_object(
+            object_class=MysqlNode,
             schedule=self.schedule,
-            redshift_database=redshift_database,
-            schema_name=schema,
-            table_name=table,
+            host=host_name,
+            database=database,
+            table=table,
+            user=params['user'],
+            password=params['password'],
+            sql=script,
         )
 
-        self._output = self.create_s3_data_node()
+        intermediate_node = self.create_s3_data_node()
 
         self.create_pipeline_object(
-            object_class=RedshiftCopyActivity,
+            object_class=CopyActivity,
+            schedule=self.schedule,
+            resource=self.resource,
+            input_node=input_node,
+            output_node=intermediate_node,
+            depends_on=self.depends_on,
             max_retries=self.max_retries,
-            input_node=self._input_node,
+        )
+
+        # This shouldn't be necessary but -
+        # AWS uses \\n as null, so we need to remove it
+        self._output = self.create_s3_data_node()
+
+        command = ' '.join(["cat",
+                            "${INPUT1_STAGING_DIR}/*",
+                            "| sed 's/\\\\\\\\n/NULL/g'",  # replace \\n
+                            # get rid of control characters
+                            "| tr -d '\\\\000'",
+                            "> ${OUTPUT1_STAGING_DIR}/part-0"]
+                          )
+
+        self.create_pipeline_object(
+            object_class=ShellCommandActivity,
+            input_node=intermediate_node,
             output_node=self._output,
-            insert_mode=insert_mode,
+            command=command,
+            max_retries=self.max_retries,
             resource=self.resource,
             schedule=self.schedule,
-            depends_on=self.depends_on,
-            command_options=["DELIMITER '\t' ESCAPE"],
         )
