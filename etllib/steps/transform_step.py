@@ -22,11 +22,11 @@ class TransformStep(ETLStep):
         """Constructor for the TransformStep class
 
         Args:
-            command(str): s3 directory for pipeline logs
-            script(path): pipeline schedule used for the machine
-            output(dict): time to terminate the ec2resource after
-            script_arguments(str): machine type to be used eg. m1.large
-            additional_s3_files(str): time delay between step retries
+            command(str): command to be executed directly
+            script(path): local path to the script that should executed
+            output(dict): output data nodes from the transform
+            script_arguments(list of str): list of arguments to the script
+            additional_s3_files(list of S3File): additional files used
             **kwargs(optional): Keyword arguments directly passed to base class
         """
         if not exactly_one(command, script):
