@@ -18,6 +18,13 @@ from .pipeline.schedule import Schedule
 from .pipeline.sns_alarm import SNSAlarm
 from .pipeline.utils import list_pipelines
 
+from .steps.emr_streaming import EMRStreamingStep
+from .steps.extract_local import ExtractLocalStep
+from .steps.extract_rds import ExtractRdsStep
+from .steps.extract_redshift import ExtractRedshiftStep
+from .steps.extract_s3 import ExtractS3Step
+from .steps.load_redshift import LoadRedshiftStep
+from .steps.sql_command import SqlCommandStep
 from .steps.transform import TransformStep
 
 from .s3.s3_file import S3File
@@ -316,6 +323,41 @@ class ETLPipeline(object):
             step_class = TransformStep
             if step_args.get('resource', None) == 'emr-cluster':
                 step_args['resource'] = self.emr_cluster
+
+        elif type == 'extract-s3':
+            step_class = ExtractS3Step
+            step_args.pop('resource')
+
+        elif type == 'extract-local':
+            step_class = ExtractLocalStep
+            step_args.pop('resource')
+            if self.frequency != 'one-time':
+                raise ETLInputError(
+                    'Extract Local can be used for one-time pipelines only')
+
+        elif type == 'extract-rds':
+            step_class = ExtractRdsStep
+            step_args.pop('input_node')
+
+        elif type == 'extract-redshift':
+            step_class = ExtractRedshiftStep
+            step_args['redshift_database'] = self.redshift_database
+            step_args.pop('input_node')
+
+        elif type == 'sql-command':
+            step_class = SqlCommandStep
+            step_args['redshift_database'] = self.redshift_database
+            step_args.pop('input_node')
+
+        elif type == 'emr-streaming':
+            step_class = EMRStreamingStep
+            step_args.pop('input_node')
+            step_args['resource'] = self._emr_cluster
+
+        elif type == 'load-redshift':
+            step_class = LoadRedshiftStep
+            step_args['redshift_database'] = self.redshift_database
+
         else:
             raise ETLInputError('Step type %s not recogonized' % type)
 

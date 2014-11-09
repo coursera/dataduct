@@ -46,10 +46,11 @@ class ExtractRdsStep(ETLStep):
             host=host_name,
             database=database,
             table=table,
-            user=params['user'],
-            password=params['password'],
+            user=None,
+            password=None,
             sql=script,
         )
+        # TODO: Config for username and password
 
         intermediate_node = self.create_s3_data_node()
 
