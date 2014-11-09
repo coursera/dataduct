@@ -49,11 +49,10 @@ class EMRStreamingStep(ETLStep):
         """Constructor for the EMRStreamingStep class
 
         Args:
-            command(str): command to be executed directly
-            script(path): local path to the script that should executed
-            queue(str): query queue that should be used
-            script_arguments(list of str): arguments to the SQL command
-            redshift_database(RedshiftDatabase): database to excute the query
+            mapper(path): local path to the mapper script
+            reducer(path): local path to the reducer script
+            input(str / list of str, optional): S3 Uri of input locations
+            hadoop_params(list of str): arguments to the hadoop command
             **kwargs(optional): Keyword arguments directly passed to base class
         """
 

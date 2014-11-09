@@ -18,7 +18,7 @@ from .pipeline.schedule import Schedule
 from .pipeline.sns_alarm import SNSAlarm
 from .pipeline.utils import list_pipelines
 
-from .steps.transform_step import TransformStep
+from .steps.transform import TransformStep
 
 from .s3.s3_file import S3File
 from .s3.s3_path import S3Path
@@ -410,8 +410,8 @@ class ETLPipeline(object):
                             required_node in step.pipeline_objects:
                         step_args['required_steps'].append(step)
 
-        # Set resource for the step
-        if step_args.get('resource') is None:
+        # Set resource for the step if not specified or removed
+        if 'resource' in step_args and step_args['resource'] is None:
             step_args['resource'] = self.ec2_resource
 
         # Set the name if name not provided
