@@ -100,7 +100,11 @@ class PipelineObject(object):
         if value is None:
             return
 
-        self.fields[key].extend(list(value))
+        # Store value as a list if there is only one
+        if not isinstance(value, list):
+            value = [value]
+
+        self.fields[key].extend(value)
         if key == 'dependsOn':
             self.fields[key] = list(set(self.fields[key]))
 

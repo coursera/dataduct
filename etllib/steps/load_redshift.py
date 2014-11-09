@@ -33,7 +33,7 @@ class LoadRedshiftStep(ETLStep):
         super(LoadRedshiftStep, self).__init__(**kwargs)
 
         if depends_on is not None:
-            self.depends_on = depends_on
+            self._depends_on = depends_on
 
         # Create input node
         self._input_node = self.create_pipeline_object(

@@ -50,8 +50,8 @@ class ETLPipeline(object):
     """
     def __init__(self, name, frequency='one-time',
                  ec2_resource_terminate_after='24 Hours',
-                 delay=None, emr_cluster_config=None, load_min=None,
-                 load_hour=None, max_retries=DEFAULT_MAX_RETRIES):
+                 delay=None, emr_cluster_config=None, load_time=None,
+                 max_retries=DEFAULT_MAX_RETRIES):
         """Example of docstring on the __init__ method.
 
         The __init__ method may be documented in either the class level
@@ -70,6 +70,10 @@ class ETLPipeline(object):
             attr3 (int): Description of `attr3`.
 
         """
+        if load_time:
+            load_hour, load_min = [int(x) for x in load_time.split(':')]
+        else:
+            load_hour, load_min = [None, None]
 
         # Input variables
         self._name = name

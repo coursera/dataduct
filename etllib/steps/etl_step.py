@@ -48,7 +48,7 @@ class ETLStep(object):
         self.schedule = schedule
         self.resource = resource
         self.max_retries = max_retries
-        self.depends_on = list()
+        self._depends_on = list()
         self._input = input_node
         self._output = None
         self._objects = dict()
@@ -298,7 +298,7 @@ class ETLStep(object):
         Returns:
             result: dependent activities for this etl step
         """
-        return self.depends_on
+        return self._depends_on
 
     @property
     def maximum_retries(self):

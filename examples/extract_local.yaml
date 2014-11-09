@@ -1,11 +1,10 @@
 name : example_extract_local
 frequency : one-time
-production: true
 load_time: 01:00  # Hour:Min in UTC
 
 description : |
     This example uploads a local file to S3 with the extract_local step.
 
 steps:
--   type: extract_local
+-   type: extract-local
     path: resources/examples/test_table1.tsv

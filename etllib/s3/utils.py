@@ -16,8 +16,8 @@ def get_s3_bucket(bucket_name):
     Returns:
         bucket(boto.S3.bucket.Bucket): Boto S3 bucket object
     """
-
-    bucket = boto.s3.bucket.Bucket(boto.connect_s3(), bucket_name)
+    conn = boto.connect_s3()
+    bucket = boto.s3.bucket.Bucket(conn, bucket_name)
     return bucket
 
 
@@ -31,7 +31,7 @@ def read_from_s3(s3_path):
     """
     assert isinstance(s3_path, S3Path), 'input path should be of type S3Path'
 
-    bucket = get_s3_bucket(s3_path.backet)
+    bucket = get_s3_bucket(s3_path.bucket)
     key = bucket.get_key(s3_path.key)
 
     return key.get_contents_as_string()
@@ -48,7 +48,7 @@ def upload_to_s3(s3_path, file_name=None, file_text=None):
     assert isinstance(s3_path, S3Path), 'input path should be of type S3Path'
     assert any([file_name, file_text]), 'file_name or text should be given'
 
-    bucket = get_s3_bucket(s3_path.backet)
+    bucket = get_s3_bucket(s3_path.bucket)
     if s3_path.is_directory:
         key_name = os.path.join(s3_path.key, os.path.basename(file_name))
     else:

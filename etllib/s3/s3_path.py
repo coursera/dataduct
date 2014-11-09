@@ -8,28 +8,6 @@ from re import sub
 from ..utils.exceptions import ETLInputError
 
 
-def validate_inputs(key, bucket, uri):
-    """Checks the input params are correct by parsing key, bucket and uri
-
-    Args:
-        key (str): Key for the S3 path
-        bucket (str): Bucket of the key provided
-        uri (str): Complete uri of the S3 path
-
-    Raises:
-        ETLInputError: if the inputs aren't as expected
-
-    """
-    if key is not None and bucket is None:
-        raise ETLInputError('bucket should be specified if key is not none')
-    if key is None and bucket is not None:
-        raise ETLInputError('key should be specified if bucket is not none')
-    if key is not None and bucket is not None and uri is not None:
-        raise ETLInputError('key, bucket and uri can not all be provided')
-    if key is None and bucket is None and uri is None:
-        raise ETLInputError('uri or key & bucket should be provided')
-
-
 class S3Path(object):
     """S3 Path object that provides basic functions to interact with an S3 path
 
@@ -58,12 +36,18 @@ class S3Path(object):
 
         """
 
-        validate_inputs(key, bucket, uri)
+        if parent_dir and not isinstance(parent_dir, S3Path):
+            raise ETLInputError('parent_dir must be S3Path')
+        if parent_dir and not parent_dir.is_directory:
+            raise ETLInputError('parent_dir must be a directory')
 
         # Initialize all the values
         self.is_directory = is_directory
+        self.key = None
 
         if uri is not None:
+            if key or parent_dir:
+                raise ETLInputError('Key or parent_dir given with uri')
             self.bucket = findall(r's3://([^/]+)', uri)[0]
             self.key = sub(r's3://[^/]+/', '', uri.rstrip('/'))
         elif parent_dir is not None:
@@ -73,7 +57,7 @@ class S3Path(object):
             if key:
                 self.append(key, is_directory)
         else:
-            self.key = key
+            self.append(key, is_directory)
             self.bucket = bucket
 
     def append(self, new_key, is_directory=False):
@@ -108,7 +92,10 @@ class S3Path(object):
         new_key.append(file_name)
         new_key = join(*new_key)
 
-        self.key = new_key
+        if self.key:
+            self.key = join(self.key, new_key)
+        else:
+            self.key = new_key
         self.is_directory = is_directory
 
     @property
@@ -121,5 +108,7 @@ class S3Path(object):
         Returns:
             S3 URI
         """
-        return join('s3://', self.bucket, self.key) + \
-            ('/' if self.is_directory else '')
+        path = join('s3://', self.bucket, self.key)
+        if self.is_directory and not path.endswith('/'):
+            path += '/'
+        return  path

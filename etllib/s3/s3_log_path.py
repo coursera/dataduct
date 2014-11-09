@@ -20,6 +20,10 @@ class S3LogPath(S3Path):
     will add another backslash before adding subdirectories. These
     double backslashes break boto.
     """
+    def __init(self, **kwargs):
+        """Constructor for S3LogPath
+        """
+        super(S3LogPath, self).__init__(**kwargs)
 
     @property
     def uri(self):
@@ -29,4 +33,4 @@ class S3LogPath(S3Path):
         """
         if self.key is None:
             return None
-        return join('s3://', self.bucket, self.key)
+        return join('s3://', self.bucket, self.key).rstrip('/')

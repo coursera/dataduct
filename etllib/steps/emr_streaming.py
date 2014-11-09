@@ -69,7 +69,7 @@ class EMRStreamingStep(ETLStep):
         super(EMRStreamingStep, self).__init__(**kwargs)
 
         if depends_on is not None:
-            self.depends_on = depends_on
+            self._depends_on = depends_on
 
         if hadoop_params is None:
             hadoop_params = []

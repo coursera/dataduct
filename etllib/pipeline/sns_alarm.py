@@ -4,6 +4,7 @@ Pipeline object class for sns
 
 from .pipeline_object import PipelineObject
 from ..constants import DATA_PIPELINE_TOPIC_ARN
+from ..constants import DEFAULT_ROLE
 
 
 class SNSAlarm(PipelineObject):
@@ -40,6 +41,7 @@ class SNSAlarm(PipelineObject):
             id=id,
             type='SnsAlarm',
             topicArn=DATA_PIPELINE_TOPIC_ARN,
+            role=DEFAULT_ROLE,
             subject='Data Pipeline Failure',
             message=failure_message,
         )

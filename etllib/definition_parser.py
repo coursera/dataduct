@@ -31,9 +31,9 @@ def read_pipeline_definition(file_path):
         # remove the variables key from the pipeline definition
         # http://stackoverflow.com/questions/4150782/using-yaml-with-variables
         definition.pop('variables', None)
+        definition.pop('description', None)
 
     return definition
-
 
 def create_pipeline(definition):
     """Creates the pipeline and add the steps specified to the pipeline
@@ -45,5 +45,34 @@ def create_pipeline(definition):
 
     # Add the steps to the pipeline object
     etl.create_steps(steps)
+    print 'Created pipeline. Name: %s' % etl.name
+
     return etl
 
+def validate_pipeline(etl, force_overwrite=False):
+    """Validates the pipeline that was created
+    Args:
+        etl(EtlPipeline): pipeline object that needs to be validated
+        force_overwrite(bool): delete if a pipeline of same name exists
+    """
+    if force_overwrite:
+        etl.delete_if_exists()
+    etl.validate()
+    print 'Validated pipeline. Id: %s' % etl.pipeline.id
+
+def activate_pipeline(etl):
+    """Activate the pipeline that was created
+    Args:
+        etl(EtlPipeline): pipeline object that needs to be activated
+    """
+    etl.activate()
+    print 'Activated pipeline. Id: %s' % etl.pipeline.id
+
+
+if __name__ == '__main__':
+    definition = read_pipeline_definition('examples/extract_local.yaml')
+    print definition
+    etl1 = create_pipeline(definition)
+    print etl1
+    validate_pipeline(etl1, True)
+    activate_pipeline(etl1)
