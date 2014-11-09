@@ -18,6 +18,7 @@ class TransformStep(ETLStep):
                  output=None,
                  script_arguments=None,
                  additional_s3_files=None,
+                 depends_on=None,
                  **kwargs):
         """Constructor for the TransformStep class
 
@@ -33,6 +34,9 @@ class TransformStep(ETLStep):
             raise ETLInputError('Both command or script found')
 
         super(TransformStep, self).__init__(**kwargs)
+
+        if depends_on is not None:
+            self.depends_on = depends_on
 
         # Create output_node if not provided
         if self._output is None:
