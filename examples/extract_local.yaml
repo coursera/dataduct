@@ -7,4 +7,4 @@ description : |
 
 steps:
 -   type: extract-local
-    path: resources/examples/test_table1.tsv
+    path: examples/resources/test_table1.tsv
