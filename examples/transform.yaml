@@ -1,0 +1,15 @@
+name : example_transform
+frequency : one-time
+load_time: 01:00  # Hour:Min in UTC
+
+description : Example for the transform step
+
+steps:
+-   type: extract-local
+    path: examples/resources/test_table1.tsv
+
+-   type: transform
+    script: examples/scripts/s3_profiler.py
+    script_arguments:
+    -   "-i=${INPUT1_STAGING_DIR}"
+    -   "-o=${OUTPUT1_STAGING_DIR}"

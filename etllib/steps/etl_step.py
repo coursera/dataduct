@@ -52,6 +52,7 @@ class ETLStep(object):
         self._input = input_node
         self._output = None
         self._objects = dict()
+        self._required_steps = list()
 
         self._activities = list()
         self._input_node = input_node
@@ -69,12 +70,10 @@ class ETLStep(object):
 
         if isinstance(input_node, dict):
             # Merge the s3 nodes if there are multiple inputs
-            self._input_node, self.depends_on = self.merge_s3_nodes(input_node)
+            self._input_node, self._depends_on = self.merge_s3_nodes(input_node)
 
         if required_steps:
-            self._required_steps = self.add_required_steps(required_steps)
-        else:
-            self._required_steps = list()
+            self.add_required_steps(required_steps)
 
     def __str__(self):
         """Output the ETL step when typecasted to string"""
@@ -86,7 +85,6 @@ class ETLStep(object):
         Args:
             required_steps(list of ETLStep): dependencies of current step
         """
-
         self._required_steps.extend(required_steps)
 
         # Find all activities which need to be completed.
@@ -212,8 +210,7 @@ class ETLStep(object):
         if input_node.path().is_directory:
             uri = input_node.path().uri
         else:
-            base_uri = input_node.path().uri.split('/')[:-1]
-            uri = os.path.join(*base_uri)
+            uri = '/'.join(input_node.path().uri.split('/')[:-1])
 
         new_input_node = self.create_s3_data_node(
             s3_object=S3Path(uri=uri, is_directory=True))
