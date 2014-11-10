@@ -35,7 +35,6 @@ class PipelineObject(object):
         self._id = id
         self.fields = defaultdict(list)
 
-        # TODO: Check with Thomas about removing NONE values
         for key, value in kwargs.iteritems():
             if value is not None:
                 self[key] = value

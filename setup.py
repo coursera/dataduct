@@ -4,11 +4,17 @@ Setup file for installation of the etllib code
 from distutils.core import setup
 
 setup(
-    name='etllib',
-    version='0.0.1',
+    name='dataduct',
+    version='0.1.0',
     author='Coursera Inc.',
-    packages=['etllib'],
-    namespace_packages=['etllib'],
+    packages=[
+        'dataduct',
+        'dataduct.pipeline',
+        'dataduct.s3',
+        'dataduct.steps',
+        'dataduct.utils',
+    ],
+    namespace_packages=['dataduct'],
     include_package_data=True,
     url='http://www.coursera.org',
     long_description=open('README.rst').read(),
@@ -24,9 +30,6 @@ setup(
     ],
 )
 
-# TODO: change name
 # TODO: change description
 # TODO: change dependencies
-# TODO: Update packages
-# TODO: change version fix
 # TODO: change url from documentation
