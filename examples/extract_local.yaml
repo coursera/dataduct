@@ -3,7 +3,7 @@ frequency : one-time
 load_time: 01:00  # Hour:Min in UTC
 
 description : |
-    This example uploads a local file to S3 with the extract_local step.
+    This example uploads a local file to S3 with the extract-local step.
 
 steps:
 -   type: extract-local

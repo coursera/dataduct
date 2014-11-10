@@ -88,7 +88,7 @@ class PipelineObject(object):
         Args:
             key(str): Key of the item to be fetched
         """
-        self.fields.pop("key", None)
+        self.fields.pop(key, None)
 
     def __setitem__(self, key, value):
         """Set an key value field

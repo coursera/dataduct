@@ -69,7 +69,8 @@ class RedshiftCopyActivity(Activity):
             assert "." not in input_node['tableName'], \
                 "Using convention that table name is not fully qualified. " + \
                 "Provide the schema name separately from the table name."
+            table_name = input_node['tableName']
+            del input_node['tableName']
             input_node['tableName'] = "%s.%s" % (input_node['schemaName'],
-                                                 input_node['tableName'])
-
+                                                 table_name)
         super(RedshiftCopyActivity, self).__init__(**kwargs)

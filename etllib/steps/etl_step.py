@@ -135,6 +135,7 @@ class ETLStep(object):
             raise ETLInputError('s3_object must of type S3File or S3Path')
 
 
+        create_s3_path = False
         if s3_object is None or (isinstance(s3_object, S3File) and
                                  s3_object.s3_path is None):
             create_s3_path = True
