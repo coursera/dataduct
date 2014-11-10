@@ -7,7 +7,7 @@ from ..pipeline.redshift_copy_activity import RedshiftCopyActivity
 
 
 class LoadRedshiftStep(ETLStep):
-    """Extract Redshift Step class that helps load data into redshift
+    """Load Redshift Step class that helps load data into redshift
     """
 
     def __init__(self,
@@ -35,8 +35,8 @@ class LoadRedshiftStep(ETLStep):
         if depends_on is not None:
             self._depends_on = depends_on
 
-        # Create input node
-        self._input_node = self.create_pipeline_object(
+        # Create output node
+        self._output = self.create_pipeline_object(
             object_class=RedshiftNode,
             schedule=self.schedule,
             redshift_database=redshift_database,
@@ -51,8 +51,6 @@ class LoadRedshiftStep(ETLStep):
         if replace_invalid_char:
             command_options.append(
                 "ACCEPTINVCHARS AS '%s'" %replace_invalid_char)
-
-        self._output = self.create_s3_data_node()
 
         self.create_pipeline_object(
             object_class=RedshiftCopyActivity,

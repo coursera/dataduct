@@ -1,8 +1,6 @@
 """
 Base class for an etl step
 """
-import os
-
 from ..constants import DEFAULT_MAX_RETRIES
 from ..pipeline.activity import Activity
 from ..pipeline.copy_activity import CopyActivity

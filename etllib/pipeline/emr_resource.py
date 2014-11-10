@@ -14,7 +14,7 @@ from ..constants import DEFAULT_CLUSTER_AMI
 from ..constants import KEY_PAIR
 
 from .pipeline_object import PipelineObject
-from ..s3.s3_directory import S3Directory
+from ..s3.s3_log_path import S3LogPath
 from .schedule import Schedule
 from ..utils.exceptions import ETLInputError
 
@@ -63,9 +63,9 @@ class EmrResource(PipelineObject):
         if not isinstance(schedule, Schedule):
             raise ETLInputError(
                 'Input schedule must be of the type Schedule')
-        if not isinstance(s3_log_dir, S3Directory):
+        if not isinstance(s3_log_dir, S3LogPath):
             raise ETLInputError(
-                's3 log directory must be of type S3Directory')
+                's3 log directory must be of type S3LogPath')
 
         super(EmrResource, self).__init__(
             id=id,

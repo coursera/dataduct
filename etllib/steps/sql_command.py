@@ -14,7 +14,7 @@ class SqlCommandStep(ETLStep):
 
     def __init__(self,
                  redshift_database,
-                 script,
+                 script=None,
                  script_arguments=None,
                  queue=None,
                  command=None,
@@ -49,7 +49,7 @@ class SqlCommandStep(ETLStep):
             max_retries=self.max_retries,
             resource=self.resource,
             schedule=self.schedule,
-            redshift_database=redshift_database,
+            database=redshift_database,
             script_arguments=script_arguments,
             depends_on=self.depends_on,
             script=script,
