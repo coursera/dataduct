@@ -1,12 +1,29 @@
 """
 ETL step wrapper to extract data from RDS to S3
 """
+from re import findall
+
 from .etl_step import ETLStep
+from ..constants import MYSQL_CONFIG
 from ..pipeline.copy_activity import CopyActivity
 from ..pipeline.mysql_node import MysqlNode
+from ..pipeline.pipeline_object import PipelineObject
 from ..pipeline.shell_command_activity import ShellCommandActivity
-from ..s3.s3_file import S3File
+from ..utils.helpers import exactly_one
 from ..utils.exceptions import ETLInputError
+
+
+def guess_input_tables(sql):
+    """Guess input tables from the sql query
+    Returns:
+        results(list of str): tables which are used in the sql statement
+    """
+    results = findall(r'from ([A-Za-z0-9._]+)', sql)
+    results.extend(findall(r'FROM ([A-Za-z0-9._]+)', sql))
+    results.extend(findall(r'join ([A-Za-z0-9._]+)', sql))
+    results.extend(findall(r'JOIN ([A-Za-z0-9._]+)', sql))
+    return list(set(results))
+
 
 class ExtractRdsStep(ETLStep):
     """Extract Redshift Step class that helps get data out of redshift
@@ -28,31 +45,43 @@ class ExtractRdsStep(ETLStep):
             redshift_database(RedshiftDatabase): database to excute the query
             **kwargs(optional): Keyword arguments directly passed to base class
         """
+        if not exactly_one(table, sql):
+            raise ETLInputError('Only one of table, sql needed')
+
         super(ExtractRdsStep, self).__init__(**kwargs)
 
         if depends_on is not None:
             self._depends_on = depends_on
 
         if table:
-            script = S3File(text='select * from %s;' % table)
+            sql = 'select * from %s;' % table
         elif sql:
-            script = S3File(path=sql)
+            table = guess_input_tables(sql)
         else:
             raise ETLInputError('Provide a sql statement or a table name')
+
+        host = MYSQL_CONFIG[host_name]['HOST']
+        user = MYSQL_CONFIG[host_name]['USERNAME']
+        password = MYSQL_CONFIG[host_name]['PASSWORD']
 
         input_node = self.create_pipeline_object(
             object_class=MysqlNode,
             schedule=self.schedule,
-            host=host_name,
+            host=host,
             database=database,
             table=table,
-            user=None,
-            password=None,
-            sql=script,
+            username=user,
+            password=password,
+            sql=sql,
         )
-        # TODO: Config for username and password
 
-        intermediate_node = self.create_s3_data_node()
+
+        s3_format = self.create_pipeline_object(
+            object_class=PipelineObject,
+            type='TSV'
+        )
+
+        intermediate_node = self.create_s3_data_node(format=s3_format)
 
         self.create_pipeline_object(
             object_class=CopyActivity,

@@ -22,6 +22,7 @@ class S3Node(PipelineObject):
                  schedule,
                  s3_path,
                  precondition=None,
+                 format=None,
                  **kwargs):
         """Constructor for the S3Node class
 
@@ -61,6 +62,7 @@ class S3Node(PipelineObject):
             retryDelay=RETRY_DELAY,
             type='S3DataNode',
             schedule=schedule,
+            dataFormat=format,
             precondition=precondition,
             **additional_args
         )

@@ -38,7 +38,7 @@ class MysqlNode(PipelineObject):
 
         kwargs = {
             'id': id,
-            'type': 'MySqlDataNode',
+            'type': 'SqlDataNode',
             'schedule': schedule,
             'connectionString': connection_string,
             'username': username,

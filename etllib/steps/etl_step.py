@@ -56,6 +56,11 @@ class ETLStep(object):
         self._activities = list()
         self._input_node = input_node
 
+        if isinstance(input_node, list):
+            if len(input_node) == 0:
+                input_node = None
+            else:
+                raise ETLInputError('Use dict format for input nodes')
 
         # Validate inputs
         if input_node is not None and not (isinstance(input_node, S3Node) or
