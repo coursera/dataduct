@@ -1,0 +1,55 @@
+"""
+Constants that are used across the datapipeline library
+"""
+
+# Ec2 Config
+DEFAULT_ROLE = 'FILL_ME_IN'
+DEFAULT_RESOURCE_ROLE = 'FILL_ME_IN'
+DEFAULT_EC2_INSTANCE_TYPE = 'm1.large'
+ETL_AMI = 'FILL_ME_IN'
+KEY_PAIR = 'FILL_ME_IN'
+SECURITY_GROUP = 'FILL_ME_IN'
+
+# Emr Config
+DEFAULT_NUM_CORE_INSTANCES = 3
+DEFAULT_CORE_INSTANCE_TYPE = 'm1.large'
+DEFAULT_TASK_INSTANCE_BID_PRICE = None
+DEFAULT_TASK_INSTANCE_TYPE = 'm1.large'
+DEFAULT_MASTER_INSTANCE_TYPE = 'm1.large'
+DEFAULT_CLUSTER_TIMEOUT = '6 Hours'
+DEFAULT_HADOOP_VERSION = None
+DEFAULT_HIVE_VERSION = None
+DEFAULT_PIG_VERSION = None
+DEFAULT_CLUSTER_AMI = '2.4.7'
+
+# Redshift
+REDSHIFT_DATABASE_NAME = 'FILL_ME_IN'
+REDSHIFT_CLUSTER_ID = 'FILL_ME_IN'
+REDSHIFT_USERNAME = 'FILL_ME_IN'
+REDSHIFT_PASSWORD = 'FILL_ME_IN'
+
+MYSQL_CONFIG = {
+    'FILL_ME_IN': {
+        'HOST': 'FILL_ME_IN',
+        'USERNAME': 'FILL_ME_IN',
+        'PASSWORD': 'FILL_ME_IN'
+    }
+}
+
+# ETL
+RETRY_DELAY = '10 Minutes'
+DEFAULT_MAX_RETRIES = 0
+ETL_BUCKET = 'FILL_ME_IN'
+DATA_PIPELINE_TOPIC_ARN = 'FILL_ME_IN'
+DAILY_LOAD_TIME = 1  # run at 1AM UTC
+
+# Bootstrap
+BOOTSTRAP_STEPS_DEFINITION = [
+    {
+        'type': 'transform',
+        'input_node': [],
+        'command': 'whoami >> ${OUTPUT1_STAGING_DIR}/output.txt',
+        'resource': 'FILL_ME_IN',
+        'name': 'bootstrap_transform'
+    }
+]
