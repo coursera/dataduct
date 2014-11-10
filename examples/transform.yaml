@@ -11,5 +11,5 @@ steps:
 -   type: transform
     script: examples/scripts/s3_profiler.py
     script_arguments:
-    -   "-i=${INPUT1_STAGING_DIR}"
-    -   "-o=${OUTPUT1_STAGING_DIR}"
+    -   --input=INPUT1_STAGING_DIR
+    -   --output=OUTPUT1_STAGING_DIR

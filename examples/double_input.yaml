@@ -19,7 +19,7 @@ steps:
         step1: script
         step2: directory
     script_arguments:
-    -   "-i=${INPUT1_STAGING_DIR}"
-    -   "-o=${OUTPUT1_STAGING_DIR}"
-    -   "script/"
-    -   "directory/"
+    -   --input=INPUT1_STAGING_DIR
+    -   --output=OUTPUT1_STAGING_DIR
+    -   script/
+    -   directory/

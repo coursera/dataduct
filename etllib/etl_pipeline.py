@@ -49,7 +49,7 @@ class ETLPipeline(object):
 
     """
     def __init__(self, name, frequency='one-time',
-                 ec2_resource_terminate_after='24 Hours',
+                 ec2_resource_terminate_after='6 Hours',
                  delay=None, emr_cluster_config=None, load_time=None,
                  max_retries=DEFAULT_MAX_RETRIES):
         """Example of docstring on the __init__ method.
@@ -157,6 +157,7 @@ class ETLPipeline(object):
             load_hour=self.load_hour,
             load_min=self.load_min,
         )
+        # self.sns = None -> Used for testing
         self.sns = self.create_pipeline_object(
             object_class=SNSAlarm,
             pipeline_name=self.name
@@ -341,22 +342,21 @@ class ETLPipeline(object):
 
         elif type == 'extract-rds':
             step_class = ExtractRdsStep
-            step_args.pop('input_node')
+            step_args.pop('input_node', None)
 
         elif type == 'extract-redshift':
             step_class = ExtractRedshiftStep
             step_args['redshift_database'] = self.redshift_database
-            step_args.pop('input_node')
+            step_args.pop('input_node', None)
 
         elif type == 'sql-command':
             step_class = SqlCommandStep
             step_args['redshift_database'] = self.redshift_database
-            step_args.pop('input_node')
+            step_args.pop('input_node', None)
 
         elif type == 'emr-streaming':
             step_class = EMRStreamingStep
-            step_args.pop('input_node')
-            step_args['resource'] = self._emr_cluster
+            step_args['resource'] = self.emr_cluster
 
         elif type == 'load-redshift':
             step_class = LoadRedshiftStep
@@ -558,7 +558,7 @@ class ETLPipeline(object):
 
         step_params = BOOTSTRAP_STEPS_DEFINITION
         for step in step_params:
-            step['name'] += resource_type  # Append type for unique names
+            step['name'] += '_' + resource_type  # Append type for unique names
             if 'resource' in step:
                 step['resource'] = resource
 

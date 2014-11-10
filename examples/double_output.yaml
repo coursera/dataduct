@@ -36,6 +36,6 @@ steps:
     input_node:
         step2_b : output1
     script_arguments:
-    -   "-i=${INPUT1_STAGING_DIR}"
-    -   "-o=${OUTPUT1_STAGING_DIR}"
+    -   --input=INPUT1_STAGING_DIR
+    -   --output=OUTPUT1_STAGING_DIR
     -   -f

@@ -67,12 +67,3 @@ def activate_pipeline(etl):
     """
     etl.activate()
     print 'Activated pipeline. Id: %s' % etl.pipeline.id
-
-
-if __name__ == '__main__':
-    definition = read_pipeline_definition('examples/extract_local.yaml')
-    print definition
-    etl1 = create_pipeline(definition)
-    print etl1
-    validate_pipeline(etl1, True)
-    activate_pipeline(etl1)
