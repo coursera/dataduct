@@ -7,7 +7,7 @@ pipeline objects.
 
 **Documentation and Details**
 
-Documnetation and more details can be found at https://github.com/coursera/dataduct
+Documentation and more details can be found at https://github.com/coursera/dataduct
 
 **License**
 
