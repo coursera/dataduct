@@ -1,29 +1,15 @@
-ETL
------------
+Dataduct
+----------
+Dataduct is a wrapper built on top of AWS Datapipeline which makes it easy to
+create ETL jobs. All jobs can be specified as a series of steps in a YAML file
+and would automatically be translated into datapipeline with appropriate
+pipeline objects.
 
-ETL -> Add badges
+**Documentation and Details**
 
-About
------
+Documnetation and more details can be found at https://github.com/coursera/dataduct
 
-This fixes ALL the problems possible in using datapipeline
-
-Website
--------
-
-https://github.com/coursera/etl
-
-
-Dependencies
-------------
-
--  Setuptools
--  Sphinx
--  Boto
-
-
-License
--------
+**License**
 
 Copyright [2014] [Coursera]
 

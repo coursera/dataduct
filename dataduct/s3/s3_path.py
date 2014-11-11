@@ -78,7 +78,7 @@ class S3Path(object):
         # Remove duplicate, leading, and trailing '/'
         new_key = [a for a in new_key.split("/") if a != ""]
 
-        # TODO: AWS prevents us from using periods in paths
+        # AWS prevents us from using periods in paths
         # Substitute them with '_'
         if is_directory:
             directory_path = new_key
