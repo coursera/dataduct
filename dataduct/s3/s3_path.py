@@ -105,6 +105,7 @@ class S3Path(object):
 
         Note:
             Note that if there is a directory, the URI is appended a '/'
+
         Returns:
             S3 URI
         """

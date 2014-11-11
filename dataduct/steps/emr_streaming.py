@@ -113,8 +113,10 @@ class EMRStreamingStep(ETLStep):
 
     def merge_s3_nodes(self, input_nodes):
         """Override the merge S3Node case for EMR Streaming Step
+
         Args:
             input_nodes(dict): Map of the form {'node_name': node}
+
         Returns:
             output_node(list of S3Node): list of input nodes
             depends_on(list): Empty list

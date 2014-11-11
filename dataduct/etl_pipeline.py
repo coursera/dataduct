@@ -113,6 +113,7 @@ class ETLPipeline(object):
 
     def __str__(self):
         """Formatted output when printing the pipeline object
+
         Returns:
             output(str): Formatted string output
         """
@@ -128,8 +129,8 @@ class ETLPipeline(object):
             **kwargs: keyword arguments to be passed to object class
 
         Returns:
-            new_object(PipelineObject): Creates object based on class.
-                Name of object is created on its type and index if not provided
+            new_object(PipelineObject): Creates object based on class. Name of
+            object is created on its type and index if not provided
         """
         instance_count = sum([1 for o in self._base_objects.values()
                               if isinstance(o, object_class)])
@@ -187,8 +188,10 @@ class ETLPipeline(object):
 
     def _s3_uri(self, data_type):
         """Get the S3 location for various data associated with the pipeline
+
         Args:
             data_type(enum of str): data whose s3 location needs to be fetched
+
         Returns:
             s3_path(S3Path): S3 location of directory of the given data type
         """
@@ -210,6 +213,7 @@ class ETLPipeline(object):
     @property
     def s3_log_dir(self):
         """Fetch the S3 log directory
+
         Returns:
             s3_dir(S3Directory): Directory where s3 log will be stored.
         """
@@ -218,6 +222,7 @@ class ETLPipeline(object):
     @property
     def s3_data_dir(self):
         """Fetch the S3 data directory
+
         Returns:
             s3_dir(S3Directory): Directory where s3 data will be stored.
         """
@@ -226,6 +231,7 @@ class ETLPipeline(object):
     @property
     def s3_source_dir(self):
         """Fetch the S3 src directory
+
         Returns:
             s3_dir(S3Directory): Directory where s3 src will be stored.
         """
@@ -238,7 +244,8 @@ class ETLPipeline(object):
         Note:
             This will create the object if it doesn't exist
 
-        Returns: lazily-constructed ec2_resource
+        Returns:
+            ec2_resource(Ec2Resource): lazily-constructed ec2_resource
         """
         if not self._ec2_resource:
             self._ec2_resource = self.create_pipeline_object(
@@ -258,7 +265,8 @@ class ETLPipeline(object):
         Note:
             This will create the object if it doesn't exist
 
-        Returns: lazily-constructed emr_resource
+        Returns:
+            emr_resource(EmrResource): lazily-constructed emr_resource
         """
         if not self._emr_cluster:
             # Process the boostrap input
@@ -295,7 +303,8 @@ class ETLPipeline(object):
         Note:
             This will create the object if it doesn't exist
 
-        Returns: lazily-constructed redshift database object
+        Returns:
+            redshift_database(Object): lazily-constructed redshift database
         """
         if not self._redshift_database:
             self._redshift_database = self.create_pipeline_object(
@@ -305,11 +314,13 @@ class ETLPipeline(object):
 
     def step(self, step_id):
         """Fetch a single step from the pipeline
+
         Args:
             step_id(str): id of the step to be fetched
+
         Returns:
             step(ETLStep): Step matching the step_id.
-                If not found, None will be returned
+            If not found, None will be returned
         """
         return self._steps.get(step_id, None)
 
@@ -373,6 +384,9 @@ class ETLPipeline(object):
         For steps which may take s3 as input, check whether they require
         multiple inputs. These inputs will be represented as a dictionary
         mapping step-names to filenames used in that step. E.g.
+
+        ::
+
             {
                 "step1": "eventing_activity_table",
                 "step2": "activity_type_table"
@@ -380,6 +394,9 @@ class ETLPipeline(object):
 
         When this is the case, we translate this to a dictionary in the
         following form, and pass that as the 'input_form':
+
+        ::
+
             {
                 "eventing_activity_table": [node for step1],
                 "activity_type_table": [node for step2]
@@ -486,6 +503,7 @@ class ETLPipeline(object):
 
     def add_step(self, step, is_bootstrap=False):
         """Add a step to the pipeline
+
         Args:
             step(ETLStep): Step object that should be added to the pipeline
             is_bootstrap(bool): flag indicating bootstrap steps
@@ -513,6 +531,7 @@ class ETLPipeline(object):
         Args:
             steps_params(list of dict): List of dictionary of step params
             is_bootstrap(bool): flag indicating bootstrap steps
+
         Returns:
             steps(list of ETLStep): list of etl step objects
         """
@@ -568,9 +587,10 @@ class ETLPipeline(object):
 
     def pipeline_objects(self):
         """Get all pipeline objects associated with the ETL
+
         Returns:
             result(list of PipelineObject): All steps related to the ETL
-                i.e. all base objects as well as ones owned by steps
+            i.e. all base objects as well as ones owned by steps
         """
         result = self._base_objects.values()
         # Add all steps owned by the ETL steps
@@ -590,6 +610,7 @@ class ETLPipeline(object):
 
     def s3_files(self):
         """Get all s3 files associated with the ETL
+
         Returns:
             result(list of s3files): All s3files related to the ETL
         """

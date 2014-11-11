@@ -70,6 +70,7 @@ class S3Node(PipelineObject):
 
     def path(self):
         """Get the s3_path associated with the S3 data node
+
         Returns:
             s3_path(S3Path): The s3 path of the node can a directory or file
         """

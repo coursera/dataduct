@@ -15,9 +15,11 @@ class ETLStep(object):
 
     An ETL Step is an abstraction over the set of each database object. It
     represents a chunk of objects having the following attributes:
-        - input
-        - activities
-        - output
+
+    -  input
+    -  activities
+    -  output
+
     Given the input parameters, the ETL Step is responsible for creating all
     necessary AWS pipeline objects, defining names for such objects, and
     defining s3 URI's for all dependent files.
@@ -177,8 +179,10 @@ class ETLStep(object):
 
     def create_script(self, s3_object):
         """Set the s3 path for s3 objects with the s3_source_dir
+
         Args:
             s3_object(S3File): S3file for which the source directory is set
+
         Returns:
             s3_object(S3File): S3File after the path is set
         """
@@ -270,13 +274,15 @@ class ETLStep(object):
             result: output node for this etl step
 
         Note:
-            An output S3 node, or multiple s3 nodes. If this step produces
-            no s3 nodes, there will be no output.
+            An output S3 node, or multiple s3 nodes. If this step produces no s3
+            nodes, there will be no output. For steps producing s3 output, note
+            that they may produce multiple output nodes. These nodes will be
+            defined in a list of output directories (specified in the
+            load\_definition) to the node. For instance, the step defined
+            as follows:
 
-            For steps producing s3 output, note that they may produce multiple
-            output nodes. These nodes will be defined in a list of output
-            directories (specified in the load_definition) to the node. For
-            instance, the step defined as follows:
+            ::
+
                 {
                     ...,
                     "output": [
@@ -284,7 +290,11 @@ class ETLStep(object):
                         "output2"
                     ]
                 }
+
             will have output:
+
+            ::
+
                 {
                     "output1": [s3 node pointing to .../output_1]
                     "output2": [s3 node pointing to .../output_2]
