@@ -2,6 +2,7 @@
 CHANGES.md
 CONTRIBUTING.md
 LICENSE.md
+README.rst
 setup.py
 bin/README.md
 dataduct/__init__.py
