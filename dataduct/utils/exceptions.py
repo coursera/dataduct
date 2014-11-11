@@ -2,7 +2,6 @@
 Exceptions for etl_lib
 """
 
-#TODO : Change names as required
 
 class ETLInputError(Exception):
     """Error raised when function input is incorrect.

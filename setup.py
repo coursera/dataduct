@@ -16,20 +16,29 @@ setup(
     ],
     namespace_packages=['dataduct'],
     include_package_data=True,
-    url='http://www.coursera.org',
+    url='http://www.coursera.org',  # TODO: Update URL
     long_description=open('README.rst').read(),
     author_email='data-infra@coursera.org',
     license='Apache License 2.0',
-    description='Fix everything about datapipeline',
+    description='DataPipeline for Humans.',
     install_requires=[
-        'setuptools',
+        'boto>=2.32'
     ],
     classifiers=[
-        'Topic :: Utilities',
+        'Development Status :: 5 - Production/Stable',
+        'Intended Audience :: Developers',
         'License :: OSI Approved :: Apache Software License',
+        'Natural Language :: English',
+        'Operating System :: MacOS',
+        'Operating System :: MacOS :: MacOS 9',
+        'Operating System :: MacOS :: MacOS X',
+        'Operating System :: Unix',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Unix Shell',
+        'Topic :: Database',
+        'Topic :: Scientific/Engineering',
+        'Topic :: Scientific/Engineering :: Information Analysis',
+        'Topic :: Scientific/Engineering :: Visualization',
+        'Topic :: Utilities',
     ],
 )
-
-# TODO: change description
-# TODO: change dependencies
-# TODO: change url from documentation
