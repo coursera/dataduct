@@ -22,7 +22,8 @@ setup(
     license='Apache License 2.0',
     description='DataPipeline for Humans.',
     install_requires=[
-        'boto>=2.32'
+        'boto>=2.32',
+        'yaml'
     ],
     classifiers=[
         'Development Status :: 5 - Production/Stable',
