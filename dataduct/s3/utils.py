@@ -13,6 +13,7 @@ def get_s3_bucket(bucket_name):
 
     Args:
         bucket_name(str): Name of the bucket to be read
+
     Returns:
         bucket(boto.S3.bucket.Bucket): Boto S3 bucket object
     """
@@ -26,6 +27,7 @@ def read_from_s3(s3_path):
 
     Args:
         s3_path(S3Path): Input path of the file to be read
+
     Returns:
         results(str): Contents of the file as a string
     """

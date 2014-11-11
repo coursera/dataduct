@@ -15,6 +15,7 @@ from ..utils.exceptions import ETLInputError
 
 def guess_input_tables(sql):
     """Guess input tables from the sql query
+
     Returns:
         results(list of str): tables which are used in the sql statement
     """

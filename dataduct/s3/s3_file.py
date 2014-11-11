@@ -87,10 +87,11 @@ class S3File(object):
     @s3_path.setter
     def s3_path(self, s3_path):
         """Set the S3 path for the file
+
         Args:
             s3_path(S3Path): If the path is a directory, a
-                name will be assigned based on the path variable.
-                If there is no path, the name "file" will be applied.
+            name will be assigned based on the path variable.
+            If there is no path, the name "file" will be applied.
         """
 
         assert isinstance(s3_path, S3Path), 'input path must be of type S3Path'

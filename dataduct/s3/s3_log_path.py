@@ -13,6 +13,7 @@ class S3LogPath(S3Path):
     prefixes. For instance, the former prefix includes the latter
     unless there is a backslash:
 
+    ::
         s3:://coursera-datapipeline/dev
         s3:://coursera-datapipeline/dev_log_dir
 
@@ -28,6 +29,7 @@ class S3LogPath(S3Path):
     @property
     def uri(self):
         """Get the log directory path
+
         Returns:
             s3_uri(str): s3_log path without the trailing '/'
         """

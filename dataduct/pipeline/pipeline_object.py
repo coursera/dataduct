@@ -45,6 +45,7 @@ class PipelineObject(object):
     @property
     def id(self):
         """Fetch the id of the pipeline object
+
         Returns:
             id(str): id of the pipeline object
         """
@@ -53,6 +54,7 @@ class PipelineObject(object):
     @property
     def s3_files(self):
         """Fetch the list of files associated with the pipeline object
+
         Returns:
             result(list of S3Files): List of files to be uploaded to s3
         """
@@ -65,10 +67,13 @@ class PipelineObject(object):
 
     def __getitem__(self, key):
         """Fetch the items associated with a key
+
         Note: This value will be a list if there are multiple values
             associated with one key. Otherwise, it will be the singleton item.
+
         Args:
             key(str): Key of the item to be fetched
+
         Returns:
             result(list or singleton): value(s) associated with the key
         """
@@ -84,6 +89,7 @@ class PipelineObject(object):
 
     def __delitem__(self, key):
         """Delete the key from object fields
+
         Args:
             key(str): Key of the item to be fetched
         """
@@ -91,6 +97,7 @@ class PipelineObject(object):
 
     def __setitem__(self, key, value):
         """Set an key value field
+
         Args:
             key(str): Key of the item to be fetched
             value: Value of the item to be fetched
@@ -120,6 +127,7 @@ class PipelineObject(object):
 
     def aws_format(self):
         """Create the aws readable format of object
+
         Returns:
             result: The AWS-readable dict format of the object
         """

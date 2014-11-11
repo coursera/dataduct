@@ -37,6 +37,7 @@ def read_pipeline_definition(file_path):
 
 def create_pipeline(definition):
     """Creates the pipeline and add the steps specified to the pipeline
+
     Args:
         definition(dict): YAML definition parsed from the datapipeline
     """
@@ -51,6 +52,7 @@ def create_pipeline(definition):
 
 def validate_pipeline(etl, force_overwrite=False):
     """Validates the pipeline that was created
+
     Args:
         etl(EtlPipeline): pipeline object that needs to be validated
         force_overwrite(bool): delete if a pipeline of same name exists
@@ -62,6 +64,7 @@ def validate_pipeline(etl, force_overwrite=False):
 
 def activate_pipeline(etl):
     """Activate the pipeline that was created
+
     Args:
         etl(EtlPipeline): pipeline object that needs to be activated
     """

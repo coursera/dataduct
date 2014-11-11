@@ -4,6 +4,7 @@ Shared utility functions
 
 def exactly_one(*args):
     """Asserts one of the arguments is not None
+
     Returns:
         result(bool): True if exactly one of the arguments is not None
     """
