@@ -16,7 +16,7 @@ setup(
     ],
     namespace_packages=['dataduct'],
     include_package_data=True,
-    url='http://www.coursera.org',  # TODO: Update URL
+    url='https://github.com/coursera/dataduct',  # TODO: Update URL
     long_description=open('README.rst').read(),
     author_email='data-infra@coursera.org',
     license='Apache License 2.0',
