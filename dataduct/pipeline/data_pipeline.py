@@ -104,7 +104,7 @@ class DataPipeline(object):
 
         Returns:
             result(dict of list): Dictionary mapping run date to a list of
-                pipeline instances combined per date
+            pipeline instances combined per date
         """
         # Get instances associated with the pipeline id
         instances = list_pipeline_instances(self.pipeline_id, self.conn)

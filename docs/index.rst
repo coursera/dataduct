@@ -14,10 +14,10 @@ pipeline objects.
 Contents:
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    installation
-   etl
+   creating_an_etl
    dataduct
 
 Indices and tables

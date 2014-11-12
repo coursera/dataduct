@@ -109,7 +109,7 @@ class ETLStep(object):
 
         Returns:
             new_object(PipelineObject): Creates object based on class.
-                Name of object is created on its type and index if not provided
+            Name of object is created on its type and index if not provided
         """
         instance_count = sum([1 for o in self._objects.values()
                               if isinstance(o, object_class)])
@@ -168,7 +168,7 @@ class ETLStep(object):
 
         Args:
             output_node(dict of str) Base node from which the other
-                directories are created
+            directories are created
             sub_dirs(list of str): Name of the subdirectories
 
         Returns:
@@ -282,7 +282,7 @@ class ETLStep(object):
             nodes, there will be no output. For steps producing s3 output, note
             that they may produce multiple output nodes. These nodes will be
             defined in a list of output directories (specified in the
-            load\_definition) to the node. For instance, the step defined
+            load-definition) to the node. For instance, the step defined
             as follows:
 
             ::

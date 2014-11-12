@@ -14,11 +14,9 @@ class PipelineObject(object):
 
     The pipeline object has a one-to-one mapping with the AWS pipeline objects,
     which are described at the following url:
-        http://docs.aws.amazon.com/datapipeline/latest/
-            DeveloperGuide/dp-pipeline-objects.html
+    http://docs.aws.amazon.com/datapipeline/latest/DeveloperGuide/dp-pipeline-objects.html
     The pipeline object acts much like a dictionary (with similar getters and
     setters) which provides access to all aws attributes.
-
     """
     def __init__(self, id, **kwargs):
         """Constructor for the pipeline object
