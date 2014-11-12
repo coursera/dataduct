@@ -3,12 +3,15 @@ Pipeline object class for SqlActivity
 """
 
 from .activity import Activity
+from ..config import Config
 from .schedule import Schedule
 from ..s3.s3_file import S3File
 
-from ..constants import DEFAULT_MAX_RETRIES
-from ..constants import RETRY_DELAY
 from ..utils.exceptions import ETLInputError
+
+config = Config()
+DEFAULT_MAX_RETRIES = config.etl['DEFAULT_MAX_RETRIES']
+RETRY_DELAY = config.etl['RETRY_DELAY']
 
 
 class SqlActivity(Activity):

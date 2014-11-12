@@ -1,13 +1,17 @@
 """
 Base class for an etl step
 """
-from ..constants import DEFAULT_MAX_RETRIES
+
+from ..config import Config
 from ..pipeline.activity import Activity
 from ..pipeline.copy_activity import CopyActivity
 from ..pipeline.s3_node import S3Node
 from ..s3.s3_path import S3Path
 from ..s3.s3_file import S3File
 from ..utils.exceptions import ETLInputError
+
+config = Config()
+DEFAULT_MAX_RETRIES = config.etl['DEFAULT_MAX_RETRIES']
 
 
 class ETLStep(object):

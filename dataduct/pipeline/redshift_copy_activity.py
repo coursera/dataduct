@@ -3,11 +3,14 @@ Pipeline object class for RedshiftCopyActivity
 """
 
 from .activity import Activity
+from ..config import Config
 from .redshift_node import RedshiftNode
 from .schedule import Schedule
-from ..constants import DEFAULT_MAX_RETRIES
-from ..constants import RETRY_DELAY
 from ..utils.exceptions import ETLInputError
+
+config = Config()
+DEFAULT_MAX_RETRIES = config.etl['DEFAULT_MAX_RETRIES']
+RETRY_DELAY = config.etl['RETRY_DELAY']
 
 
 class RedshiftCopyActivity(Activity):

@@ -5,9 +5,12 @@ Pipeline object class for CopyActivity
 from .activity import Activity
 from .schedule import Schedule
 
-from ..constants import DEFAULT_MAX_RETRIES
-from ..constants import RETRY_DELAY
+from ..config import Config
 from ..utils.exceptions import ETLInputError
+
+config = Config()
+DEFAULT_MAX_RETRIES = config.ec2['DEFAULT_MAX_RETRIES']
+RETRY_DELAY = config.ec2['RETRY_DELAY']
 
 
 class CopyActivity(Activity):

@@ -3,14 +3,17 @@ ETL step wrapper to extract data from RDS to S3
 """
 from re import findall
 
+from ..config import Config
 from .etl_step import ETLStep
-from ..constants import MYSQL_CONFIG
 from ..pipeline.copy_activity import CopyActivity
 from ..pipeline.mysql_node import MysqlNode
 from ..pipeline.pipeline_object import PipelineObject
 from ..pipeline.shell_command_activity import ShellCommandActivity
 from ..utils.helpers import exactly_one
 from ..utils.exceptions import ETLInputError
+
+config = Config()
+MYSQL_CONFIG = config.ec2['MYSQL_CONFIG']
 
 
 def guess_input_tables(sql):
@@ -76,7 +79,6 @@ class ExtractRdsStep(ETLStep):
             sql=sql,
         )
 
-
         s3_format = self.create_pipeline_object(
             object_class=PipelineObject,
             type='TSV'
@@ -103,8 +105,7 @@ class ExtractRdsStep(ETLStep):
                             "| sed 's/\\\\\\\\n/NULL/g'",  # replace \\n
                             # get rid of control characters
                             "| tr -d '\\\\000'",
-                            "> ${OUTPUT1_STAGING_DIR}/part-0"]
-                          )
+                            "> ${OUTPUT1_STAGING_DIR}/part-0"])
 
         self.create_pipeline_object(
             object_class=ShellCommandActivity,
