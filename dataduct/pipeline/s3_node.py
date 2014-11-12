@@ -2,15 +2,18 @@
 Pipeline object class for S3Node
 """
 
+from ..config import Config
 from .pipeline_object import PipelineObject
 from .precondition import Precondition
 from .schedule import Schedule
 
-from ..constants import RETRY_DELAY
 from ..s3.s3_path import S3Path
 from ..s3.s3_file import S3File
 from ..s3.s3_directory import S3Directory
 from ..utils.exceptions import ETLInputError
+
+config = Config()
+RETRY_DELAY = config.etl['RETRY_DELAY']
 
 
 class S3Node(PipelineObject):

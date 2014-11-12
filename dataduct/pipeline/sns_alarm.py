@@ -2,9 +2,12 @@
 Pipeline object class for sns
 """
 
+from ..config import Config
 from .pipeline_object import PipelineObject
-from ..constants import DATA_PIPELINE_TOPIC_ARN
-from ..constants import DEFAULT_ROLE
+
+config = Config()
+DATA_PIPELINE_TOPIC_ARN = config.etl['DATA_PIPELINE_TOPIC_ARN']
+DEFAULT_ROLE = config.ec2['DEFAULT_ROLE']
 
 
 class SNSAlarm(PipelineObject):

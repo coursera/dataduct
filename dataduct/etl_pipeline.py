@@ -4,9 +4,7 @@ Class definition for DataPipeline
 from datetime import datetime
 import yaml
 
-from .constants import DEFAULT_MAX_RETRIES
-from .constants import ETL_BUCKET
-from .constants import BOOTSTRAP_STEPS_DEFINITION
+from .config import Config
 
 from .pipeline.default_object import DefaultObject
 from .pipeline.data_pipeline import DataPipeline
@@ -33,6 +31,10 @@ from .s3.s3_log_path import S3LogPath
 
 from .utils.exceptions import ETLInputError
 
+config = Config()
+DEFAULT_MAX_RETRIES = config.etl['DEFAULT_MAX_RETRIES']
+ETL_BUCKET = config.etl['ETL_BUCKET']
+BOOTSTRAP_STEPS_DEFINITION = config.bootstrap
 
 EC2_RESOURCE_STR = 'ec2'
 EMR_CLUSTER_STR = 'emr'
@@ -101,7 +103,6 @@ class ETLPipeline(object):
         self._steps = dict()
         self._bootstrap_steps = list()
 
-
         # Base objects
         self.schedule = None
         self.sns = None
@@ -117,7 +118,7 @@ class ETLPipeline(object):
         Returns:
             output(str): Formatted string output
         """
-        output = ['%s : %s : %s' % (i, key, self._steps[key]) \
+        output = ['%s : %s : %s' % (i, key, self._steps[key])
                   for i, key in enumerate(self._steps.keys())]
         return '\n'.join(output)
 

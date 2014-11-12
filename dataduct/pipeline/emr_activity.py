@@ -3,9 +3,12 @@ Pipeline object class for EmrActivity
 """
 
 from .activity import Activity
+from ..config import Config
 from .schedule import Schedule
-from ..constants import DEFAULT_MAX_RETRIES
 from ..utils.exceptions import ETLInputError
+
+config = Config()
+DEFAULT_MAX_RETRIES = config.etl['DEFAULT_MAX_RETRIES']
 
 
 class EmrActivity(Activity):

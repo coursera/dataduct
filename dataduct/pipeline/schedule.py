@@ -4,9 +4,12 @@ Pipeline object class for the schedule
 from datetime import datetime
 from datetime import timedelta
 
-from ..constants import DAILY_LOAD_TIME
+from ..config import Config
 from .pipeline_object import PipelineObject
 from ..utils.exceptions import ETLInputError
+
+config = Config()
+DAILY_LOAD_TIME = config.etl['DAILY_LOAD_TIME']
 
 
 FEQUENCY_PERIOD_CONVERTION = {

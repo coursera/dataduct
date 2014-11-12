@@ -1,22 +1,25 @@
 """
 Pipeline object class for emr resource
 """
-from ..constants import DEFAULT_NUM_CORE_INSTANCES
-from ..constants import DEFAULT_CORE_INSTANCE_TYPE
-from ..constants import DEFAULT_TASK_INSTANCE_BID_PRICE
-from ..constants import DEFAULT_TASK_INSTANCE_TYPE
-from ..constants import DEFAULT_MASTER_INSTANCE_TYPE
-from ..constants import DEFAULT_CLUSTER_TIMEOUT
-from ..constants import DEFAULT_HADOOP_VERSION
-from ..constants import DEFAULT_HIVE_VERSION
-from ..constants import DEFAULT_PIG_VERSION
-from ..constants import DEFAULT_CLUSTER_AMI
-from ..constants import KEY_PAIR
 
+from ..config import Config
 from .pipeline_object import PipelineObject
 from ..s3.s3_log_path import S3LogPath
 from .schedule import Schedule
 from ..utils.exceptions import ETLInputError
+
+config = Config()
+DEFAULT_NUM_CORE_INSTANCES = config.emr['DEFAULT_NUM_CORE_INSTANCES']
+DEFAULT_CORE_INSTANCE_TYPE = config.emr['DEFAULT_CORE_INSTANCE_TYPE']
+DEFAULT_TASK_INSTANCE_BID_PRICE = config.emr['DEFAULT_TASK_INSTANCE_BID_PRICE']
+DEFAULT_TASK_INSTANCE_TYPE = config.emr['DEFAULT_TASK_INSTANCE_TYPE']
+DEFAULT_MASTER_INSTANCE_TYPE = config.emr['DEFAULT_MASTER_INSTANCE_TYPE']
+DEFAULT_CLUSTER_TIMEOUT = config.emr['DEFAULT_CLUSTER_TIMEOUT']
+DEFAULT_HADOOP_VERSION = config.emr['DEFAULT_HADOOP_VERSION']
+DEFAULT_HIVE_VERSION = config.emr['DEFAULT_HIVE_VERSION']
+DEFAULT_PIG_VERSION = config.emr['DEFAULT_PIG_VERSION']
+DEFAULT_CLUSTER_AMI = config.emr['DEFAULT_CLUSTER_AMI']
+KEY_PAIR = config.ec2['KEY_PAIR']
 
 
 class EmrResource(PipelineObject):

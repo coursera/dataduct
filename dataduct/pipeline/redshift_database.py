@@ -1,12 +1,15 @@
 """
 Pipeline object class for redshift database
 """
-from ..constants import REDSHIFT_DATABASE_NAME
-from ..constants import REDSHIFT_CLUSTER_ID
-from ..constants import REDSHIFT_USERNAME
-from ..constants import REDSHIFT_PASSWORD
 
+from ..config import Config
 from .pipeline_object import PipelineObject
+
+config = Config()
+REDSHIFT_DATABASE_NAME = config.redshift['REDSHIFT_DATABASE_NAME']
+REDSHIFT_CLUSTER_ID = config.redshift['REDSHIFT_CLUSTER_ID']
+REDSHIFT_USERNAME = config.redshift['REDSHIFT_USERNAME']
+REDSHIFT_PASSWORD = config.redshift['REDSHIFT_PASSWORD']
 
 
 class RedshiftDatabase(PipelineObject):

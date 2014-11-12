@@ -3,8 +3,11 @@ Pipeline object class for default metadata
 """
 
 from .pipeline_object import PipelineObject
-from ..constants import DEFAULT_ROLE
-from ..constants import DEFAULT_RESOURCE_ROLE
+from ..config import Config
+
+config = Config()
+DEFAULT_ROLE = config.ec2['DEFAULT_ROLE']
+DEFAULT_RESOURCE_ROLE = config.ec2['DEFAULT_RESOURCE_ROLE']
 
 
 class DefaultObject(PipelineObject):

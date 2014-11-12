@@ -1,18 +1,21 @@
 """
 Pipeline object class for ec2 resource
 """
-from ..constants import DEFAULT_RESOURCE_ROLE
-from ..constants import DEFAULT_EC2_INSTANCE_TYPE
-from ..constants import ETL_AMI
-from ..constants import KEY_PAIR
-from ..constants import DEFAULT_ROLE
-from ..constants import SECURITY_GROUP
-from ..constants import RETRY_DELAY
 
+from ..config import Config
 from .pipeline_object import PipelineObject
 from ..s3.s3_log_path import S3LogPath
 from .schedule import Schedule
 from ..utils.exceptions import ETLInputError
+
+config = Config()
+DEFAULT_RESOURCE_ROLE = config.ec2['DEFAULT_RESOURCE_ROLE']
+DEFAULT_EC2_INSTANCE_TYPE = config.ec2['DEFAULT_EC2_INSTANCE_TYPE']
+ETL_AMI = config.ec2['ETL_AMI']
+KEY_PAIR = config.ec2['KEY_PAIR']
+DEFAULT_ROLE = config.ec2['DEFAULT_ROLE']
+SECURITY_GROUP = config.ec2['SECURITY_GROUP']
+RETRY_DELAY = config.etl['RETRY_DELAY']
 
 
 class Ec2Resource(PipelineObject):
