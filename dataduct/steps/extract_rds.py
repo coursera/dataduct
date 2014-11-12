@@ -13,7 +13,7 @@ from ..utils.helpers import exactly_one
 from ..utils.exceptions import ETLInputError
 
 config = Config()
-MYSQL_CONFIG = config.ec2['MYSQL_CONFIG']
+MYSQL_CONFIG = config.mysql
 
 
 def guess_input_tables(sql):

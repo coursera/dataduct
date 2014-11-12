@@ -4,7 +4,7 @@ Class definition for DataPipeline
 from datetime import datetime
 import yaml
 
-from ..config import Config
+from .config import Config
 
 from .pipeline.default_object import DefaultObject
 from .pipeline.data_pipeline import DataPipeline
@@ -34,7 +34,7 @@ from .utils.exceptions import ETLInputError
 config = Config()
 DEFAULT_MAX_RETRIES = config.etl['DEFAULT_MAX_RETRIES']
 ETL_BUCKET = config.etl['ETL_BUCKET']
-BOOTSTRAP_STEPS_DEFINITION = config.bootstrap['BOOTSTRAP_STEPS_DEFINITION']
+BOOTSTRAP_STEPS_DEFINITION = config.bootstrap
 
 EC2_RESOURCE_STR = 'ec2'
 EMR_CLUSTER_STR = 'emr'

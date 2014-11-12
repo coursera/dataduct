@@ -19,16 +19,16 @@ steps:
         step1_a: step2_a
         step1_b: step2_b
     output:
-    -   "step2_a"
-    -   "step2_b"
+    -   step2_a
+    -   step2_b
 
 -   type: transform
     script: examples/scripts/s3_profiler.py
     input_node:
         step2_a: output1
     script_arguments:
-    -   "-i=${INPUT1_STAGING_DIR}"
-    -   "-o=${OUTPUT1_STAGING_DIR}"
+    -   --input=INPUT1_STAGING_DIR
+    -   --output=OUTPUT1_STAGING_DIR
     -   -f
 
 -   type: transform
