@@ -7,6 +7,9 @@
 # Docs build folder
 /docs/_build
 
+# Build directory
+/build/
+
 # Python egg metadata, regenerated from source files by setuptools.
 /*.egg-info
 /*.egg

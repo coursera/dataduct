@@ -1,0 +1,57 @@
+#!/usr/bin/env python
+
+"""
+Script that helps create and validate pipelines from command line
+"""
+
+import argparse
+from dataduct.definition_parser import read_pipeline_definition
+from dataduct.definition_parser import create_pipeline
+from dataduct.definition_parser import validate_pipeline
+from dataduct.definition_parser import activate_pipeline
+
+
+CREATE_STR = 'create'
+VALIDATE_STR = 'validate'
+ACTIVATE_STR = 'activate'
+
+def main():
+    """Main function"""
+    parser = argparse.ArgumentParser(description='Run Dataduct commands')
+    parser.add_argument(
+        '-a',
+        '--action',
+        type=str,
+        choices={
+            CREATE_STR: 'Create a pipeline locally',
+            VALIDATE_STR: 'Validate a pipeline with AWS without activating',
+            ACTIVATE_STR: 'create a pipeline and activate it on AWS',
+        },
+        default=CREATE_STR,
+    )
+    parser.add_argument(
+        'load_definitions',
+        nargs='*',
+        help='Enter the paths of the load definitions.',
+    )
+    parser.add_argument(
+        '-f',
+        '--force_overwrite',
+        action='store_true',
+        default=False,
+        help='Indicates that if this pipeline exists, it will be destroyed'
+        ' first.',
+    )
+    args = parser.parse_args()
+
+    for load_definition in args.load_definitions:
+        definition = read_pipeline_definition(load_definition)
+        etl = create_pipeline(definition)
+        if args.action in [VALIDATE_STR, ACTIVATE_STR]:
+            validate_pipeline(etl, args.force_overwrite)
+        elif args.action == ACTIVATE_STR:
+            activate_pipeline(etl)
+
+
+if __name__ == '__main__':
+    main()
