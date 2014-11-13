@@ -1,7 +1,7 @@
 """
 Setup file for installation of the etllib code
 """
-from distutils.core import setup
+from setuptools import setup
 
 setup(
     name='dataduct',
@@ -9,6 +9,7 @@ setup(
     author='Coursera Inc.',
     packages=[
         'dataduct',
+        'dataduct.config',
         'dataduct.pipeline',
         'dataduct.s3',
         'dataduct.steps',
@@ -16,15 +17,16 @@ setup(
     ],
     namespace_packages=['dataduct'],
     include_package_data=True,
-    url='https://github.com/coursera/dataduct',  # TODO: Update URL
+    url='https://github.com/coursera/dataduct',
     long_description=open('README.rst').read(),
     author_email='data-infra@coursera.org',
     license='Apache License 2.0',
     description='DataPipeline for Humans.',
     install_requires=[
         'boto>=2.32',
-        'yaml'
+        'pyyaml'
     ],
+    scripts=['bin/dataduct'],
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',

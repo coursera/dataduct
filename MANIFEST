@@ -6,7 +6,6 @@ README.rst
 setup.py
 bin/README.md
 dataduct/__init__.py
-dataduct/constants.py
 dataduct/definition_parser.py
 dataduct/etl_pipeline.py
 dataduct/pipeline/__init__.py
