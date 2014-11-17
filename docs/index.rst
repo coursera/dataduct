@@ -11,6 +11,8 @@ create ETL jobs. All jobs can be specified as a series of steps in a YAML file
 and would automatically be translated into datapipeline with appropriate
 pipeline objects.
 
+Running an ETL is as simple as ``$ dataduct -a create pipeline.yaml``
+
 Contents:
 
 .. toctree::
