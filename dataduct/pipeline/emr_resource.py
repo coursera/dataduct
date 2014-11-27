@@ -70,6 +70,8 @@ class EmrResource(PipelineObject):
             raise ETLInputError(
                 's3 log directory must be of type S3LogPath')
 
+        self.ami_version = ami_version
+
         super(EmrResource, self).__init__(
             id=id,
             masterInstanceType=master_instance_size,
