@@ -8,31 +8,68 @@ from ..s3.s3_path import S3Path
 from ..utils.exceptions import ETLInputError
 
 
-def create_command(mapper, reducer, input_uri, output, hadoop_params):
+HADOOP_1_SERIES = ['1', '2']
+
+
+def create_command_hadoop_1(mapper, reducer, command, command_options):
+    """Create the command step string for Hadoop 1.x
+    """
+    command_options.extend(['-mapper', mapper.s3_path.uri])
+    if reducer:
+        command_options.extend(['-reducer', reducer.s3_path.uri])
+
+    command.extend(command_options)
+    return ','.join(command)
+
+
+def create_command_hadoop_2(mapper, reducer, command, command_options):
+    """Create the command step string for Hadoop 2.x
+    """
+    files = [mapper.s3_path.uri]
+    command_options.extend(['-mapper', mapper.s3_path.base_filename])
+    if reducer:
+        files.append(reducer.s3_path.uri)
+        command_options.extend(['-reducer', reducer.s3_path.base_filename])
+
+    # Note: We need to add generic options like files before command options
+    command.extend(['-files', '\\\\,'.join(files)])
+    command.extend(command_options)
+
+    return ','.join(command)
+
+
+def create_command(mapper, reducer, ami_version, input_uri, output,
+                   hadoop_params):
     """Create the command step string given the input to streaming step
     """
-    # TODO: Migrate to using Hadoop 2.x, allow param to determine what to use
+    ami_family = ami_version.split('.')[0]
+
     command = ['/home/hadoop/contrib/streaming/hadoop-streaming.jar']
+    command_options = []
 
     # Add hadoop parameters
-    command.extend(hadoop_params)
+    # Note: We need to add generic options like files before command options
+    if hadoop_params is not None:
+        command.extend(hadoop_params)
 
-    # Add mapper, output and reducer
-    command.extend(['-mapper', mapper.s3_path.uri])
-    command.extend(['-output', output.path().uri])
-    if reducer:
-        command.extend(['-reducer', reducer.s3_path.uri])
+    # Add output uri
+    command_options.extend(['-output', output.path().uri])
 
     # Add input uri
     if isinstance(input_uri, list):
         for i in input_uri:
             assert isinstance(i, S3Path)
-            command.extend(['-input', i.uri])
+            command_options.extend(['-input', i.uri])
     else:
         assert isinstance(input_uri, S3Path), type(input_uri)
-        command.extend(['-input', input_uri.uri])
+        command_options.extend(['-input', input_uri.uri])
 
-    return ','.join(command)
+    if ami_family in HADOOP_1_SERIES:
+        return create_command_hadoop_1(mapper, reducer, command,
+                                       command_options)
+
+    return create_command_hadoop_2(mapper, reducer, command,
+                                   command_options)
 
 
 class EMRStreamingStep(ETLStep):
@@ -71,9 +108,6 @@ class EMRStreamingStep(ETLStep):
         if depends_on is not None:
             self._depends_on = depends_on
 
-        if hadoop_params is None:
-            hadoop_params = []
-
         self._output = self.create_s3_data_node()
 
         # Create S3File with script / command provided
@@ -97,8 +131,8 @@ class EMRStreamingStep(ETLStep):
             else:
                 input = input_node.path()
 
-        step_string = create_command(mapper, reducer, input,
-                                     self._output, hadoop_params)
+        step_string = create_command(mapper, reducer, self.resource.ami_version,
+                                     input, self._output, hadoop_params)
 
         self.activity = self.create_pipeline_object(
             object_class=EmrActivity,
