@@ -4,6 +4,7 @@ load_time: 01:00  # Hour:Min in UTC
 emr_cluster_config:
     num_instances: 1
     instance_size: m1.xlarge
+    ami_version: 3.3.1
 
 description : Example for the emr_streaming step
 

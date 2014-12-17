@@ -113,3 +113,14 @@ class S3Path(object):
         if self.is_directory and not path.endswith('/'):
             path += '/'
         return  path
+
+    @property
+    def base_filename(self):
+        """
+        Returns the base_filename of the S3 path
+        Returns:
+            filename(String): Base filename of the s3 path
+        """
+        if self.is_directory:
+            raise ETLInputError('No base filename for directories')
+        return self.key.split('/')[-1]

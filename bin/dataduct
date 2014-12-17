@@ -49,7 +49,7 @@ def main():
         etl = create_pipeline(definition)
         if args.action in [VALIDATE_STR, ACTIVATE_STR]:
             validate_pipeline(etl, args.force_overwrite)
-        elif args.action == ACTIVATE_STR:
+        if args.action == ACTIVATE_STR:
             activate_pipeline(etl)
 
 
