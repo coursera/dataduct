@@ -562,6 +562,16 @@ class ETLPipeline(object):
             steps.append(step)
         return steps
 
+    def allocate_resource(self, resource_type):
+        """Allocate the resource object based on the resource type specified
+        """
+        if resource_type == EMR_CLUSTER_STR:
+            return self.emr_cluster
+        elif resource_type == EC2_RESOURCE_STR:
+            return self.ec2_resource
+        else:
+            raise ETLInputError('Unknown resource type found')
+
     def create_bootstrap_steps(self, resource_type):
         """Create the boostrap steps for installation on all machines
 
@@ -569,20 +579,22 @@ class ETLPipeline(object):
             resource_type(enum of str): type of resource we're bootstraping
                 can be ec2 / emr
         """
-        if resource_type == EMR_CLUSTER_STR:
-            resource = self.emr_cluster
-        elif resource_type == EC2_RESOURCE_STR:
-            resource = self.ec2_resource
-        else:
-            raise ETLInputError('Unknown resource type found')
-
         step_params = BOOTSTRAP_STEPS_DEFINITION
+        selected_steps = list()
         for step in step_params:
             step['name'] += '_' + resource_type  # Append type for unique names
-            if 'resource' in step:
-                step['resource'] = resource
 
-        steps = self.create_steps(step_params, True)
+            # If resource type is specified and doesn't match we skip
+            if 'resource_type' in step:
+                if step['resource_type'] != resource_type:
+                    continue
+                else:
+                    step.pop('resource_type')
+
+            step['resource'] = self.allocate_resource(resource_type)
+            selected_steps.append(step)
+
+        steps = self.create_steps(selected_steps, True)
         self._bootstrap_steps.extend(steps)
         return steps
 
