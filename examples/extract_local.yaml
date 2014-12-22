@@ -6,5 +6,5 @@ description : |
     This example uploads a local file to S3 with the extract-local step.
 
 steps:
--   type: extract-local
+-   step_type: extract-local
     path: examples/resources/test_table1.tsv

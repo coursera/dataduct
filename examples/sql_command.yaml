@@ -5,5 +5,5 @@ load_time: 01:00  # Hour:Min in UTC
 description : Example for the sql_command step
 
 steps:
--   type: sql-command
+-   step_type: sql-command
     command: INSERT INTO dev.test_table VALUES (1, 'hello_etl');

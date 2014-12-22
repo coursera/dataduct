@@ -71,7 +71,7 @@ environment variable pointing to the config file location by setting the
       DAILY_LOAD_TIME: 1  # run at 1AM UTC
 
     bootstrap:
-      - type: transform
+      - step_type: transform
         input_node: []
         command: whoami >> ${OUTPUT1_STAGING_DIR}/output.txt
         resource: FILL_ME_IN

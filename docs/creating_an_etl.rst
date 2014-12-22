@@ -34,14 +34,14 @@ Example:
 
     # PIPELINE STEPS
     steps:
-    -   type: extract-local
+    -   step_type: extract-local
         path: examples/resources/word_data.txt
 
-    -   type: emr-streaming
+    -   step_type: emr-streaming
         mapper: examples/scripts/word_mapper.py
         reducer: examples/scripts/word_reducer.py
 
-    -   type: transform
+    -   step_type: transform
         script: examples/scripts/s3_profiler.py
         script_arguments:
         -   --input=INPUT1_STAGING_DIR
@@ -107,7 +107,7 @@ header. You can specify the bootstrap, mapper, and reducer files.
 
 .. code:: yaml
 
-    -   type: emr-streaming
+    -   step_type: emr-streaming
         mapper: examples/scripts/word_mapper.py
         reducer: examples/scripts/word_reducer.py
 
@@ -121,7 +121,7 @@ loaded into redshift or apply further transformations.
 .. code:: yaml
 
     -   name: extract_local_step
-        type: extract-local
+        step_type: extract-local
         path: examples/resources/word_data.txt
 
 extract-rds
@@ -134,7 +134,7 @@ name which needs to be pre-configured in ~/.dataduct
 
 .. code:: yaml
 
-    -   type: extract-rds
+    -   step_type: extract-rds
         host_name: maestro
         database: maestro
         sql: |
@@ -149,7 +149,7 @@ and AWS details must be preconfigured in the ~/.dataduct file) into S3.
 
 .. code:: yaml
 
-    -   type: extract-redshift
+    -   step_type: extract-redshift
         schema: dev
         table: categories
 
@@ -161,7 +161,7 @@ S3 node.
 
 .. code:: yaml
 
-    -   type: extract-s3
+    -   step_type: extract-s3
         uri: s3://elasticmapreduce/samples/wordcount/wordSplitter.py
 
 load-redshift
@@ -175,10 +175,10 @@ file into dev.test\_table
 
 .. code:: yaml
 
-    -   type: extract-local
+    -   step_type: extract-local
         path: examples/resources/test_table1.tsv
 
-    -   type: load-redshift
+    -   step_type: load-redshift
         schema: dev
         table: test_table
 
@@ -190,7 +190,7 @@ AWS details must be preconfigured in the ~/.dataduct file).
 
 .. code:: yaml
 
-    -   type: sql-command
+    -   step_type: sql-command
         command: INSERT INTO dev.test_table VALUES (1, 'hello_etl');
 
 transform
@@ -203,7 +203,7 @@ transformation can be in the form of a script or a UNIX command.
 .. code:: yaml
 
     # Unix Example
-    -   type: transform
+    -   step_type: transform
         command: cp -r $INPUT1_STAGING_DIR/* $OUTPUT1_STAGING_DIR
         input_node:
             step1_a: step2_a
@@ -213,7 +213,7 @@ transformation can be in the form of a script or a UNIX command.
         -   "step2_b"
 
     # Script Example
-    -   type: transform
+    -   step_type: transform
         script: examples/scripts/s3_profiler.py
         input_node:
             step2_a: output1
