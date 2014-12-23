@@ -35,7 +35,7 @@ environment variable pointing to the config file location by setting the
       DEFAULT_ROLE: FILL_ME_IN
       DEFAULT_RESOURCE_ROLE: FILL_ME_IN
       DEFAULT_EC2_INSTANCE_TYPE: m1.large
-      ETL_AMI: FILL_ME_IN
+      ETL_AMI: ami-05355a6c # Default AMI used by data pipeline
       KEY_PAIR: FILL_ME_IN
       SECURITY_GROUP: FILL_ME_IN
 
@@ -71,7 +71,7 @@ environment variable pointing to the config file location by setting the
       DAILY_LOAD_TIME: 1  # run at 1AM UTC
 
     bootstrap:
-      - type: transform
+      - step_type: transform
         input_node: []
         command: whoami >> ${OUTPUT1_STAGING_DIR}/output.txt
         resource: FILL_ME_IN

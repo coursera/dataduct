@@ -75,9 +75,9 @@ def profile_input(input_directory, output_directory,
 
     lines = ['======================================================']
     lines.append('Profiler Summary')
-    lines.append("Count of files:     %s" % "{:,}".format(count_of_files))
-    lines.append("Count of lines:     %s" % "{:,}".format(count_of_lines))
-    lines.append("Total size (bytes): %s" % "{:,}".format(total_size))
+    lines.append("Count of files:     {0}".format(count_of_files))
+    lines.append("Count of lines:     {0}".format(count_of_lines))
+    lines.append("Total size (bytes): {0}".format(total_size))
 
     lines.append('======================================================')
     lines.append('List of Files (filename, count of lines, size of file)')

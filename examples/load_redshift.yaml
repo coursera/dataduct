@@ -5,9 +5,9 @@ load_time: 01:00  # Hour:Min in UTC
 description : Example for the load_redshift step
 
 steps:
--   type: extract-local
+-   step_type: extract-local
     path: examples/resources/test_table1.tsv
 
--   type: load-redshift
+-   step_type: load-redshift
     schema: dev
     table: test_table

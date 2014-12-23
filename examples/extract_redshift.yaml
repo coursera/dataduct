@@ -6,6 +6,6 @@ description : |
     This example extracts data out of redshift
 
 steps:
--   type: extract-redshift
+-   step_type: extract-redshift
     schema: dev
     table: categories

@@ -5,15 +5,15 @@ load_time: 01:00  # Hour:Min in UTC
 description : Example for the transform step with multiple outputs
 
 steps:
--   type: extract-local
+-   step_type: extract-local
     name: step1_a
     path: examples/resources/test_table1.tsv
 
--   type: extract-local
+-   step_type: extract-local
     name: step1_b
     path: examples/resources/test_table2.tsv
 
--   type: transform
+-   step_type: transform
     command: cp -r $INPUT1_STAGING_DIR/* $OUTPUT1_STAGING_DIR
     input_node:
         step1_a: step2_a
@@ -22,7 +22,7 @@ steps:
     -   step2_a
     -   step2_b
 
--   type: transform
+-   step_type: transform
     script: examples/scripts/s3_profiler.py
     input_node:
         step2_a: output1
@@ -31,7 +31,7 @@ steps:
     -   --output=OUTPUT1_STAGING_DIR
     -   -f
 
--   type: transform
+-   step_type: transform
     script: examples/scripts/s3_profiler.py
     input_node:
         step2_b : output1

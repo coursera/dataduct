@@ -6,12 +6,12 @@ description : |
     This example extracts data from mysql to S3 with the extract-rds step.
 
 steps:
--   type: extract-rds
+-   step_type: extract-rds
     host_name: maestro
     database: maestro
     table: specializations_specialization
 
--   type: extract-rds
+-   step_type: extract-rds
     host_name: maestro
     database: maestro
     sql: |

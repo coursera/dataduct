@@ -5,15 +5,15 @@ load_time: 01:00  # Hour:Min in UTC
 description : Example for the transform step with multiple inputs
 
 steps:
--   type: extract-local
+-   step_type: extract-local
     name: step1
     path: examples/resources/test_table1.tsv
 
--   type: extract-local
+-   step_type: extract-local
     name: step2
     path: examples/resources/test_table2.tsv
 
--   type: transform
+-   step_type: transform
     script: examples/scripts/s3_profiler.py
     input_node:
         step1: script

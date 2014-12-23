@@ -13,6 +13,10 @@ HADOOP_1_SERIES = ['1', '2']
 
 def create_command_hadoop_1(mapper, reducer, command, command_options):
     """Create the command step string for Hadoop 1.x
+
+    Note:
+        -mapper,s3://dataduct/word_mapper.py,
+        -reducer,s3://dataduct/word_reducer.py
     """
     command_options.extend(['-mapper', mapper.s3_path.uri])
     if reducer:
@@ -24,6 +28,11 @@ def create_command_hadoop_1(mapper, reducer, command, command_options):
 
 def create_command_hadoop_2(mapper, reducer, command, command_options):
     """Create the command step string for Hadoop 2.x
+
+    Note:
+        -files,s3://dataduct/word_mapper.py\\,s3://dataduct/word_reducer.py,
+        -mapper,word_mapper.py,
+        -reducer,word_reducer.py
     """
     files = [mapper.s3_path.uri]
     command_options.extend(['-mapper', mapper.s3_path.base_filename])
@@ -32,6 +41,7 @@ def create_command_hadoop_2(mapper, reducer, command, command_options):
         command_options.extend(['-reducer', reducer.s3_path.base_filename])
 
     # Note: We need to add generic options like files before command options
+    # Comma's need to be escaped
     command.extend(['-files', '\\\\,'.join(files)])
     command.extend(command_options)
 

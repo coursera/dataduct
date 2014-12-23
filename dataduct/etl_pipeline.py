@@ -325,57 +325,57 @@ class ETLPipeline(object):
         """
         return self._steps.get(step_id, None)
 
-    def determine_step_class(self, type, step_args):
+    def determine_step_class(self, step_type, step_args):
         """Determine step class from input to correct ETL step types
 
         Args:
-            type(str): string specifing type of the objects
+            step_type(str): string specifing step_type of the objects
             step_args(dict): dictionary of step arguments
 
         Returns:
-            step_class(ETLStep): Class object for the specific type
+            step_class(ETLStep): Class object for the specific step_type
             step_args(dict): dictionary of step arguments
         """
-        if type == 'transform':
+        if step_type == 'transform':
             step_class = TransformStep
             if step_args.get('resource', None) == 'emr-cluster':
                 step_args['resource'] = self.emr_cluster
 
-        elif type == 'extract-s3':
+        elif step_type == 'extract-s3':
             step_class = ExtractS3Step
             step_args.pop('resource')
 
-        elif type == 'extract-local':
+        elif step_type == 'extract-local':
             step_class = ExtractLocalStep
             step_args.pop('resource')
             if self.frequency != 'one-time':
                 raise ETLInputError(
                     'Extract Local can be used for one-time pipelines only')
 
-        elif type == 'extract-rds':
+        elif step_type == 'extract-rds':
             step_class = ExtractRdsStep
             step_args.pop('input_node', None)
 
-        elif type == 'extract-redshift':
+        elif step_type == 'extract-redshift':
             step_class = ExtractRedshiftStep
             step_args['redshift_database'] = self.redshift_database
             step_args.pop('input_node', None)
 
-        elif type == 'sql-command':
+        elif step_type == 'sql-command':
             step_class = SqlCommandStep
             step_args['redshift_database'] = self.redshift_database
             step_args.pop('input_node', None)
 
-        elif type == 'emr-streaming':
+        elif step_type == 'emr-streaming':
             step_class = EMRStreamingStep
             step_args['resource'] = self.emr_cluster
 
-        elif type == 'load-redshift':
+        elif step_type == 'load-redshift':
             step_class = LoadRedshiftStep
             step_args['redshift_database'] = self.redshift_database
 
         else:
-            raise ETLInputError('Step type %s not recogonized' % type)
+            raise ETLInputError('Step type %s not recogonized' % step_type)
 
         return step_class, step_args
 
@@ -416,11 +416,11 @@ class ETLPipeline(object):
             output[value] = self._intermediate_nodes[key]
         return output
 
-    def parse_step_args(self, type, **kwargs):
+    def parse_step_args(self, step_type, **kwargs):
         """Parse step arguments from input to correct ETL step types
 
         Args:
-            type(str): string specifing type of the objects
+            step_type(str): string specifing step_type of the objects
             **kwargs: Keyword arguments read from YAML
 
         Returns:
@@ -428,7 +428,7 @@ class ETLPipeline(object):
             step_args(dict): dictionary of step arguments
         """
 
-        if not isinstance(type, str):
+        if not isinstance(step_type, str):
             raise ETLInputError('Step type must be a string')
 
         # Base dictionary for every step
@@ -451,7 +451,7 @@ class ETLPipeline(object):
                     raise ETLInputError('Step depends on non-existent step')
                 step_args['required_steps'].append(self._steps[step_id])
 
-        step_class, step_args = self.determine_step_class(type, step_args)
+        step_class, step_args = self.determine_step_class(step_type, step_args)
 
         # Set input node and required_steps
         input_node = step_args.get('input_node', None)
@@ -562,6 +562,16 @@ class ETLPipeline(object):
             steps.append(step)
         return steps
 
+    def allocate_resource(self, resource_type):
+        """Allocate the resource object based on the resource type specified
+        """
+        if resource_type == EMR_CLUSTER_STR:
+            return self.emr_cluster
+        elif resource_type == EC2_RESOURCE_STR:
+            return self.ec2_resource
+        else:
+            raise ETLInputError('Unknown resource type found')
+
     def create_bootstrap_steps(self, resource_type):
         """Create the boostrap steps for installation on all machines
 
@@ -569,20 +579,22 @@ class ETLPipeline(object):
             resource_type(enum of str): type of resource we're bootstraping
                 can be ec2 / emr
         """
-        if resource_type == EMR_CLUSTER_STR:
-            resource = self.emr_cluster
-        elif resource_type == EC2_RESOURCE_STR:
-            resource = self.ec2_resource
-        else:
-            raise ETLInputError('Unknown resource type found')
-
         step_params = BOOTSTRAP_STEPS_DEFINITION
+        selected_steps = list()
         for step in step_params:
             step['name'] += '_' + resource_type  # Append type for unique names
-            if 'resource' in step:
-                step['resource'] = resource
 
-        steps = self.create_steps(step_params, True)
+            # If resource type is specified and doesn't match we skip
+            if 'resource_type' in step:
+                if step['resource_type'] != resource_type:
+                    continue
+                else:
+                    step.pop('resource_type')
+
+            step['resource'] = self.allocate_resource(resource_type)
+            selected_steps.append(step)
+
+        steps = self.create_steps(selected_steps, True)
         self._bootstrap_steps.extend(steps)
         return steps
 

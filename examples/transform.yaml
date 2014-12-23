@@ -5,10 +5,10 @@ load_time: 01:00  # Hour:Min in UTC
 description : Example for the transform step
 
 steps:
--   type: extract-local
+-   step_type: extract-local
     path: examples/resources/test_table1.tsv
 
--   type: transform
+-   step_type: transform
     script: examples/scripts/s3_profiler.py
     script_arguments:
     -   --input=INPUT1_STAGING_DIR
