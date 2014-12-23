@@ -14,8 +14,10 @@ from os.path import exists
 
 def run_command(command):
     """Execute a shell command
+
     Args:
         command(list of str): list of command arguments
+
     Returns:
         output(str): stdout of command
     """
@@ -24,8 +26,10 @@ def run_command(command):
 
 def recurse_directory(directory_path):
     """Recursively walk directories and output basic stats on files
+
     Args:
         directory_path(str): Path to the directory which is read
+
     Returns:
         result(list of tuples): (filename, count of lines in file, size of file)
     """
@@ -43,6 +47,7 @@ def recurse_directory(directory_path):
 
 def paths_exist(input_directory, paths):
     """Check if a path exists or not
+
     Args:
         input_directory(str): input directory to be checked
         paths(list of str): paths for which one should check the existence.
@@ -58,6 +63,7 @@ def profile_input(input_directory, output_directory,
                   output_file_name, fail_if_empty):
     """Lists statistics for all files located in input directrory.
     Output is written to a file in the output directory.
+
     Args:
         input_directory(path): path to the input directory
         output_directory(path): path to the output directory

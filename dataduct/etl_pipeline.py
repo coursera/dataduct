@@ -24,6 +24,7 @@ from .steps.extract_s3 import ExtractS3Step
 from .steps.load_redshift import LoadRedshiftStep
 from .steps.sql_command import SqlCommandStep
 from .steps.transform import TransformStep
+from .steps.qa_transform import QATransformStep
 
 from .s3.s3_file import S3File
 from .s3.s3_path import S3Path
@@ -340,8 +341,11 @@ class ETLPipeline(object):
         """
         if step_type == 'transform':
             step_class = TransformStep
-            if step_args.get('resource', None) == 'emr-cluster':
+            if step_args.get('resource', None) == EMR_CLUSTER_STR:
                 step_args['resource'] = self.emr_cluster
+
+        elif step_type == 'qa-transform':
+            step_class = QATransformStep
 
         elif step_type == 'extract-s3':
             step_class = ExtractS3Step
