@@ -5,7 +5,7 @@ Pipeline object class for SqlActivity
 from .activity import Activity
 from ..config import Config
 from .schedule import Schedule
-from ..s3.s3_file import S3File
+from ..s3 import S3File
 
 from ..utils.exceptions import ETLInputError
 

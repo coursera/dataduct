@@ -3,9 +3,9 @@ Base class for data pipeline objects
 """
 from collections import defaultdict
 
-from ..s3.s3_path import S3Path
-from ..s3.s3_file import S3File
-from ..s3.s3_directory import S3Directory
+from ..s3 import S3Path
+from ..s3 import S3File
+from ..s3 import S3Directory
 from ..utils.exceptions import ETLInputError
 
 

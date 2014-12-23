@@ -2,7 +2,7 @@
 ETL step wrapper for creating an S3 node for input
 """
 from .etl_step import ETLStep
-from ..s3.s3_path import S3Path
+from ..s3 import S3Path
 
 
 class ExtractS3Step(ETLStep):

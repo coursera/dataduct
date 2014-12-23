@@ -5,10 +5,10 @@ from re import findall
 
 from ..config import Config
 from .etl_step import ETLStep
-from ..pipeline.copy_activity import CopyActivity
-from ..pipeline.mysql_node import MysqlNode
-from ..pipeline.pipeline_object import PipelineObject
-from ..pipeline.shell_command_activity import ShellCommandActivity
+from ..pipeline import CopyActivity
+from ..pipeline import MysqlNode
+from ..pipeline import PipelineObject
+from ..pipeline import ShellCommandActivity
 from ..utils.helpers import exactly_one
 from ..utils.exceptions import ETLInputError
 

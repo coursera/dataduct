@@ -6,25 +6,25 @@ import yaml
 
 from .config import Config
 
-from .pipeline.default_object import DefaultObject
-from .pipeline.data_pipeline import DataPipeline
-from .pipeline.ec2_resource import Ec2Resource
-from .pipeline.emr_resource import EmrResource
-from .pipeline.redshift_database import RedshiftDatabase
-from .pipeline.s3_node import S3Node
-from .pipeline.schedule import Schedule
-from .pipeline.sns_alarm import SNSAlarm
+from .pipeline import DefaultObject
+from .pipeline import DataPipeline
+from .pipeline import Ec2Resource
+from .pipeline import EmrResource
+from .pipeline import RedshiftDatabase
+from .pipeline import S3Node
+from .pipeline import Schedule
+from .pipeline import SNSAlarm
 from .pipeline.utils import list_pipelines
 
-from .steps.emr_streaming import EMRStreamingStep
-from .steps.extract_local import ExtractLocalStep
-from .steps.extract_rds import ExtractRdsStep
-from .steps.extract_redshift import ExtractRedshiftStep
-from .steps.extract_s3 import ExtractS3Step
-from .steps.load_redshift import LoadRedshiftStep
-from .steps.sql_command import SqlCommandStep
-from .steps.transform import TransformStep
-from .steps.qa_transform import QATransformStep
+from .steps import EMRStreamingStep
+from .steps import ExtractLocalStep
+from .steps import ExtractRdsStep
+from .steps import ExtractRedshiftStep
+from .steps import ExtractS3Step
+from .steps import LoadRedshiftStep
+from .steps import SqlCommandStep
+from .steps import TransformStep
+from .steps import QATransformStep
 
 from .s3.s3_file import S3File
 from .s3.s3_path import S3Path

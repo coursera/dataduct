@@ -2,8 +2,8 @@
 ETL step wrapper for shell command activity can be executed on Ec2 / EMR
 """
 from .etl_step import ETLStep
-from ..pipeline.shell_command_activity import ShellCommandActivity
-from ..s3.s3_file import S3File
+from ..pipeline import ShellCommandActivity
+from ..s3 import S3File
 from ..utils.helpers import exactly_one
 from ..utils.exceptions import ETLInputError
 

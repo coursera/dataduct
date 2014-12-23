@@ -2,8 +2,8 @@
 ETL step wrapper for SqlActivity can be executed on Ec2
 """
 from .etl_step import ETLStep
-from ..pipeline.sql_activity import SqlActivity
-from ..s3.s3_file import S3File
+from ..pipeline import SqlActivity
+from ..s3 import S3File
 from ..utils.helpers import exactly_one
 from ..utils.exceptions import ETLInputError
 

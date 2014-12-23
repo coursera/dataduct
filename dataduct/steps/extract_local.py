@@ -2,7 +2,7 @@
 ETL step wrapper for creating an S3 node for input from local files
 """
 from .etl_step import ETLStep
-from ..s3.s3_file import S3File
+from ..s3 import S3File
 
 
 class ExtractLocalStep(ETLStep):

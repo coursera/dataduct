@@ -2,8 +2,8 @@
 ETL step wrapper for RedshiftCopyActivity to load data into Redshift
 """
 from .etl_step import ETLStep
-from ..pipeline.redshift_node import RedshiftNode
-from ..pipeline.redshift_copy_activity import RedshiftCopyActivity
+from ..pipeline import RedshiftNode
+from ..pipeline import RedshiftCopyActivity
 
 
 class LoadRedshiftStep(ETLStep):

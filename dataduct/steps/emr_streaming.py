@@ -2,9 +2,9 @@
 ETL step wrapper for EmrActivity can be executed on Ec2
 """
 from .etl_step import ETLStep
-from ..pipeline.emr_activity import EmrActivity
-from ..s3.s3_file import S3File
-from ..s3.s3_path import S3Path
+from ..pipeline import EmrActivity
+from ..s3 import S3File
+from ..s3 import S3Path
 from ..utils.exceptions import ETLInputError
 
 

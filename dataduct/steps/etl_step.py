@@ -3,11 +3,11 @@ Base class for an etl step
 """
 
 from ..config import Config
-from ..pipeline.activity import Activity
-from ..pipeline.copy_activity import CopyActivity
-from ..pipeline.s3_node import S3Node
-from ..s3.s3_path import S3Path
-from ..s3.s3_file import S3File
+from ..pipeline import Activity
+from ..pipeline import CopyActivity
+from ..pipeline import S3Node
+from ..s3 import S3Path
+from ..s3 import S3File
 from ..utils.exceptions import ETLInputError
 
 config = Config()

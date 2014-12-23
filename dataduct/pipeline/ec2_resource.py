@@ -4,7 +4,7 @@ Pipeline object class for ec2 resource
 
 from ..config import Config
 from .pipeline_object import PipelineObject
-from ..s3.s3_log_path import S3LogPath
+from ..s3 import S3LogPath
 from .schedule import Schedule
 from ..utils.exceptions import ETLInputError
 
