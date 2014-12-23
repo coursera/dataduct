@@ -53,7 +53,7 @@ class ETLPipeline(object):
     def __init__(self, name, frequency='one-time',
                  ec2_resource_terminate_after='6 Hours',
                  delay=None, emr_cluster_config=None, load_time=None,
-                 max_retries=DEFAULT_MAX_RETRIES):
+                 topic_arn=None, max_retries=DEFAULT_MAX_RETRIES):
         """Example of docstring on the __init__ method.
 
         The __init__ method may be documented in either the class level
@@ -85,6 +85,7 @@ class ETLPipeline(object):
         self.load_hour = load_hour
         self.load_min = load_min
         self.max_retries = max_retries
+        self.topic_arn = topic_arn
 
         if emr_cluster_config:
             self.emr_cluster_config = emr_cluster_config
@@ -162,7 +163,8 @@ class ETLPipeline(object):
         # self.sns = None -> Used for testing
         self.sns = self.create_pipeline_object(
             object_class=SNSAlarm,
-            pipeline_name=self.name
+            topic_arn=self.topic_arn,
+            pipeline_name=self.name,
         )
         self.default = self.create_pipeline_object(
             object_class=DefaultObject,
