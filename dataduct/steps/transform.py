@@ -7,6 +7,9 @@ from ..s3 import S3File
 from ..utils.helpers import exactly_one
 from ..utils.exceptions import ETLInputError
 
+SCRIPT_ARGUMENT_TYPE_STRING = 'string'
+SCRIPT_ARGUMENT_TYPE_SQL = 'sql'
+
 
 class TransformStep(ETLStep):
     """Transform Step class that helps run scripts on resouces
@@ -48,6 +51,8 @@ class TransformStep(ETLStep):
         if script:
             script = self.create_script(S3File(path=script))
 
+        script_arguments = self.translate_arguments(script_arguments)
+
         self.create_pipeline_object(
             object_class=ShellCommandActivity,
             input_node=self._input_node,
@@ -68,3 +73,48 @@ class TransformStep(ETLStep):
                 self._output = self.create_output_nodes(output_node, output)
             else:
                 self._output = output_node
+
+    def translate_arguments(self, script_arguments):
+        """Translate script argument to lists
+
+        Args:
+            script_arguments(list of str/dict): arguments to the script
+
+        Note:
+            Dict: (k -> v) is turned into an argument "--k=v"
+            List: Either pure strings or dictionaries with name, type and value
+        """
+        if script_arguments is None:
+            return script_arguments
+
+        elif isinstance(script_arguments, list):
+            result = list()
+            for argument in script_arguments:
+                if isinstance(argument, dict):
+                    argument_type = argument.get('type',
+                                                 SCRIPT_ARGUMENT_TYPE_STRING)
+                    if argument_type == SCRIPT_ARGUMENT_TYPE_SQL:
+                        # TODO: Change to SQL Parsing
+                        result.append(self.input_format(
+                            argument['name'], argument['value']))
+                    else:
+                        result.append(self.input_format(
+                            argument['name'], argument['value']))
+                else:
+                    result.append(str(argument))
+            return result
+
+        elif isinstance(script_arguments, dict):
+            return [self.input_format(key, value)
+                    for key, value in script_arguments.iteritems()]
+
+        elif isinstance(script_arguments, str):
+            return [script_arguments]
+
+        else:
+            raise ETLInputError('Script Arguments for unrecognized type')
+
+    def input_format(self, key, value):
+        """Format the key and value to command line arguments
+        """
+        return ''.join('--', key, '=', value)

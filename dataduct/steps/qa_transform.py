@@ -14,8 +14,8 @@ class QATransformStep(TransformStep):
 
     def __init__(self,
                  id,
-                 script_arguments,
                  pipeline_name,
+                 script_arguments=None,
                  sns_topic_arn=SNS_TOPIC_ARN_WARNING,
                  **kwargs):
         """Constructor for the QATransformStep class

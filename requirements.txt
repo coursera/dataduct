@@ -2,3 +2,4 @@ Sphinx==1.2.3
 boto==2.34.0
 sphinx-rtd-theme==0.1.6
 sphinxcontrib-napoleon==0.2.8
+pandas==0.14.1

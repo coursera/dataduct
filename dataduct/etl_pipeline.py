@@ -346,6 +346,7 @@ class ETLPipeline(object):
 
         elif step_type == 'qa-transform':
             step_class = QATransformStep
+            step_args['pipeline_name'] = self.name
 
         elif step_type == 'extract-s3':
             step_class = ExtractS3Step

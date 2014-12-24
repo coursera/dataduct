@@ -31,4 +31,11 @@ class Config(object):
     _shared_config = load_yaml(DataductConfigFiles)
 
     def __init__(self):
+        """Constructor for the config class
+        """
         self.__dict__ = self._shared_config
+
+    def print_config(self):
+        """Print the config file
+        """
+        print yaml.dump(self._shared_config, default_flow_style=False)

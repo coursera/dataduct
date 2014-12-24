@@ -11,6 +11,7 @@ setup(
         'dataduct',
         'dataduct.config',
         'dataduct.pipeline',
+        'dataduct.qa',
         'dataduct.s3',
         'dataduct.steps',
         'dataduct.utils',
@@ -21,7 +22,7 @@ setup(
     long_description=open('README.rst').read(),
     author_email='data-infra@coursera.org',
     license='Apache License 2.0',
-    description='DataPipeline for Humans.',
+    description='DataPipeline for Humans',
     install_requires=[
         'boto>=2.32',
         'pyyaml'
