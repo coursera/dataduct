@@ -15,7 +15,7 @@ class DefaultObject(PipelineObject):
     """
 
     def __init__(self,
-                 id='Default',
+                 id,
                  sns=None,
                  scheduleType='cron',
                  failureAndRerunMode='CASCADE',
@@ -34,7 +34,7 @@ class DefaultObject(PipelineObject):
         """
 
         super(DefaultObject, self).__init__(
-            id=id,
+            id='Default', # This should always have the default id
             scheduleType=scheduleType,
             failureAndRerunMode=failureAndRerunMode,
             role=DEFAULT_ROLE,

@@ -5,15 +5,17 @@ Script that helps create and validate pipelines from command line
 """
 
 import argparse
-from dataduct.definition_parser import read_pipeline_definition
-from dataduct.definition_parser import create_pipeline
-from dataduct.definition_parser import validate_pipeline
 from dataduct.definition_parser import activate_pipeline
+from dataduct.definition_parser import create_pipeline
+from dataduct.definition_parser import read_pipeline_definition
+from dataduct.definition_parser import validate_pipeline
+from dataduct.definition_parser import visualize_pipeline
 
 
 CREATE_STR = 'create'
 VALIDATE_STR = 'validate'
 ACTIVATE_STR = 'activate'
+VISUALIZE_STR = 'visualize'
 
 def main():
     """Main function"""
@@ -26,6 +28,7 @@ def main():
             CREATE_STR: 'Create a pipeline locally',
             VALIDATE_STR: 'Validate a pipeline with AWS without activating',
             ACTIVATE_STR: 'create a pipeline and activate it on AWS',
+            VISUALIZE_STR: 'visualize a pipeline',
         },
         default=CREATE_STR,
     )
@@ -42,11 +45,20 @@ def main():
         help='Indicates that if this pipeline exists, it will be destroyed'
         ' first.',
     )
+    parser.add_argument(
+        '-filename',
+        '--filename',
+        default=None,
+        help='Indicates that if this pipeline exists, it will be destroyed'
+        ' first.',
+    )
     args = parser.parse_args()
 
     for load_definition in args.load_definitions:
         definition = read_pipeline_definition(load_definition)
         etl = create_pipeline(definition)
+        if args.action in [VISUALIZE_STR]:
+            visualize_pipeline(etl, args.filename)
         if args.action in [VALIDATE_STR, ACTIVATE_STR]:
             validate_pipeline(etl, args.force_overwrite)
         if args.action == ACTIVATE_STR:

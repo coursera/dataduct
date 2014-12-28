@@ -3,6 +3,10 @@ Script that parses the pipeline definition from the yaml schema
 """
 import yaml
 
+from .pipeline import Activity
+from .pipeline import MysqlNode
+from .pipeline import RedshiftNode
+from .pipeline import S3Node
 from .etl_pipeline import ETLPipeline
 from .utils.exceptions import ETLInputError
 
@@ -35,6 +39,7 @@ def read_pipeline_definition(file_path):
 
     return definition
 
+
 def create_pipeline(definition):
     """Creates the pipeline and add the steps specified to the pipeline
 
@@ -50,6 +55,7 @@ def create_pipeline(definition):
 
     return etl
 
+
 def validate_pipeline(etl, force_overwrite=False):
     """Validates the pipeline that was created
 
@@ -62,6 +68,7 @@ def validate_pipeline(etl, force_overwrite=False):
     etl.validate()
     print 'Validated pipeline. Id: %s' % etl.pipeline.id
 
+
 def activate_pipeline(etl):
     """Activate the pipeline that was created
 
@@ -70,3 +77,68 @@ def activate_pipeline(etl):
     """
     etl.activate()
     print 'Activated pipeline. Id: %s' % etl.pipeline.id
+
+
+def visualize_pipeline(etl, filename=None):
+    """Visualize the pipeline that was created
+
+    Args:
+        etl(EtlPipeline): pipeline object that needs to be visualized
+        filename(str): filepath for saving the graph
+    """
+    # Import pygraphviz for plotting the graphs
+    try:
+        import pygraphviz
+    except ImportError:
+        raise ImportError('Install pygraphviz for visualizing pipelines')
+
+    if filename is None:
+        raise ETLInputError('Filename must be provided for visualization')
+
+    graph = pygraphviz.AGraph(name=etl.name, directed=True, label=etl.name)
+
+    pipeline_objects = etl.pipeline_objects()
+
+    # Add nodes for all activities
+    for p_object in pipeline_objects:
+        if isinstance(p_object, Activity):
+            graph.add_node(p_object.id, shape='diamond', color='turquoise',
+                           style='filled')
+        if isinstance(p_object, MysqlNode):
+            graph.add_node(p_object.id, shape='egg', color='beige',
+                           style='filled')
+        if isinstance(p_object, RedshiftNode):
+            graph.add_node(p_object.id, shape='egg', color='goldenrod',
+                           style='filled')
+        if isinstance(p_object, S3Node):
+            graph.add_node(p_object.id, shape='folder', color='grey',
+                           style='filled')
+
+    # Add data dependencies
+    for p_object in pipeline_objects:
+        if isinstance(p_object, Activity):
+            if p_object.input:
+                if isinstance(p_object.input, list):
+                    for ip in p_object.input:
+                        graph.add_edge(ip.id, p_object.id)
+                else:
+                    graph.add_edge(p_object.input.id, p_object.id)
+            if p_object.output:
+                graph.add_edge(p_object.id, p_object.output.id)
+
+    # Add depends_on dependencies
+    for p_object in pipeline_objects:
+        if isinstance(p_object, Activity):
+            if isinstance(p_object.depends_on, list):
+                dependencies = p_object.depends_on
+            elif isinstance(p_object.depends_on, Activity):
+                dependencies = [p_object.depends_on]
+            else:
+                continue
+
+            for dependency in dependencies:
+                graph.add_edge(dependency.id, p_object.id, color='blue')
+
+    # Plotting the graph with dot layout
+    graph.layout(prog='dot')
+    graph.draw(filename)
