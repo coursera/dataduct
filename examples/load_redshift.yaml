@@ -11,3 +11,6 @@ steps:
 -   step_type: load-redshift
     schema: dev
     table: test_table
+
+-   step_type: qa-transform
+    script: examples/scripts/primary_key_test.py

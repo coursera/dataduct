@@ -34,7 +34,8 @@ from .utils.exceptions import ETLInputError
 
 config = Config()
 DEFAULT_MAX_RETRIES = config.etl['DEFAULT_MAX_RETRIES']
-ETL_BUCKET = config.etl['ETL_BUCKET']
+S3_ETL_BUCKET = config.etl['S3_ETL_BUCKET']
+S3_BASE_PATH = config.etl['S3_BASE_PATH']
 BOOTSTRAP_STEPS_DEFINITION = config.bootstrap
 
 EC2_RESOURCE_STR = 'ec2'
@@ -203,16 +204,16 @@ class ETLPipeline(object):
             raise ETLInputError('Unknown data type found')
 
         # Versioning prevents using data from older versions
-        key = [data_type, self.name, self.version_name]
+        key = [S3_BASE_PATH, data_type, self.name, self.version_name]
 
         if self.frequency == 'daily' and data_type in [LOG_STR, DATA_STR]:
             # For repeated loads, include load date
             key.append("#{format(@scheduledStartTime, 'YYYYMMdd')}")
 
         if data_type == LOG_STR:
-            return S3LogPath(key, bucket=ETL_BUCKET, is_directory=True)
+            return S3LogPath(key, bucket=S3_ETL_BUCKET, is_directory=True)
         else:
-            return S3Path(key, bucket=ETL_BUCKET, is_directory=True)
+            return S3Path(key, bucket=S3_ETL_BUCKET, is_directory=True)
 
     @property
     def s3_log_dir(self):
