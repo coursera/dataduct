@@ -36,6 +36,7 @@ config = Config()
 DEFAULT_MAX_RETRIES = config.etl['DEFAULT_MAX_RETRIES']
 S3_ETL_BUCKET = config.etl['S3_ETL_BUCKET']
 S3_BASE_PATH = config.etl['S3_BASE_PATH']
+SNS_TOPIC_ARN_FAILURE = config.etl['SNS_TOPIC_ARN_FAILURE']
 BOOTSTRAP_STEPS_DEFINITION = config.bootstrap
 
 EC2_RESOURCE_STR = 'ec2'
@@ -162,12 +163,14 @@ class ETLPipeline(object):
             load_hour=self.load_hour,
             load_min=self.load_min,
         )
-        # self.sns = None -> Used for testing
-        self.sns = self.create_pipeline_object(
-            object_class=SNSAlarm,
-            topic_arn=self.topic_arn,
-            pipeline_name=self.name,
-        )
+        if self.topic_arn is None and SNS_TOPIC_ARN_FAILURE is None:
+            self.sns = None
+        else:
+            self.sns = self.create_pipeline_object(
+                object_class=SNSAlarm,
+                topic_arn=self.topic_arn,
+                pipeline_name=self.name,
+            )
         self.default = self.create_pipeline_object(
             object_class=DefaultObject,
             sns=self.sns,
