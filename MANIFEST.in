@@ -1,7 +1,6 @@
 include *.txt
 include *.md
 include *.rst
-include *.sh
 include *.py
 recursive-include bin *
 recursive-include scripts *

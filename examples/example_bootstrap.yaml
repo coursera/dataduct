@@ -1,0 +1,16 @@
+name : example_bootstrap
+frequency : one-time
+load_time: 01:00  # Hour:Min in UTC
+
+description : Example for the transform step
+
+bootstrap:
+-   step_type: transform
+    input_node: []
+    command: pip install git+https://github.com/coursera/dataduct.git >> ${OUTPUT1_STAGING_DIR}/output.txt
+    name: bootstrap
+
+steps:
+-   step_type: transform
+    input_node: []
+    command: python -c "import dataduct" >> ${OUTPUT1_STAGING_DIR}/output.txt

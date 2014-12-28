@@ -10,6 +10,8 @@ from .pipeline import S3Node
 from .etl_pipeline import ETLPipeline
 from .utils.exceptions import ETLInputError
 
+URL_TEMPLATE = 'https://console.aws.amazon.com/datapipeline/?#ExecutionDetailsPlace:pipelineId={ID}&show=latest'  # noqa
+
 
 def read_pipeline_definition(file_path):
     """Function reads the yaml pipeline definitions.
@@ -77,6 +79,8 @@ def activate_pipeline(etl):
     """
     etl.activate()
     print 'Activated pipeline. Id: %s' % etl.pipeline.id
+    print 'Monitor pipeline here: %s' % \
+        URL_TEMPLATE.format(ID=etl.pipeline.id)
 
 
 def visualize_pipeline(etl, filename=None):

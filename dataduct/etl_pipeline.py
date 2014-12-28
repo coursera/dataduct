@@ -56,7 +56,8 @@ class ETLPipeline(object):
     def __init__(self, name, frequency='one-time',
                  ec2_resource_terminate_after='6 Hours',
                  delay=None, emr_cluster_config=None, load_time=None,
-                 topic_arn=None, max_retries=DEFAULT_MAX_RETRIES):
+                 topic_arn=None, max_retries=DEFAULT_MAX_RETRIES,
+                 bootstrap=BOOTSTRAP_STEPS_DEFINITION):
         """Example of docstring on the __init__ method.
 
         The __init__ method may be documented in either the class level
@@ -89,6 +90,7 @@ class ETLPipeline(object):
         self.load_min = load_min
         self.max_retries = max_retries
         self.topic_arn = topic_arn
+        self.bootstrap_definitions = bootstrap
 
         if emr_cluster_config:
             self.emr_cluster_config = emr_cluster_config
@@ -590,7 +592,7 @@ class ETLPipeline(object):
             resource_type(enum of str): type of resource we're bootstraping
                 can be ec2 / emr
         """
-        step_params = BOOTSTRAP_STEPS_DEFINITION
+        step_params = self.bootstrap_definitions
         selected_steps = list()
         for step in step_params:
             step['name'] += '_' + resource_type  # Append type for unique names
