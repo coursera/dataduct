@@ -52,10 +52,10 @@ environment variable pointing to the config file location by setting the
       DEFAULT_CLUSTER_AMI: 2.4.7
 
     redshift:
-      REDSHIFT_DATABASE_NAME: FILL_ME_IN
-      REDSHIFT_CLUSTER_ID: FILL_ME_IN
-      REDSHIFT_USERNAME: FILL_ME_IN
-      REDSHIFT_PASSWORD: FILL_ME_IN
+      DATABASE_NAME: FILL_ME_IN
+      CLUSTER_ID: FILL_ME_IN
+      USERNAME: FILL_ME_IN
+      PASSWORD: FILL_ME_IN
 
     mysql:
       DATABASE_KEY:

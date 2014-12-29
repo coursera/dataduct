@@ -6,10 +6,10 @@ from ..config import Config
 from .pipeline_object import PipelineObject
 
 config = Config()
-REDSHIFT_DATABASE_NAME = config.redshift['REDSHIFT_DATABASE_NAME']
-REDSHIFT_CLUSTER_ID = config.redshift['REDSHIFT_CLUSTER_ID']
-REDSHIFT_USERNAME = config.redshift['REDSHIFT_USERNAME']
-REDSHIFT_PASSWORD = config.redshift['REDSHIFT_PASSWORD']
+DATABASE_NAME = config.redshift['DATABASE_NAME']
+CLUSTER_ID = config.redshift['CLUSTER_ID']
+USERNAME = config.redshift['USERNAME']
+PASSWORD = config.redshift['PASSWORD']
 
 
 class RedshiftDatabase(PipelineObject):
@@ -18,10 +18,10 @@ class RedshiftDatabase(PipelineObject):
 
     def __init__(self,
                  id,
-                 database_name=REDSHIFT_DATABASE_NAME,
-                 cluster_id=REDSHIFT_CLUSTER_ID,
-                 username=REDSHIFT_USERNAME,
-                 password=REDSHIFT_PASSWORD):
+                 database_name=DATABASE_NAME,
+                 cluster_id=CLUSTER_ID,
+                 username=USERNAME,
+                 password=PASSWORD):
         """Constructor for the RedshiftDatabase class
 
         Args:
