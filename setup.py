@@ -10,6 +10,8 @@ setup(
     packages=[
         'dataduct',
         'dataduct.config',
+        'dataduct.data_access',
+        'dataduct.etl',
         'dataduct.pipeline',
         'dataduct.qa',
         'dataduct.s3',
@@ -25,7 +27,10 @@ setup(
     description='DataPipeline for Humans',
     install_requires=[
         'boto>=2.32',
-        'pyyaml'
+        'PyYAML',
+        'pandas',
+        'psycopg2',
+        'MySQL-python',
     ],
     scripts=['bin/dataduct'],
     classifiers=[
