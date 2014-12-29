@@ -4,33 +4,33 @@ Class definition for DataPipeline
 from datetime import datetime
 import yaml
 
-from .config import Config
+from ..config import Config
 
-from .pipeline import DefaultObject
-from .pipeline import DataPipeline
-from .pipeline import Ec2Resource
-from .pipeline import EmrResource
-from .pipeline import RedshiftDatabase
-from .pipeline import S3Node
-from .pipeline import Schedule
-from .pipeline import SNSAlarm
-from .pipeline.utils import list_pipelines
+from ..pipeline import DefaultObject
+from ..pipeline import DataPipeline
+from ..pipeline import Ec2Resource
+from ..pipeline import EmrResource
+from ..pipeline import RedshiftDatabase
+from ..pipeline import S3Node
+from ..pipeline import Schedule
+from ..pipeline import SNSAlarm
+from ..pipeline.utils import list_pipelines
 
-from .steps import EMRStreamingStep
-from .steps import ExtractLocalStep
-from .steps import ExtractRdsStep
-from .steps import ExtractRedshiftStep
-from .steps import ExtractS3Step
-from .steps import LoadRedshiftStep
-from .steps import SqlCommandStep
-from .steps import TransformStep
-from .steps import QATransformStep
+from ..steps import EMRStreamingStep
+from ..steps import ExtractLocalStep
+from ..steps import ExtractRdsStep
+from ..steps import ExtractRedshiftStep
+from ..steps import ExtractS3Step
+from ..steps import LoadRedshiftStep
+from ..steps import SqlCommandStep
+from ..steps import TransformStep
+from ..steps import QATransformStep
 
-from .s3.s3_file import S3File
-from .s3.s3_path import S3Path
-from .s3.s3_log_path import S3LogPath
+from ..s3.s3_file import S3File
+from ..s3.s3_path import S3Path
+from ..s3.s3_log_path import S3LogPath
 
-from .utils.exceptions import ETLInputError
+from ..utils.exceptions import ETLInputError
 
 config = Config()
 DEFAULT_MAX_RETRIES = config.etl['DEFAULT_MAX_RETRIES']
@@ -353,6 +353,7 @@ class ETLPipeline(object):
         elif step_type == 'qa-transform':
             step_class = QATransformStep
             step_args['pipeline_name'] = self.name
+            step_args['input_node'] = []
 
         elif step_type == 'extract-s3':
             step_class = ExtractS3Step

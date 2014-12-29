@@ -3,12 +3,12 @@ Script that parses the pipeline definition from the yaml schema
 """
 import yaml
 
-from .pipeline import Activity
-from .pipeline import MysqlNode
-from .pipeline import RedshiftNode
-from .pipeline import S3Node
+from ..pipeline import Activity
+from ..pipeline import MysqlNode
+from ..pipeline import RedshiftNode
+from ..pipeline import S3Node
 from .etl_pipeline import ETLPipeline
-from .utils.exceptions import ETLInputError
+from ..utils.exceptions import ETLInputError
 
 URL_TEMPLATE = 'https://console.aws.amazon.com/datapipeline/?#ExecutionDetailsPlace:pipelineId={ID}&show=latest'  # noqa
 
