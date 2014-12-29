@@ -2,6 +2,7 @@
 Base class for storing a S3 File
 """
 from .s3_path import S3Path
+from .utils import parse_path
 from .utils import upload_dir_to_s3
 
 
@@ -21,7 +22,7 @@ class S3Directory(object):
             s3_path (S3Path, optional): s3_path of the file
 
         """
-        self.path = path
+        self.path = parse_path(path)
         self._s3_path = s3_path
 
     @property

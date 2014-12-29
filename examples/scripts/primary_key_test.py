@@ -1,14 +1,11 @@
+"""Script that checks for primary key violations on the input table
+"""
 #!/usr/bin/env python
-
 
 import argparse
 import pandas.io.sql as pdsql
 from dataduct.qa import PrimaryKeyCheck
-# from datapipeline.database.table import Table
-# from datapipeline.qa.check import Check
-# from datapipeline.qa.check import get_sns_alert_fn
-# from datapipeline.qa.s3 import qa_check_export_fn
-# from datapipeline.data_access.connections import redshift_connection
+from dataduct.data_access.connection import redshift_connection
 
 
 def query_redshift(production, query):
@@ -20,7 +17,7 @@ def query_redshift(production, query):
         - the value returned by the query
     """
     print "Running query", query
-    return pdsql.read_sql(query, redshift_connection(production))
+    return pdsql.read_sql(query, redshift_connection())
 
 
 if __name__ == '__main__':
@@ -39,10 +36,8 @@ if __name__ == '__main__':
     print "Got args for check primary key", args
 
     table = Table(script=args.table)
-    result = query_redshift(
-        args.production,
-        table.select_duplicates_sql().raw_sql(),
-    )
+    result = pdsql.read_sql(
+        table.select_duplicates_sql().raw_sql(), redshift_connection())
 
     check = PrimaryKeyCheck(
         len(result), args.test_name, get_sns_alert_fn(args.sns_topic))

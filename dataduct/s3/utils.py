@@ -5,8 +5,10 @@ import boto.s3
 import os
 
 from .s3_path import S3Path
+from ..config import Config
 from ..utils.exceptions import ETLInputError
 
+RESOURCE_BASE_PATH = 'RESOURCE_BASE_PATH'
 
 def get_s3_bucket(bucket_name):
     """Returns an S3 bucket object from boto
@@ -158,3 +160,28 @@ def delete_dir_from_s3(s3_path):
     keys = bucket.get_all_keys(prefix=s3_path.key)
     for key in keys:
         key.delete()
+
+
+def parse_path(path):
+    """Change the resource paths for files and directory based on params
+
+    If the path is None, the function returns None.
+    Else if the path is an absolute path then return the path as is.
+    Else if the path is a relative path and resource_base_path is declared then
+        assume the path is relative to the resource_base_path
+    Else return the path as is.
+
+    Args:
+        path(str): path specified in the YAML file
+    """
+    # If path is None or absolute
+    if path is None or os.path.isabs(path):
+        return path
+
+    # Try relative path to specified config
+    config = Config()
+    if RESOURCE_BASE_PATH in config.etl:
+        return os.path.join(config.etl[RESOURCE_BASE_PATH], path)
+
+    # Return the path as is.
+    return path

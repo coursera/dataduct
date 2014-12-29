@@ -1,5 +1,5 @@
 """
-Script that parses the pipeline definition from the yaml schema
+Script that parses the pipeline definition and has action functions
 """
 import yaml
 
