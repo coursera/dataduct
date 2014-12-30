@@ -6,8 +6,8 @@ from .pipeline_object import PipelineObject
 from ..config import Config
 
 config = Config()
-DEFAULT_ROLE = config.ec2['DEFAULT_ROLE']
-DEFAULT_RESOURCE_ROLE = config.ec2['DEFAULT_RESOURCE_ROLE']
+DEFAULT_ROLE = config.etl['DEFAULT_ROLE']
+DEFAULT_RESOURCE_ROLE = config.etl['DEFAULT_RESOURCE_ROLE']
 
 
 class DefaultObject(PipelineObject):

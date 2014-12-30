@@ -4,8 +4,13 @@ Pipeline object class for redshift database
 
 from ..config import Config
 from .pipeline_object import PipelineObject
+from ..utils.exceptions import ETLConfigError
 
 config = Config()
+
+if not hasattr(config, 'redshift'):
+    raise ETLConfigError('Redshift credentials missing from config')
+
 DATABASE_NAME = config.redshift['DATABASE_NAME']
 CLUSTER_ID = config.redshift['CLUSTER_ID']
 USERNAME = config.redshift['USERNAME']

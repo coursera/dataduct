@@ -33,11 +33,10 @@ from ..s3.s3_log_path import S3LogPath
 from ..utils.exceptions import ETLInputError
 
 config = Config()
-DEFAULT_MAX_RETRIES = config.etl['DEFAULT_MAX_RETRIES']
 S3_ETL_BUCKET = config.etl['S3_ETL_BUCKET']
-S3_BASE_PATH = config.etl['S3_BASE_PATH']
-SNS_TOPIC_ARN_FAILURE = config.etl['SNS_TOPIC_ARN_FAILURE']
-BOOTSTRAP_STEPS_DEFINITION = config.bootstrap
+DEFAULT_MAX_RETRIES = config.etl.get('DEFAULT_MAX_RETRIES', 0)
+S3_BASE_PATH = config.etl.get('S3_BASE_PATH', '')
+SNS_TOPIC_ARN_FAILURE = config.etl.get('SNS_TOPIC_ARN_FAILURE', None)
 
 EC2_RESOURCE_STR = 'ec2'
 EMR_CLUSTER_STR = 'emr'
@@ -57,7 +56,7 @@ class ETLPipeline(object):
                  ec2_resource_terminate_after='6 Hours',
                  delay=None, emr_cluster_config=None, load_time=None,
                  topic_arn=None, max_retries=DEFAULT_MAX_RETRIES,
-                 bootstrap=BOOTSTRAP_STEPS_DEFINITION):
+                 bootstrap=None):
         """Example of docstring on the __init__ method.
 
         The __init__ method may be documented in either the class level
@@ -90,7 +89,13 @@ class ETLPipeline(object):
         self.load_min = load_min
         self.max_retries = max_retries
         self.topic_arn = topic_arn
-        self.bootstrap_definitions = bootstrap
+
+        if bootstrap is not None:
+            self.bootstrap_definitions = bootstrap
+        elif hasattr(config, 'bootstrap'):
+            self.bootstrap_definitions = config.bootstrap
+        else:
+            self.bootstrap_definitions = list()
 
         if emr_cluster_config:
             self.emr_cluster_config = emr_cluster_config

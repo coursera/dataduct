@@ -13,7 +13,7 @@ from ..s3 import S3Directory
 from ..utils.exceptions import ETLInputError
 
 config = Config()
-RETRY_DELAY = config.etl['RETRY_DELAY']
+RETRY_DELAY = config.etl.get('RETRY_DELAY', '10 Minutes')
 
 
 class S3Node(PipelineObject):

@@ -8,12 +8,13 @@ from ..s3 import S3File
 
 config = Config()
 CONFIG_STR = 'config'
+DATADUCT_FILE_NAME = 'dataduct.cfg'
 
 
 def s3_config_path():
     """S3 uri for the config files
     """
-    key = [config.etl['S3_BASE_PATH'], CONFIG_STR, 'dataduct.cfg']
+    key = [config.etl.get('S3_BASE_PATH', ''), CONFIG_STR, DATADUCT_FILE_NAME]
     return S3Path(bucket=config.etl['S3_ETL_BUCKET'], key=key)
 
 

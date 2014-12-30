@@ -9,13 +9,15 @@ from .schedule import Schedule
 from ..utils.exceptions import ETLInputError
 
 config = Config()
-DEFAULT_RESOURCE_ROLE = config.ec2['DEFAULT_RESOURCE_ROLE']
-DEFAULT_EC2_INSTANCE_TYPE = config.ec2['DEFAULT_EC2_INSTANCE_TYPE']
-ETL_AMI = config.ec2['ETL_AMI']
-KEY_PAIR = config.ec2['KEY_PAIR']
-DEFAULT_ROLE = config.ec2['DEFAULT_ROLE']
-SECURITY_GROUP = config.ec2['SECURITY_GROUP']
-RETRY_DELAY = config.etl['RETRY_DELAY']
+DEFAULT_ROLE = config.etl['DEFAULT_ROLE']
+DEFAULT_RESOURCE_ROLE = config.etl['DEFAULT_RESOURCE_ROLE']
+
+DEFAULT_EC2_INSTANCE_TYPE = config.ec2.get(
+    'DEFAULT_EC2_INSTANCE_TYPE', 'm1.large')
+ETL_AMI = config.ec2.get('ETL_AMI', None)
+SECURITY_GROUP = config.ec2.get('SECURITY_GROUP', None)
+KEY_PAIR = config.etl.get('KEY_PAIR', None)
+RETRY_DELAY = config.etl.get('RETRY_DELAY', '10 Minutes')
 
 
 class Ec2Resource(PipelineObject):

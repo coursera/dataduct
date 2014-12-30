@@ -9,7 +9,7 @@ from .pipeline_object import PipelineObject
 from ..utils.exceptions import ETLInputError
 
 config = Config()
-DAILY_LOAD_TIME = config.etl['DAILY_LOAD_TIME']
+DAILY_LOAD_TIME = config.etl.get('DAILY_LOAD_TIME', 1)
 
 
 FEQUENCY_PERIOD_CONVERTION = {

@@ -6,6 +6,7 @@ import MySQLdb
 
 from ..config import Config
 from ..utils.helpers import retry
+from ..utils.exceptions import ETLConfigError
 
 config = Config()
 
@@ -13,6 +14,9 @@ config = Config()
 def redshift_connection(**kwargs):
     """Fetch a psql connection object to redshift
     """
+    if not hasattr(config, 'redshift'):
+        raise ETLConfigError('Redshift not found in dataduct configs')
+
     connection = psycopg2.connect(
         host=config.redshift['HOST'],
         user=config.redshift['USERNAME'],
@@ -30,6 +34,12 @@ def rds_connection(host_name, cursorclass=MySQLdb.cursors.SSCursor,
                    **kwargs):
     """Fetch a psql connection object to redshift
     """
+    if not hasattr(config, 'mysql'):
+        raise ETLConfigError('mysql not found in dataduct configs')
+
+    if host_name not in config.mysql:
+        raise ETLConfigError('Config for hostname: %s not found' %host_name)
+
     sql_creds = config.mysql[host_name]
 
     connection = MySQLdb.connect(

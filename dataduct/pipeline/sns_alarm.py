@@ -6,8 +6,8 @@ from ..config import Config
 from .pipeline_object import PipelineObject
 
 config = Config()
-SNS_TOPIC_ARN_FAILURE = config.etl['SNS_TOPIC_ARN_FAILURE']
-DEFAULT_ROLE = config.ec2['DEFAULT_ROLE']
+SNS_TOPIC_ARN_FAILURE = config.etl.get('SNS_TOPIC_ARN_FAILURE', None)
+DEFAULT_ROLE = config.etl['DEFAULT_ROLE']
 
 
 class SNSAlarm(PipelineObject):
