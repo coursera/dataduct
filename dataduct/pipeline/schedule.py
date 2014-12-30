@@ -52,8 +52,10 @@ class Schedule(PipelineObject):
 
         if delay is None:
             delay = timedelta(0)
+        elif isinstance(delay, int):
+            delay = timedelta(days=delay)
         elif not isinstance(delay, timedelta):
-            raise ETLInputError('Delay must be an instance of timedelta')
+            raise ETLInputError('Delay must be an instance of timedelta or int')
 
         if frequency in FEQUENCY_PERIOD_CONVERTION:
             period, occurrences = FEQUENCY_PERIOD_CONVERTION[frequency]

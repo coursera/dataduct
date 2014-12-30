@@ -2,6 +2,7 @@
 Class definition for DataPipeline
 """
 from datetime import datetime
+from copy import deepcopy
 import yaml
 
 from ..config import Config
@@ -54,27 +55,22 @@ class ETLPipeline(object):
     """
     def __init__(self, name, frequency='one-time',
                  ec2_resource_terminate_after='6 Hours',
-                 delay=None, emr_cluster_config=None, load_time=None,
+                 delay=0, emr_cluster_config=None, load_time=None,
                  topic_arn=None, max_retries=DEFAULT_MAX_RETRIES,
                  bootstrap=None):
-        """Example of docstring on the __init__ method.
-
-        The __init__ method may be documented in either the class level
-        docstring, or as a docstring on the __init__ method itself.
-
-        Either form is acceptable, but the two should not be mixed. Choose one
-        convention to document the __init__ method and be consistent with it.
-
-        Note:
-            Do not include the `self` parameter in the ``Args`` section.
+        """Constructor for the pipeline class
 
         Args:
             name (str): Name of the pipeline should be globally unique.
             frequency (enum): Frequency of the pipeline. Can be
-            attr2 (list of str): Description of `attr2`.
-            attr3 (int): Description of `attr3`.
-
+            ec2_resource_terminate_after (str): Timeout for ec2 resource
+            delay(int): Number of days to delay the pipeline by
+            emr_cluster_config(dict): Dictionary for emr config
+            topic_arn(str): sns alert to be used by the pipeline
+            max_retries(int): number of retries for pipeline activities
+            bootstrap(list of steps): bootstrap step definitions for resources
         """
+
         if load_time:
             load_hour, load_min = [int(x) for x in load_time.split(':')]
         else:
@@ -84,9 +80,9 @@ class ETLPipeline(object):
         self._name = name
         self.frequency = frequency
         self.ec2_resource_terminate_after = ec2_resource_terminate_after
-        self.delay = delay
         self.load_hour = load_hour
         self.load_min = load_min
+        self.delay = delay
         self.max_retries = max_retries
         self.topic_arn = topic_arn
 
@@ -95,7 +91,7 @@ class ETLPipeline(object):
         elif hasattr(config, 'bootstrap'):
             self.bootstrap_definitions = config.bootstrap
         else:
-            self.bootstrap_definitions = list()
+            self.bootstrap_definitions = dict()
 
         if emr_cluster_config:
             self.emr_cluster_config = emr_cluster_config
@@ -352,7 +348,7 @@ class ETLPipeline(object):
         """
         if step_type == 'transform':
             step_class = TransformStep
-            if step_args.get('resource', None) == EMR_CLUSTER_STR:
+            if step_args.pop('resource_type', None) == EMR_CLUSTER_STR:
                 step_args['resource'] = self.emr_cluster
 
         elif step_type == 'qa-transform':
@@ -598,24 +594,12 @@ class ETLPipeline(object):
             resource_type(enum of str): type of resource we're bootstraping
                 can be ec2 / emr
         """
-        step_params = self.bootstrap_definitions
-        selected_steps = list()
-        for step in step_params:
-            if 'name' in step:
-                # Append type for unique names
-                step['name'] += '_' + resource_type
+        step_params = self.bootstrap_definitions.get(resource_type, list())
+        for step_param in step_params:
+            # Mutating the steps here by adding resource
+            step_param['resource'] = self.allocate_resource(resource_type)
 
-            # If resource type is specified and doesn't match we skip
-            if 'resource_type' in step:
-                if step['resource_type'] != resource_type:
-                    continue
-                else:
-                    step.pop('resource_type')
-
-            step['resource'] = self.allocate_resource(resource_type)
-            selected_steps.append(step)
-
-        steps = self.create_steps(selected_steps, True)
+        steps = self.create_steps(step_params, True)
         self._bootstrap_steps.extend(steps)
         return steps
 

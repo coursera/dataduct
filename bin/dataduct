@@ -29,7 +29,8 @@ def config_actions(action, filename):
         return sync_from_s3(filename)
 
 
-def pipeline_actions(action, load_definitions, force_overwrite, filename):
+def pipeline_actions(action, load_definitions, force_overwrite, filename,
+                     delay):
     """Pipeline related actions are executed in this block
     """
     from dataduct.etl import activate_pipeline
@@ -40,6 +41,8 @@ def pipeline_actions(action, load_definitions, force_overwrite, filename):
 
     for load_definition in load_definitions:
         definition = read_pipeline_definition(load_definition)
+        definition.update({'delay': delay})
+
         etl = create_pipeline(definition)
         if action in [VISUALIZE_STR]:
             visualize_pipeline(etl, filename)
@@ -85,6 +88,13 @@ def main():
         help='Mode to run the pipeline and config overrides to use',
     )
     parser.add_argument(
+        '-d',
+        '--delay',
+        default=0,
+        type=int,
+        help='Delay the pipeline by x days',
+    )
+    parser.add_argument(
         '-F',
         '--filename',
         default=None,
@@ -108,7 +118,7 @@ def main():
         config_actions(args.action, args.filename)
     else:
         pipeline_actions(args.action, args.load_definitions,
-                         args.force_overwrite, args.filename)
+                         args.force_overwrite, args.filename, args.delay)
 
 
 if __name__ == '__main__':
