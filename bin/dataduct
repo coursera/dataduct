@@ -6,6 +6,8 @@ Script that helps create and validate pipelines from command line
 
 import argparse
 
+from dataduct.config import Config
+
 CREATE_STR = 'create'
 VALIDATE_STR = 'validate'
 ACTIVATE_STR = 'activate'
@@ -14,11 +16,11 @@ SYNC_CONFIG_TO_S3 = 'sync_config_to_s3'
 SYNC_CONFIG_FROM_S3 = 'sync_config_from_s3'
 
 
-def credential_actions(action, filename):
+def config_actions(action, filename):
     """Config related actions are executed in this block
     """
-    from dataduct.config import sync_to_s3
-    from dataduct.config import sync_from_s3
+    from dataduct.config.config_actions import sync_to_s3
+    from dataduct.config.config_actions import sync_from_s3
 
     if action == SYNC_CONFIG_TO_S3:
         return sync_to_s3()
@@ -67,27 +69,43 @@ def main():
     parser.add_argument(
         'load_definitions',
         nargs='*',
-        help='Enter the paths of the load definitions.',
+        help='Enter the paths of the load definitions',
     )
     parser.add_argument(
         '-f',
         '--force_overwrite',
         action='store_true',
         default=False,
-        help='Indicates that if this pipeline exists, it will be destroyed'
-        ' first.',
+        help='Indicates that if this pipeline exists, it will be destroyed',
     )
     parser.add_argument(
-        '-filename',
+        '-m',
+        '--mode',
+        default=None,
+        help='Mode to run the pipeline and config overrides to use',
+    )
+    parser.add_argument(
+        '-F',
         '--filename',
         default=None,
-        help='Indicates that if this pipeline exists, it will be destroyed'
-        ' first.',
+        help='Filename for various actions',
     )
     args = parser.parse_args()
 
+    mode = args.mode
+    if mode is not None:
+        # We assume mode:dev = mode:None
+        if mode == 'dev':
+            mode = None
+
+        # To instantiate the singleton object with the correct state
+        # As this is the single entry point to the library
+        # We can use the __new__ function to set the debug_level
+        config = Config(mode=mode)
+        print 'Running the pipeline in %s mode.' %config.mode
+
     if args.action in [SYNC_CONFIG_TO_S3, SYNC_CONFIG_FROM_S3]:
-        credential_actions(args.action, args.filename)
+        config_actions(args.action, args.filename)
     else:
         pipeline_actions(args.action, args.load_definitions,
                          args.force_overwrite, args.filename)

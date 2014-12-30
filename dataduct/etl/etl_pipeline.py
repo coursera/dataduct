@@ -596,7 +596,9 @@ class ETLPipeline(object):
         step_params = self.bootstrap_definitions
         selected_steps = list()
         for step in step_params:
-            step['name'] += '_' + resource_type  # Append type for unique names
+            if 'name' in step:
+                # Append type for unique names
+                step['name'] += '_' + resource_type
 
             # If resource type is specified and doesn't match we skip
             if 'resource_type' in step:
