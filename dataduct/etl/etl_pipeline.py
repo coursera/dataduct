@@ -2,7 +2,6 @@
 Class definition for DataPipeline
 """
 from datetime import datetime
-from copy import deepcopy
 import yaml
 
 from ..config import Config
@@ -27,9 +26,9 @@ from ..steps import SqlCommandStep
 from ..steps import TransformStep
 from ..steps import QATransformStep
 
-from ..s3.s3_file import S3File
-from ..s3.s3_path import S3Path
-from ..s3.s3_log_path import S3LogPath
+from ..s3 import S3File
+from ..s3 import S3Path
+from ..s3 import S3LogPath
 
 from ..utils.exceptions import ETLInputError
 from ..utils import constants as const
@@ -106,7 +105,7 @@ class ETLPipeline(object):
         self.errors = None
 
         self._base_objects = dict()
-        self._intermediate_nodes = dict()
+        self.intermediate_nodes = dict()
         self._steps = dict()
         self._bootstrap_steps = list()
 
@@ -196,6 +195,15 @@ class ETLPipeline(object):
             result: name of the pipeline
         """
         return self._name
+
+    @property
+    def steps(self):
+        """Get the steps of the pipeline
+
+        Returns:
+            result: steps of the pipeline
+        """
+        return self._steps
 
     def _s3_uri(self, data_type):
         """Get the S3 location for various data associated with the pipeline
@@ -335,50 +343,6 @@ class ETLPipeline(object):
         """
         return self._steps.get(step_id, None)
 
-    def determine_step_class(self, step_type, step_args):
-        """Determine step class from input to correct ETL step types
-
-        Args:
-            step_type(str): string specifing step_type of the objects
-            step_args(dict): dictionary of step arguments
-
-        Returns:
-            step_class(ETLStep): Class object for the specific step_type
-            step_args(dict): dictionary of step arguments
-        """
-        if step_type == 'transform':
-            step_class = TransformStep
-
-        elif step_type == 'qa-transform':
-            step_class = QATransformStep
-
-        elif step_type == 'extract-s3':
-            step_class = ExtractS3Step
-
-        elif step_type == 'extract-local':
-            step_class = ExtractLocalStep
-
-        elif step_type == 'extract-rds':
-            step_class = ExtractRdsStep
-
-        elif step_type == 'extract-redshift':
-            step_class = ExtractRedshiftStep
-
-        elif step_type == 'sql-command':
-            step_class = SqlCommandStep
-
-        elif step_type == 'emr-streaming':
-            step_class = EMRStreamingStep
-
-        elif step_type == 'load-redshift':
-            step_class = LoadRedshiftStep
-
-        else:
-            raise ETLInputError('Step type %s not recogonized' % step_type)
-
-        step_args = step_class.argument_parser(self, step_args)
-        return step_class, step_args
-
     def translate_input_nodes(self, input_node):
         """Translate names from YAML to input_nodes
 
@@ -411,9 +375,9 @@ class ETLPipeline(object):
         """
         output = dict()
         for key, value in input_node.iteritems():
-            if key not in self._intermediate_nodes:
+            if key not in self.intermediate_nodes:
                 raise ETLInputError('Input reference does not exist')
-            output[value] = self._intermediate_nodes[key]
+            output[value] = self.intermediate_nodes[key]
         return output
 
     def parse_step_args(self, step_type, **kwargs):
@@ -431,74 +395,37 @@ class ETLPipeline(object):
         if not isinstance(step_type, str):
             raise ETLInputError('Step type must be a string')
 
-        # Base dictionary for every step
-        step_args = {
-            'resource': None,
-            'schedule': self.schedule,
-            'max_retries': self.max_retries,
-            'required_steps': list()
-        }
-        step_args.update(kwargs)
+        if step_type == 'transform':
+            step_class = TransformStep
 
-        # Description is optional and should not be passed
-        step_args.pop('description', None)
+        elif step_type == 'qa-transform':
+            step_class = QATransformStep
 
-        # Add dependencies
-        depends_on = step_args.pop('depends_on', None)
-        if depends_on:
-            for step_id in list(depends_on):
-                if step_id not in self._steps:
-                    raise ETLInputError('Step depends on non-existent step')
-                step_args['required_steps'].append(self._steps[step_id])
+        elif step_type == 'extract-s3':
+            step_class = ExtractS3Step
 
-        step_class, step_args = self.determine_step_class(step_type, step_args)
+        elif step_type == 'extract-local':
+            step_class = ExtractLocalStep
 
-        # Set input node and required_steps
-        input_node = step_args.get('input_node', None)
-        if input_node:
-            if isinstance(input_node, dict):
-                input_node = self.translate_input_nodes(input_node)
-            elif isinstance(input_node, str):
-                input_node = self._intermediate_nodes[input_node]
-            step_args['input_node'] = input_node
+        elif step_type == 'extract-rds':
+            step_class = ExtractRdsStep
 
-            # Add dependencies from steps that create input nodes
-            if isinstance(input_node, dict):
-                required_nodes = input_node.values()
-            else:
-                required_nodes = [input_node]
+        elif step_type == 'extract-redshift':
+            step_class = ExtractRedshiftStep
 
-            for required_node in required_nodes:
-                for step in self._steps.values():
-                    if step not in step_args['required_steps'] and \
-                            required_node in step.pipeline_objects:
-                        step_args['required_steps'].append(step)
+        elif step_type == 'sql-command':
+            step_class = SqlCommandStep
 
-        # Set resource for the step if not specified or removed
-        if 'resource' in step_args and step_args['resource'] is None:
-            step_args['resource'] = self.ec2_resource
+        elif step_type == 'emr-streaming':
+            step_class = EMRStreamingStep
 
-        # Set the name if name not provided
-        if 'name' in step_args:
-            name = step_args.pop('name')
+        elif step_type == 'load-redshift':
+            step_class = LoadRedshiftStep
+
         else:
-            # If the name of the step is not provided, one is assigned as:
-            #   [step_class][index]
-            name = step_class.__name__ + str(sum(
-                [1 for a in self._steps.values() if isinstance(a, step_class)]
-            ))
+            raise ETLInputError('Step type %s not recogonized' % step_type)
 
-        # Each step is given it's own directory so that there is no clashing
-        # of file names.
-        step_args.update({
-            'id': name,
-            's3_log_dir': S3LogPath(name, parent_dir=self.s3_log_dir,
-                                    is_directory=True),
-            's3_data_dir': S3Path(name, parent_dir=self.s3_data_dir,
-                                  is_directory=True),
-            's3_source_dir': S3Path(name, parent_dir=self.s3_source_dir,
-                                    is_directory=True),
-        })
+        step_args = step_class.arguments_processor(self, kwargs)
 
         return step_class, step_args
 
@@ -518,9 +445,9 @@ class ETLPipeline(object):
 
         # Update intermediate_nodes dict
         if isinstance(step.output, dict):
-            self._intermediate_nodes.update(step.output)
+            self.intermediate_nodes.update(step.output)
         elif step.output and step.id:
-            self._intermediate_nodes[step.id] = step.output
+            self.intermediate_nodes[step.id] = step.output
 
     def create_steps(self, steps_params, is_bootstrap=False):
         """Create pipeline steps and add appropriate dependencies

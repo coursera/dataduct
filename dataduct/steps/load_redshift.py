@@ -64,13 +64,16 @@ class LoadRedshiftStep(ETLStep):
             command_options=command_options,
         )
 
-    @staticmethod
-    def argument_parser(etl, step_args):
+    @classmethod
+    def arguments_processor(cls, etl, input_args):
         """Parse the step arguments according to the ETL pipeline
 
         Args:
             etl(ETLPipeline): Pipeline object containing resources and steps
             step_args(dict): Dictionary of the step arguments for the class
         """
+        step_args = cls.base_arguments_processor(etl, input_args)
         step_args['redshift_database'] = etl.redshift_database
+        step_args['resource'] = etl.ec2_resource
+
         return step_args

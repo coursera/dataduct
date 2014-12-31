@@ -21,16 +21,20 @@ class ExtractLocalStep(ETLStep):
         self._output = self.create_s3_data_node(s3_object=S3File(path=path))
 
 
-    @staticmethod
-    def argument_parser(etl, step_args):
+    @classmethod
+    def arguments_processor(cls, etl, input_args):
         """Parse the step arguments according to the ETL pipeline
 
         Args:
             etl(ETLPipeline): Pipeline object containing resources and steps
             step_args(dict): Dictionary of the step arguments for the class
         """
+        input_args.pop('input_node', None)
+        step_args = cls.base_arguments_processor(etl, input_args)
+
         step_args.pop('resource')
         if etl.frequency != 'one-time':
             raise ETLInputError(
                 'Extract Local can be used for one-time pipelines only')
+
         return step_args

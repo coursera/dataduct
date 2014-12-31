@@ -120,14 +120,18 @@ class TransformStep(ETLStep):
         """
         return ''.join('--', key, '=', value)
 
-    @staticmethod
-    def argument_parser(etl, step_args):
+    @classmethod
+    def arguments_processor(cls, etl, input_args):
         """Parse the step arguments according to the ETL pipeline
 
         Args:
             etl(ETLPipeline): Pipeline object containing resources and steps
             step_args(dict): Dictionary of the step arguments for the class
         """
+        step_args = cls.base_arguments_processor(etl, input_args)
         if step_args.pop('resource_type', None) == const.EMR_CLUSTER_STR:
             step_args['resource'] = etl.emr_cluster
+        else:
+            step_args['resource'] = etl.ec2_resource
+
         return step_args

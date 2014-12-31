@@ -1,13 +1,13 @@
 """
 Base class for an etl step
 """
-
 from ..config import Config
 from ..pipeline import Activity
 from ..pipeline import CopyActivity
 from ..pipeline import S3Node
 from ..s3 import S3Path
 from ..s3 import S3File
+from ..s3 import S3LogPath
 from ..utils.exceptions import ETLInputError
 
 config = Config()
@@ -342,9 +342,86 @@ class ETLStep(object):
         """
         return [x for x in self._objects.values() if isinstance(x, Activity)]
 
+    @classmethod
+    def base_arguments_processor(cls, etl, input_args):
+        """Process the step arguments according to the ETL pipeline
 
-    @staticmethod
-    def argument_parser(etl, step_args):
-        """Parse the step arguments according to the ETL pipeline
+        Args:
+            etl(ETLPipeline): Pipeline object containing resources and steps
+            input_args(dict): Dictionary of the step arguments from the YAML
         """
+        # Base dictionary for every step
+        step_args = {
+            'resource': None,
+            'schedule': etl.schedule,
+            'max_retries': etl.max_retries,
+            'required_steps': list()
+        }
+        step_args.update(input_args)
+
+        # Description is optional and should not be passed
+        step_args.pop('description', None)
+
+        # Add dependencies
+        depends_on = step_args.pop('depends_on', None)
+        if depends_on:
+            for step_id in list(depends_on):
+                if step_id not in etl.steps:
+                    raise ETLInputError('Step depends on non-existent step')
+                step_args['required_steps'].append(etl.steps[step_id])
+
+        # Set input node and required_steps
+        input_node = step_args.get('input_node', None)
+        if input_node:
+            if isinstance(input_node, dict):
+                input_node = etl.translate_input_nodes(input_node)
+            elif isinstance(input_node, str):
+                input_node = etl.intermediate_nodes[input_node]
+            step_args['input_node'] = input_node
+
+            # Add dependencies from steps that create input nodes
+            if isinstance(input_node, dict):
+                required_nodes = input_node.values()
+            else:
+                required_nodes = [input_node]
+
+            for required_node in required_nodes:
+                for step in etl.steps.values():
+                    if step not in step_args['required_steps'] and \
+                            required_node in step.pipeline_objects:
+                        step_args['required_steps'].append(step)
+
+        # Set the name if name not provided
+        if 'name' in step_args:
+            name = step_args.pop('name')
+        else:
+            # If the name of the step is not provided, one is assigned as:
+            #   [step_class][index]
+            name = cls.__name__ + str(sum(
+                [1 for a in etl.steps.values() if isinstance(a, cls)]
+            ))
+
+        # Each step is given it's own directory so that there is no clashing
+        # of file names.
+        step_args.update({
+            'id': name,
+            's3_log_dir': S3LogPath(name, parent_dir=etl.s3_log_dir,
+                                    is_directory=True),
+            's3_data_dir': S3Path(name, parent_dir=etl.s3_data_dir,
+                                  is_directory=True),
+            's3_source_dir': S3Path(name, parent_dir=etl.s3_source_dir,
+                                    is_directory=True),
+        })
+
+        return step_args
+
+    @classmethod
+    def arguments_processor(cls, etl, input_args):
+        """Parse the step arguments according to the ETL pipeline
+
+        Args:
+            etl(ETLPipeline): Pipeline object containing resources and steps
+            step_args(dict): Dictionary of the step arguments for the class
+        """
+        step_args = cls.base_arguments_processor(etl, input_args)
         return step_args
