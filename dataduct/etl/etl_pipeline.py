@@ -38,7 +38,7 @@ from ..utils import constants as const
 
 config = Config()
 S3_ETL_BUCKET = config.etl['S3_ETL_BUCKET']
-DEFAULT_MAX_RETRIES = config.etl.get('DEFAULT_MAX_RETRIES', 0)
+MAX_RETRIES = config.etl.get('MAX_RETRIES', 0)
 S3_BASE_PATH = config.etl.get('S3_BASE_PATH', '')
 SNS_TOPIC_ARN_FAILURE = config.etl.get('SNS_TOPIC_ARN_FAILURE', None)
 
@@ -59,7 +59,7 @@ class ETLPipeline(object):
     def __init__(self, name, frequency='one-time',
                  ec2_resource_terminate_after='6 Hours',
                  delay=0, emr_cluster_config=None, load_time=None,
-                 topic_arn=None, max_retries=DEFAULT_MAX_RETRIES,
+                 topic_arn=None, max_retries=MAX_RETRIES,
                  bootstrap=None):
         """Constructor for the pipeline class
 

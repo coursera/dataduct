@@ -7,7 +7,7 @@ from .pipeline_object import PipelineObject
 
 config = Config()
 SNS_TOPIC_ARN_FAILURE = config.etl.get('SNS_TOPIC_ARN_FAILURE', None)
-DEFAULT_ROLE = config.etl['DEFAULT_ROLE']
+ROLE = config.etl['ROLE']
 
 
 class SNSAlarm(PipelineObject):
@@ -48,7 +48,7 @@ class SNSAlarm(PipelineObject):
             id=id,
             type='SnsAlarm',
             topicArn=topic_arn,
-            role=DEFAULT_ROLE,
+            role=ROLE,
             subject='Data Pipeline Failure',
             message=failure_message,
         )

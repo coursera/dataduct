@@ -9,11 +9,10 @@ from .schedule import Schedule
 from ..utils.exceptions import ETLInputError
 
 config = Config()
-DEFAULT_ROLE = config.etl['DEFAULT_ROLE']
-DEFAULT_RESOURCE_ROLE = config.etl['DEFAULT_RESOURCE_ROLE']
+ROLE = config.etl['ROLE']
+RESOURCE_ROLE = config.etl['RESOURCE_ROLE']
 
-DEFAULT_EC2_INSTANCE_TYPE = config.ec2.get(
-    'DEFAULT_EC2_INSTANCE_TYPE', 'm1.large')
+INSTANCE_TYPE = config.ec2.get('INSTANCE_TYPE', 'm1.large')
 ETL_AMI = config.ec2.get('ETL_AMI', None)
 SECURITY_GROUP = config.ec2.get('SECURITY_GROUP', None)
 KEY_PAIR = config.etl.get('KEY_PAIR', None)
@@ -29,7 +28,7 @@ class Ec2Resource(PipelineObject):
                  s3_log_dir=None,
                  schedule=None,
                  terminate_after='6 Hours',
-                 instance_type=DEFAULT_EC2_INSTANCE_TYPE,
+                 instance_type=INSTANCE_TYPE,
                  ami=ETL_AMI,
                  security_group=SECURITY_GROUP,
                  **kwargs):
@@ -62,8 +61,8 @@ class Ec2Resource(PipelineObject):
             schedule=schedule,
             imageId=ami,
             instanceType=instance_type,
-            role=DEFAULT_ROLE,
-            resourceRole=DEFAULT_RESOURCE_ROLE,
+            role=ROLE,
+            resourceRole=RESOURCE_ROLE,
             keyPair=KEY_PAIR,
             retryDelay=RETRY_DELAY,
             securityGroups=security_group

@@ -8,7 +8,7 @@ from .schedule import Schedule
 from ..utils.exceptions import ETLInputError
 
 config = Config()
-DEFAULT_MAX_RETRIES = config.etl.get('DEFAULT_MAX_RETRIES', 0)
+MAX_RETRIES = config.etl.get('MAX_RETRIES', 0)
 
 
 class EmrActivity(Activity):
@@ -46,7 +46,7 @@ class EmrActivity(Activity):
         if depends_on is None:
             depends_on = []
         if max_retries is None:
-            max_retries = DEFAULT_MAX_RETRIES
+            max_retries = MAX_RETRIES
 
         super(EmrActivity, self).__init__(
             id=id,

@@ -9,7 +9,7 @@ from .schedule import Schedule
 from ..utils.exceptions import ETLInputError
 
 config = Config()
-DEFAULT_MAX_RETRIES = config.etl.get('DEFAULT_MAX_RETRIES', 0)
+MAX_RETRIES = config.etl.get('MAX_RETRIES', 0)
 RETRY_DELAY = config.etl.get('RETRY_DELAY', '10 Minutes')
 
 
@@ -49,7 +49,7 @@ class RedshiftCopyActivity(Activity):
         if depends_on is None:
             depends_on = []
         if max_retries is None:
-            max_retries = DEFAULT_MAX_RETRIES
+            max_retries = MAX_RETRIES
 
         kwargs = {
             'id': id,

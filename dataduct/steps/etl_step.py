@@ -11,7 +11,7 @@ from ..s3 import S3LogPath
 from ..utils.exceptions import ETLInputError
 
 config = Config()
-DEFAULT_MAX_RETRIES = config.etl.get('DEFAULT_MAX_RETRIES', 0)
+MAX_RETRIES = config.etl.get('MAX_RETRIES', 0)
 
 
 class ETLStep(object):
@@ -32,7 +32,7 @@ class ETLStep(object):
     def __init__(self, id, s3_data_dir=None, s3_log_dir=None,
                  s3_source_dir=None, schedule=None, resource=None,
                  input_node=None, required_steps=None,
-                 max_retries=DEFAULT_MAX_RETRIES):
+                 max_retries=MAX_RETRIES):
         """Constructor for the ETLStep object
 
         Args:

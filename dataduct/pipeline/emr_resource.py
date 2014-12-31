@@ -9,18 +9,16 @@ from .schedule import Schedule
 from ..utils.exceptions import ETLInputError
 
 config = Config()
-DEFAULT_NUM_CORE_INSTANCES = config.emr.get('DEFAULT_NUM_CORE_INSTANCES', None)
-DEFAULT_CORE_INSTANCE_TYPE = config.emr.get('DEFAULT_CORE_INSTANCE_TYPE', 'm1.large')
-DEFAULT_TASK_INSTANCE_BID_PRICE = config.emr.get(
-    'DEFAULT_TASK_INSTANCE_BID_PRICE', None)
-DEFAULT_TASK_INSTANCE_TYPE = config.emr.get('DEFAULT_TASK_INSTANCE_TYPE', 'm1.large')
-DEFAULT_MASTER_INSTANCE_TYPE = config.emr.get(
-    'DEFAULT_MASTER_INSTANCE_TYPE', 'm1.large')
-DEFAULT_CLUSTER_TIMEOUT = config.emr.get('DEFAULT_CLUSTER_TIMEOUT', '6 Hours')
-DEFAULT_HADOOP_VERSION = config.emr.get('DEFAULT_HADOOP_VERSION', None)
-DEFAULT_HIVE_VERSION = config.emr.get('DEFAULT_HIVE_VERSION', None)
-DEFAULT_PIG_VERSION = config.emr.get('DEFAULT_PIG_VERSION', None)
-DEFAULT_CLUSTER_AMI = config.emr.get('DEFAULT_CLUSTER_AMI', '2.4.7')
+NUM_CORE_INSTANCES = config.emr.get('NUM_CORE_INSTANCES', None)
+CORE_INSTANCE_TYPE = config.emr.get('CORE_INSTANCE_TYPE', 'm1.large')
+TASK_INSTANCE_BID_PRICE = config.emr.get('TASK_INSTANCE_BID_PRICE', None)
+TASK_INSTANCE_TYPE = config.emr.get('TASK_INSTANCE_TYPE', 'm1.large')
+MASTER_INSTANCE_TYPE = config.emr.get('MASTER_INSTANCE_TYPE', 'm1.large')
+CLUSTER_TIMEOUT = config.emr.get('CLUSTER_TIMEOUT', '6 Hours')
+HADOOP_VERSION = config.emr.get('HADOOP_VERSION', None)
+HIVE_VERSION = config.emr.get('HIVE_VERSION', None)
+PIG_VERSION = config.emr.get('PIG_VERSION', None)
+CLUSTER_AMI = config.emr.get('CLUSTER_AMI', '2.4.7')
 KEY_PAIR = config.etl.get('KEY_PAIR', None)
 
 
@@ -32,18 +30,18 @@ class EmrResource(PipelineObject):
                  id,
                  s3_log_dir,
                  schedule,
-                 num_instances=DEFAULT_NUM_CORE_INSTANCES,
-                 instance_size=DEFAULT_CORE_INSTANCE_TYPE,
+                 num_instances=NUM_CORE_INSTANCES,
+                 instance_size=CORE_INSTANCE_TYPE,
                  bootstrap=None,
                  num_task_instances=None,
-                 task_bid_price=DEFAULT_TASK_INSTANCE_BID_PRICE,
-                 task_instance_type=DEFAULT_TASK_INSTANCE_TYPE,
-                 master_instance_size=DEFAULT_MASTER_INSTANCE_TYPE,
-                 terminate_after=DEFAULT_CLUSTER_TIMEOUT,
-                 hadoop_version=DEFAULT_HADOOP_VERSION,
-                 install_hive=DEFAULT_HIVE_VERSION,
-                 install_pig=DEFAULT_PIG_VERSION,
-                 ami_version=DEFAULT_CLUSTER_AMI):
+                 task_bid_price=TASK_INSTANCE_BID_PRICE,
+                 task_instance_type=TASK_INSTANCE_TYPE,
+                 master_instance_size=MASTER_INSTANCE_TYPE,
+                 terminate_after=CLUSTER_TIMEOUT,
+                 hadoop_version=HADOOP_VERSION,
+                 install_hive=HIVE_VERSION,
+                 install_pig=PIG_VERSION,
+                 ami_version=CLUSTER_AMI):
         """Constructor for the Ec2Resource class
 
         Args:
