@@ -91,7 +91,7 @@ class ETLPipeline(object):
 
         if bootstrap is not None:
             self.bootstrap_definitions = bootstrap
-        elif hasattr(config, 'bootstrap'):
+        elif getattr(config, 'bootstrap', None):
             self.bootstrap_definitions = config.bootstrap
         else:
             self.bootstrap_definitions = dict()
@@ -390,12 +390,9 @@ class ETLPipeline(object):
     def get_custom_steps():
         """Fetch the custom steps specified in config
         """
-        if not hasattr(config, 'custom_steps'):
-            return dict()
-
         custom_steps = dict()
 
-        for step_def in config.custom_steps:
+        for step_def in getattr(config, 'custom_steps', list()):
             step_type = step_def['step_type']
             path = parse_path(step_def['file_path'], CUSTOM_STEPS_PATH)
 
@@ -525,16 +522,6 @@ class ETLPipeline(object):
             steps.append(step)
         return steps
 
-    def allocate_resource(self, resource_type):
-        """Allocate the resource object based on the resource type specified
-        """
-        if resource_type == const.EMR_CLUSTER_STR:
-            return self.emr_cluster
-        elif resource_type == EC2_RESOURCE_STR:
-            return self.ec2_resource
-        else:
-            raise ETLInputError('Unknown resource type found')
-
     def create_bootstrap_steps(self, resource_type):
         """Create the boostrap steps for installation on all machines
 
@@ -543,10 +530,6 @@ class ETLPipeline(object):
                 can be ec2 / emr
         """
         step_params = self.bootstrap_definitions.get(resource_type, list())
-        for step_param in step_params:
-            # Mutating the steps here by adding resource
-            step_param['resource'] = self.allocate_resource(resource_type)
-
         steps = self.create_steps(step_params, True)
         self._bootstrap_steps.extend(steps)
         return steps
