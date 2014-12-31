@@ -6,10 +6,10 @@ from ..pipeline import ShellCommandActivity
 from ..s3 import S3File
 from ..utils.helpers import exactly_one
 from ..utils.exceptions import ETLInputError
+from ..utils import constants as const
 
 SCRIPT_ARGUMENT_TYPE_STRING = 'string'
 SCRIPT_ARGUMENT_TYPE_SQL = 'sql'
-
 
 class TransformStep(ETLStep):
     """Transform Step class that helps run scripts on resouces
@@ -114,7 +114,20 @@ class TransformStep(ETLStep):
         else:
             raise ETLInputError('Script Arguments for unrecognized type')
 
-    def input_format(self, key, value):
+    @staticmethod
+    def input_format(key, value):
         """Format the key and value to command line arguments
         """
         return ''.join('--', key, '=', value)
+
+    @staticmethod
+    def argument_parser(etl, step_args):
+        """Parse the step arguments according to the ETL pipeline
+
+        Args:
+            etl(ETLPipeline): Pipeline object containing resources and steps
+            step_args(dict): Dictionary of the step arguments for the class
+        """
+        if step_args.pop('resource_type', None) == const.EMR_CLUSTER_STR:
+            step_args['resource'] = etl.emr_cluster
+        return step_args

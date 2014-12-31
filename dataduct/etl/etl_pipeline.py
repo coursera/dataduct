@@ -32,6 +32,7 @@ from ..s3.s3_path import S3Path
 from ..s3.s3_log_path import S3LogPath
 
 from ..utils.exceptions import ETLInputError
+from ..utils import constants as const
 
 config = Config()
 S3_ETL_BUCKET = config.etl['S3_ETL_BUCKET']
@@ -40,7 +41,6 @@ S3_BASE_PATH = config.etl.get('S3_BASE_PATH', '')
 SNS_TOPIC_ARN_FAILURE = config.etl.get('SNS_TOPIC_ARN_FAILURE', None)
 
 EC2_RESOURCE_STR = 'ec2'
-EMR_CLUSTER_STR = 'emr'
 LOG_STR = 'logs'
 DATA_STR = 'data'
 SRC_STR = 'src'
@@ -304,7 +304,7 @@ class ETLPipeline(object):
                 **self.emr_cluster_config
             )
 
-            self.create_bootstrap_steps(EMR_CLUSTER_STR)
+            self.create_bootstrap_steps(const.EMR_CLUSTER_STR)
         return self._emr_cluster
 
     @property
@@ -348,50 +348,35 @@ class ETLPipeline(object):
         """
         if step_type == 'transform':
             step_class = TransformStep
-            if step_args.pop('resource_type', None) == EMR_CLUSTER_STR:
-                step_args['resource'] = self.emr_cluster
 
         elif step_type == 'qa-transform':
             step_class = QATransformStep
-            step_args['pipeline_name'] = self.name
-            step_args['input_node'] = []
 
         elif step_type == 'extract-s3':
             step_class = ExtractS3Step
-            step_args.pop('resource')
 
         elif step_type == 'extract-local':
             step_class = ExtractLocalStep
-            step_args.pop('resource')
-            if self.frequency != 'one-time':
-                raise ETLInputError(
-                    'Extract Local can be used for one-time pipelines only')
 
         elif step_type == 'extract-rds':
             step_class = ExtractRdsStep
-            step_args.pop('input_node', None)
 
         elif step_type == 'extract-redshift':
             step_class = ExtractRedshiftStep
-            step_args['redshift_database'] = self.redshift_database
-            step_args.pop('input_node', None)
 
         elif step_type == 'sql-command':
             step_class = SqlCommandStep
-            step_args['redshift_database'] = self.redshift_database
-            step_args.pop('input_node', None)
 
         elif step_type == 'emr-streaming':
             step_class = EMRStreamingStep
-            step_args['resource'] = self.emr_cluster
 
         elif step_type == 'load-redshift':
             step_class = LoadRedshiftStep
-            step_args['redshift_database'] = self.redshift_database
 
         else:
             raise ETLInputError('Step type %s not recogonized' % step_type)
 
+        step_args = step_class.argument_parser(self, step_args)
         return step_class, step_args
 
     def translate_input_nodes(self, input_node):
@@ -580,7 +565,7 @@ class ETLPipeline(object):
     def allocate_resource(self, resource_type):
         """Allocate the resource object based on the resource type specified
         """
-        if resource_type == EMR_CLUSTER_STR:
+        if resource_type == const.EMR_CLUSTER_STR:
             return self.emr_cluster
         elif resource_type == EC2_RESOURCE_STR:
             return self.ec2_resource

@@ -116,3 +116,14 @@ class ExtractRdsStep(ETLStep):
             resource=self.resource,
             schedule=self.schedule,
         )
+
+    @staticmethod
+    def argument_parser(etl, step_args):
+        """Parse the step arguments according to the ETL pipeline
+
+        Args:
+            etl(ETLPipeline): Pipeline object containing resources and steps
+            step_args(dict): Dictionary of the step arguments for the class
+        """
+        step_args.pop('input_node', None)
+        return step_args

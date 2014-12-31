@@ -18,3 +18,14 @@ class ExtractS3Step(ETLStep):
         """
         super(ExtractS3Step, self).__init__(**kwargs)
         self._output = self.create_s3_data_node(s3_object=S3Path(uri=uri))
+
+    @staticmethod
+    def argument_parser(etl, step_args):
+        """Parse the step arguments according to the ETL pipeline
+
+        Args:
+            etl(ETLPipeline): Pipeline object containing resources and steps
+            step_args(dict): Dictionary of the step arguments for the class
+        """
+        step_args.pop('resource')
+        return step_args

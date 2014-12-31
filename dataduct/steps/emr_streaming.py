@@ -168,3 +168,14 @@ class EMRStreamingStep(ETLStep):
         depends_on = []
         output_node = input_nodes.values()
         return output_node, depends_on
+
+    @staticmethod
+    def argument_parser(etl, step_args):
+        """Parse the step arguments according to the ETL pipeline
+
+        Args:
+            etl(ETLPipeline): Pipeline object containing resources and steps
+            step_args(dict): Dictionary of the step arguments for the class
+        """
+        step_args['resource'] = etl.emr_cluster
+        return step_args

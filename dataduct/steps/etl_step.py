@@ -341,3 +341,10 @@ class ETLStep(object):
             result: All aws activites that are created for this step
         """
         return [x for x in self._objects.values() if isinstance(x, Activity)]
+
+
+    @staticmethod
+    def argument_parser(etl, step_args):
+        """Parse the step arguments according to the ETL pipeline
+        """
+        return step_args
