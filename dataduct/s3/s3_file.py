@@ -4,7 +4,7 @@ Base class for storing a S3 File
 from .s3_path import S3Path
 from .utils import upload_to_s3
 from .utils import read_from_s3
-from .utils import parse_path
+from ..utils.helpers import parse_path
 from ..utils.exceptions import ETLInputError
 
 DEFAULT_FILE_NAME = 'file'

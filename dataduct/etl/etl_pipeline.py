@@ -3,6 +3,7 @@ Class definition for DataPipeline
 """
 from datetime import datetime
 import yaml
+import imp
 
 from ..config import Config
 
@@ -16,6 +17,7 @@ from ..pipeline import Schedule
 from ..pipeline import SNSAlarm
 from ..pipeline.utils import list_pipelines
 
+from ..steps import ETLStep
 from ..steps import EMRStreamingStep
 from ..steps import ExtractLocalStep
 from ..steps import ExtractRdsStep
@@ -31,6 +33,7 @@ from ..s3 import S3Path
 from ..s3 import S3LogPath
 
 from ..utils.exceptions import ETLInputError
+from ..utils.helpers import parse_path
 from ..utils import constants as const
 
 config = Config()
@@ -43,6 +46,7 @@ EC2_RESOURCE_STR = 'ec2'
 LOG_STR = 'logs'
 DATA_STR = 'data'
 SRC_STR = 'src'
+CUSTOM_STEPS_PATH = 'CUSTOM_STEPS_PATH'
 
 
 class ETLPipeline(object):
@@ -96,6 +100,8 @@ class ETLPipeline(object):
             self.emr_cluster_config = emr_cluster_config
         else:
             self.emr_cluster_config = dict()
+
+        self.custom_steps = self.get_custom_steps()
 
         # Pipeline versions
         self.version_ts = datetime.utcnow()
@@ -380,6 +386,33 @@ class ETLPipeline(object):
             output[value] = self.intermediate_nodes[key]
         return output
 
+    @staticmethod
+    def get_custom_steps():
+        """Fetch the custom steps specified in config
+        """
+        if not hasattr(config, 'custom_steps'):
+            return dict()
+
+        custom_steps = dict()
+
+        for step_def in config.custom_steps:
+            step_type = step_def['step_type']
+            path = parse_path(step_def['file_path'], CUSTOM_STEPS_PATH)
+
+            # Load source from the file path provided
+            step_mod = imp.load_source(step_type, path)
+
+            # Get the step class based on class_name provided
+            step_class = getattr(step_mod, step_def['class_name'])
+
+            # Check if step_class is of type ETLStep
+            if not issubclass(step_class, ETLStep):
+                raise ETLInputError('Step type %s is not of type ETLStep')
+
+            custom_steps[step_type] = step_class
+
+        return custom_steps
+
     def parse_step_args(self, step_type, **kwargs):
         """Parse step arguments from input to correct ETL step types
 
@@ -421,6 +454,9 @@ class ETLPipeline(object):
 
         elif step_type == 'load-redshift':
             step_class = LoadRedshiftStep
+
+        elif step_type in self.custom_steps:
+            step_class = self.custom_steps[step_type]
 
         else:
             raise ETLInputError('Step type %s not recogonized' % step_type)
