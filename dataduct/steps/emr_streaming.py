@@ -1,12 +1,9 @@
 """
-ETL step wrapper for EmrActivity can be executed on Ec2
+ETL step wrapper for EmrStreamingActivity can be executed on EMR Cluster
 """
 from .etl_step import ETLStep
 from ..pipeline import EmrActivity
 from ..s3 import S3File
-from ..s3 import S3Path
-from ..utils.exceptions import ETLInputError
-
 
 HADOOP_1_SERIES = ['1', '2']
 

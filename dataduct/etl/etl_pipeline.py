@@ -18,6 +18,7 @@ from ..pipeline import SNSAlarm
 from ..pipeline.utils import list_pipelines
 
 from ..steps import ETLStep
+from ..steps import EMRJobStep
 from ..steps import EMRStreamingStep
 from ..steps import ExtractLocalStep
 from ..steps import ExtractRdsStep
@@ -448,6 +449,9 @@ class ETLPipeline(object):
 
         elif step_type == 'emr-streaming':
             step_class = EMRStreamingStep
+
+        elif step_type == 'emr-step':
+            step_class = EMRJobStep
 
         elif step_type == 'load-redshift':
             step_class = LoadRedshiftStep

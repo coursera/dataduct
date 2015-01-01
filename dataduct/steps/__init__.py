@@ -1,5 +1,6 @@
 from etl_step import ETLStep
 from emr_streaming import EMRStreamingStep
+from emr_job import EMRJobStep
 from extract_local import ExtractLocalStep
 from extract_rds import ExtractRdsStep
 from extract_redshift import ExtractRedshiftStep

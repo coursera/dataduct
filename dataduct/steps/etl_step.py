@@ -369,6 +369,9 @@ class ETLStep(object):
 
         # Add dependencies
         depends_on = step_args.pop('depends_on', None)
+        if isinstance(depends_on, str):
+            depends_on = [depends_on]
+
         if depends_on:
             for step_id in list(depends_on):
                 if step_id not in etl.steps:
