@@ -49,7 +49,7 @@ class QATransformStep(TransformStep):
             etl(ETLPipeline): Pipeline object containing resources and steps
             step_args(dict): Dictionary of the step arguments for the class
         """
-        input_args.pop('input_node', None)
+        input_args = cls.pop_inputs(input_args)
         step_args = cls.base_arguments_processor(etl, input_args)
         step_args['pipeline_name'] = etl.name
         step_args['resource'] = etl.ec2_resource

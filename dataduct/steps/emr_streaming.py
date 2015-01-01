@@ -83,7 +83,6 @@ class EMRStreamingStep(ETLStep):
     def __init__(self,
                  mapper,
                  reducer=None,
-                 input_path=None,
                  hadoop_params=None,
                  depends_on=None,
                  **kwargs):
@@ -96,26 +95,11 @@ class EMRStreamingStep(ETLStep):
             hadoop_params(list of str): arguments to the hadoop command
             **kwargs(optional): Keyword arguments directly passed to base class
         """
-
-        # As EMR streaming allows inputs as both input_node and input
-        # We remove the default input_node if input is given
-        if input_path is not None:
-            input_node = kwargs.pop('input_node', None)
-        else:
-            input_node = kwargs.get('input_node', None)
-
-        if input_path is not None and 'input_node' in kwargs:
-            raise ETLInputError('Both input_path and input_node specified')
-
         super(EMRStreamingStep, self).__init__(**kwargs)
-
-        if input_path is not None:
-            input_node = self.create_s3_data_node(S3Path(uri=input_path))
 
         if depends_on is not None:
             self._depends_on = depends_on
 
-        self._input = input_node
         self._output = self.create_s3_data_node()
 
         # Create S3File with script / command provided
@@ -127,12 +111,12 @@ class EMRStreamingStep(ETLStep):
             additional_files.append(reducer)
 
         step_string = create_command(mapper, reducer, self.resource.ami_version,
-                                     self._input, self._output, hadoop_params)
+                                     self.input, self.output, hadoop_params)
 
         self.activity = self.create_pipeline_object(
             object_class=EmrActivity,
             resource=self.resource,
-            input_node=input_node,
+            input_node=self.input,
             schedule=self.schedule,
             emr_step_string=step_string,
             output_node=self._output,

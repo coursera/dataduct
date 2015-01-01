@@ -31,7 +31,7 @@ class ETLStep(object):
 
     def __init__(self, id, s3_data_dir=None, s3_log_dir=None,
                  s3_source_dir=None, schedule=None, resource=None,
-                 input_node=None, required_steps=None,
+                 input_node=None, input_path=None, required_steps=None,
                  max_retries=MAX_RETRIES):
         """Constructor for the ETLStep object
 
@@ -53,13 +53,18 @@ class ETLStep(object):
         self.resource = resource
         self.max_retries = max_retries
         self._depends_on = list()
-        self._input = input_node
+        self._input = None
         self._output = None
         self._objects = dict()
         self._required_steps = list()
-
         self._activities = list()
         self._input_node = input_node
+
+        if input_path is not None and input_node is not None:
+            raise ETLInputError('Both input_path and input_node specified')
+
+        if input_path is not None:
+            self._input_node = self.create_s3_data_node(S3Path(uri=input_path))
 
         if isinstance(input_node, list):
             if len(input_node) == 0:
@@ -268,7 +273,7 @@ class ETLStep(object):
         Note:
             Input is represented as None, a single node or dict of nodes
         """
-        return self._input
+        return self._input_node
 
     @property
     def output(self):
@@ -425,3 +430,12 @@ class ETLStep(object):
         """
         step_args = cls.base_arguments_processor(etl, input_args)
         return step_args
+
+    @staticmethod
+    def pop_inputs(input_args):
+        """Remove the input nodes from the arguments dictionary
+        """
+        input_args.pop('input_node', None)
+        input_args.pop('input_path', None)
+
+        return input_args

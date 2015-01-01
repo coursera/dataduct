@@ -502,7 +502,8 @@ class ETLPipeline(object):
 
             # Assume that the preceding step is the input if not specified
             if isinstance(input_node, S3Node) and \
-                    'input_node' not in step_param:
+                    'input_node' not in step_param and \
+                    'input_path' not in step_param:
                 step_param['input_node'] = input_node
 
             step_class, step_args = self.parse_step_args(**step_param)
