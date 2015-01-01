@@ -48,7 +48,7 @@ def create_command_hadoop_2(mapper, reducer, command, command_options):
     return ','.join(command)
 
 
-def create_command(mapper, reducer, ami_version, input_uri, output,
+def create_command(mapper, reducer, ami_version, input, output,
                    hadoop_params):
     """Create the command step string given the input to streaming step
     """
@@ -66,13 +66,7 @@ def create_command(mapper, reducer, ami_version, input_uri, output,
     command_options.extend(['-output', output.path().uri])
 
     # Add input uri
-    if isinstance(input_uri, list):
-        for i in input_uri:
-            assert isinstance(i, S3Path)
-            command_options.extend(['-input', i.uri])
-    else:
-        assert isinstance(input_uri, S3Path), type(input_uri)
-        command_options.extend(['-input', input_uri.uri])
+    command_options.extend(['-input', input.path().uri])
 
     if ami_family in HADOOP_1_SERIES:
         return create_command_hadoop_1(mapper, reducer, command,
@@ -89,7 +83,7 @@ class EMRStreamingStep(ETLStep):
     def __init__(self,
                  mapper,
                  reducer=None,
-                 input=None,
+                 input_path=None,
                  hadoop_params=None,
                  depends_on=None,
                  **kwargs):
@@ -105,19 +99,23 @@ class EMRStreamingStep(ETLStep):
 
         # As EMR streaming allows inputs as both input_node and input
         # We remove the default input_node if input is given
-        if input is not None:
+        if input_path is not None:
             input_node = kwargs.pop('input_node', None)
         else:
             input_node = kwargs.get('input_node', None)
 
-        if input is not None and 'input_node' in kwargs:
-            raise ETLInputError('Both input and input_node specified')
+        if input_path is not None and 'input_node' in kwargs:
+            raise ETLInputError('Both input_path and input_node specified')
 
         super(EMRStreamingStep, self).__init__(**kwargs)
+
+        if input_path is not None:
+            input_node = self.create_s3_data_node(S3Path(uri=input_path))
 
         if depends_on is not None:
             self._depends_on = depends_on
 
+        self._input = input_node
         self._output = self.create_s3_data_node()
 
         # Create S3File with script / command provided
@@ -128,25 +126,13 @@ class EMRStreamingStep(ETLStep):
             reducer = self.create_script(S3File(path=reducer))
             additional_files.append(reducer)
 
-        if input is not None:
-            if isinstance(input, list):
-                input = [S3Path(uri=i) for i in input]
-            else:
-                input = S3Path(uri=input)
-        else:
-            if isinstance(input_node, list):
-                input = [i.path() for i in input_node]
-            elif isinstance(input_node, dict):
-                input = [i.path() for i in input_node.values()]
-            else:
-                input = input_node.path()
-
         step_string = create_command(mapper, reducer, self.resource.ami_version,
-                                     input, self._output, hadoop_params)
+                                     self._input, self._output, hadoop_params)
 
         self.activity = self.create_pipeline_object(
             object_class=EmrActivity,
             resource=self.resource,
+            input_node=input_node,
             schedule=self.schedule,
             emr_step_string=step_string,
             output_node=self._output,

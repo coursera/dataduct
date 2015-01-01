@@ -19,6 +19,7 @@ class EmrActivity(Activity):
                  id,
                  resource,
                  schedule,
+                 input_node,
                  emr_step_string,
                  output_node=None,
                  additional_files=None,
@@ -57,6 +58,7 @@ class EmrActivity(Activity):
             schedule=schedule,
             step=emr_step_string,
             output=output_node,
+            input=input_node,
         )
 
         self.add_additional_files(additional_files)
