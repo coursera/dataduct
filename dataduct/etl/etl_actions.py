@@ -143,6 +143,10 @@ def visualize_pipeline(etl, filename=None):
             for dependency in dependencies:
                 graph.add_edge(dependency.id, p_object.id, color='blue')
 
+        if isinstance(p_object, S3Node):
+            for dependency in p_object.dependency_nodes:
+                graph.add_edge(dependency.id, p_object.id, color='grey')
+
     # Plotting the graph with dot layout
     graph.layout(prog='dot')
     graph.draw(filename)

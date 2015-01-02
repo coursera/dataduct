@@ -60,6 +60,9 @@ class S3Node(PipelineObject):
         # Save the s3_path variable
         self._s3_path = s3_path
 
+        # Save the dependent nodes from the S3 Node
+        self._dependency_nodes = list()
+
         super(S3Node, self).__init__(
             id=id,
             retryDelay=RETRY_DELAY,
@@ -81,3 +84,14 @@ class S3Node(PipelineObject):
             return self._s3_path.s3_path
         else:
             return self._s3_path
+
+    @property
+    def dependency_nodes(self):
+        """Fetch the dependent nodes for the S3 node
+        """
+        return self._dependency_nodes
+
+    def add_dependency_node(self, input_node):
+        """Add nodes to the list of dependencies among S3 Nodes
+        """
+        self._dependency_nodes.append(input_node)

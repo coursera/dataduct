@@ -18,8 +18,7 @@ class ExtractLocalStep(ETLStep):
             **kwargs(optional): Keyword arguments directly passed to base class
         """
         super(ExtractLocalStep, self).__init__(**kwargs)
-        self._output = self.create_s3_data_node(s3_object=S3File(path=path))
-
+        self._output = self.create_s3_data_node(S3File(path=path))
 
     @classmethod
     def arguments_processor(cls, etl, input_args):

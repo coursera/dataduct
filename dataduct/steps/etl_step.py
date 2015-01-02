@@ -179,12 +179,16 @@ class ETLStep(object):
         Returns:
             s3_output_nodes(dict of s3Node): Output nodes keyed with sub dirs
         """
-        return dict(
-            (
-                sub_dir,
-                self.create_s3_data_node(S3Path(sub_dir, is_directory=True,
-                                                parent_dir=output_node.path()))
-            ) for sub_dir in sub_dirs)
+        output_map = dict()
+        for sub_dir in sub_dirs:
+            new_node = self.create_s3_data_node(
+                S3Path(sub_dir, is_directory=True,
+                       parent_dir=output_node.path()))
+            new_node.add_dependency_node(output_node)
+
+            output_map[sub_dir] = new_node
+
+        return output_map
 
     def create_script(self, s3_object):
         """Set the s3 path for s3 objects with the s3_source_dir
@@ -216,16 +220,6 @@ class ETLStep(object):
         if not(isinstance(input_node, S3Node) and isinstance(dest_uri, S3Path)):
             raise ETLInputError('input_node and uri have type mismatch')
 
-        # Copy the input node. We need to use directories for copying if we
-        # are going to omit the data format
-        if input_node.path().is_directory:
-            uri = input_node.path().uri
-        else:
-            uri = '/'.join(input_node.path().uri.split('/')[:-1])
-
-        new_input_node = self.create_s3_data_node(
-            s3_object=S3Path(uri=uri, is_directory=True))
-
         # create s3 node for output
         output_node = self.create_s3_data_node(dest_uri)
 
@@ -234,7 +228,7 @@ class ETLStep(object):
             CopyActivity,
             schedule=self.schedule,
             resource=self.resource,
-            input_node=new_input_node,
+            input_node=input_node,
             output_node=output_node,
             max_retries=self.max_retries
         )
@@ -255,12 +249,15 @@ class ETLStep(object):
         """
         depends_on = list()
         combined_node = self.create_s3_data_node()
+
         for string_key, input_node in input_nodes.iteritems():
             dest_uri = S3Path(key=string_key, is_directory=True,
                               parent_dir=combined_node.path())
             copy_activity = self.copy_s3(input_node=input_node,
                                          dest_uri=dest_uri)
             depends_on.append(copy_activity)
+            combined_node.add_dependency_node(copy_activity.output)
+
         return combined_node, depends_on
 
     @property
