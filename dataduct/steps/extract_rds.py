@@ -38,6 +38,7 @@ class ExtractRdsStep(ETLStep):
                  sql=None,
                  host_name=None,
                  database=None,
+                 output_path=None,
                  depends_on=None,
                  **kwargs):
         """Constructor for the ExtractRdsStep class
@@ -96,10 +97,11 @@ class ExtractRdsStep(ETLStep):
             max_retries=self.max_retries,
         )
 
+        self._output = self.create_s3_data_node(
+            self.get_output_s3_path(output_path))
+
         # This shouldn't be necessary but -
         # AWS uses \\n as null, so we need to remove it
-        self._output = self.create_s3_data_node()
-
         command = ' '.join(["cat",
                             "${INPUT1_STAGING_DIR}/*",
                             "| sed 's/\\\\\\\\n/NULL/g'",  # replace \\n

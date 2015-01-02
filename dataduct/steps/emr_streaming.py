@@ -82,6 +82,7 @@ class EMRStreamingStep(ETLStep):
                  reducer=None,
                  hadoop_params=None,
                  depends_on=None,
+                 output_path=None,
                  **kwargs):
         """Constructor for the EMRStreamingStep class
 
@@ -97,7 +98,8 @@ class EMRStreamingStep(ETLStep):
         if depends_on is not None:
             self._depends_on = depends_on
 
-        self._output = self.create_s3_data_node()
+        self._output = self.create_s3_data_node(
+            self.get_output_s3_path(output_path))
 
         # Create S3File with script / command provided
         mapper = self.create_script(S3File(path=mapper))
@@ -121,20 +123,6 @@ class EMRStreamingStep(ETLStep):
             depends_on=self.depends_on,
             max_retries=self.max_retries
         )
-
-    def merge_s3_nodes(self, input_nodes):
-        """Override the merge S3Node case for EMR Streaming Step
-
-        Args:
-            input_nodes(dict): Map of the form {'node_name': node}
-
-        Returns:
-            output_node(list of S3Node): list of input nodes
-            depends_on(list): Empty list
-        """
-        depends_on = []
-        output_node = input_nodes.values()
-        return output_node, depends_on
 
     @classmethod
     def arguments_processor(cls, etl, input_args):

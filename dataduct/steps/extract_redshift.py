@@ -16,6 +16,7 @@ class ExtractRedshiftStep(ETLStep):
                  redshift_database,
                  insert_mode="TRUNCATE",
                  depends_on=None,
+                 output_path=None,
                  **kwargs):
         """Constructor for the ExtractRedshiftStep class
 
@@ -40,7 +41,8 @@ class ExtractRedshiftStep(ETLStep):
             table_name=table,
         )
 
-        self._output = self.create_s3_data_node()
+        self._output = self.create_s3_data_node(
+            self.get_output_s3_path(output_path))
 
         self.create_pipeline_object(
             object_class=RedshiftCopyActivity,

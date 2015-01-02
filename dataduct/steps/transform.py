@@ -11,6 +11,7 @@ from ..utils import constants as const
 SCRIPT_ARGUMENT_TYPE_STRING = 'string'
 SCRIPT_ARGUMENT_TYPE_SQL = 'sql'
 
+
 class TransformStep(ETLStep):
     """Transform Step class that helps run scripts on resouces
     """
@@ -22,6 +23,7 @@ class TransformStep(ETLStep):
                  script_arguments=None,
                  additional_s3_files=None,
                  depends_on=None,
+                 output_path=None,
                  **kwargs):
         """Constructor for the TransformStep class
 
@@ -41,11 +43,9 @@ class TransformStep(ETLStep):
         if depends_on is not None:
             self._depends_on = depends_on
 
-        # Create output_node if not provided
-        if self._output is None:
-            base_output_node = self.create_s3_data_node()
-        else:
-            base_output_node = self._output
+        # Create output_node based on output_path
+        base_output_node = self.create_s3_data_node(
+            self.get_output_s3_path(output_path))
 
         # Create S3File if script path provided
         if script:
@@ -68,12 +68,11 @@ class TransformStep(ETLStep):
         )
 
         # Translate output nodes if output map provided
-        if self._output is None:
-            if output_node:
-                self._output = self.create_output_nodes(
-                    base_output_node, output_node)
-            else:
-                self._output = base_output_node
+        if output_node:
+            self._output = self.create_output_nodes(
+                base_output_node, output_node)
+        else:
+            self._output = base_output_node
 
     def translate_arguments(self, script_arguments):
         """Translate script argument to lists

@@ -10,7 +10,7 @@ class ExtractLocalStep(ETLStep):
     """ExtractLocal Step class that helps get data from a local file
     """
 
-    def __init__(self, path, **kwargs):
+    def __init__(self, path, output_path=None, **kwargs):
         """Constructor for the ExtractLocalStep class
 
         Args:
@@ -18,7 +18,8 @@ class ExtractLocalStep(ETLStep):
             **kwargs(optional): Keyword arguments directly passed to base class
         """
         super(ExtractLocalStep, self).__init__(**kwargs)
-        self._output = self.create_s3_data_node(S3File(path=path))
+        self._output = self.create_s3_data_node(
+            S3File(path=path, s3_path=self.get_output_s3_path(output_path)))
 
     @classmethod
     def arguments_processor(cls, etl, input_args):
