@@ -18,23 +18,23 @@ steps:
     input_node:
         step1_a: step2_a
         step1_b: step2_b
-    output:
+    output_node:
     -   step2_a
     -   step2_b
 
 -   step_type: transform
+    name: profiler_1
     script: examples/scripts/s3_profiler.py
-    input_node:
-        step2_a: output1
+    input_node: step2_a
     script_arguments:
     -   --input=INPUT1_STAGING_DIR
     -   --output=OUTPUT1_STAGING_DIR
     -   -f
 
 -   step_type: transform
+    name: profiler_2
     script: examples/scripts/s3_profiler.py
-    input_node:
-        step2_b : output1
+    input_node: step2_b
     script_arguments:
     -   --input=INPUT1_STAGING_DIR
     -   --output=OUTPUT1_STAGING_DIR

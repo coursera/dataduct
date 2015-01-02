@@ -18,7 +18,7 @@ class TransformStep(ETLStep):
     def __init__(self,
                  command=None,
                  script=None,
-                 output=None,
+                 output_node=None,
                  script_arguments=None,
                  additional_s3_files=None,
                  depends_on=None,
@@ -28,7 +28,7 @@ class TransformStep(ETLStep):
         Args:
             command(str): command to be executed directly
             script(path): local path to the script that should executed
-            output(dict): output data nodes from the transform
+            output_node(dict): output data nodes from the transform
             script_arguments(list of str): list of arguments to the script
             additional_s3_files(list of S3File): additional files used
             **kwargs(optional): Keyword arguments directly passed to base class
@@ -43,9 +43,9 @@ class TransformStep(ETLStep):
 
         # Create output_node if not provided
         if self._output is None:
-            output_node = self.create_s3_data_node()
+            base_output_node = self.create_s3_data_node()
         else:
-            output_node = self._output
+            base_output_node = self._output
 
         # Create S3File if script path provided
         if script:
@@ -56,7 +56,7 @@ class TransformStep(ETLStep):
         self.create_pipeline_object(
             object_class=ShellCommandActivity,
             input_node=self._input_node,
-            output_node=output_node,
+            output_node=base_output_node,
             resource=self.resource,
             schedule=self.schedule,
             script_uri=script,
@@ -69,10 +69,11 @@ class TransformStep(ETLStep):
 
         # Translate output nodes if output map provided
         if self._output is None:
-            if output:
-                self._output = self.create_output_nodes(output_node, output)
+            if output_node:
+                self._output = self.create_output_nodes(
+                    base_output_node, output_node)
             else:
-                self._output = output_node
+                self._output = base_output_node
 
     def translate_arguments(self, script_arguments):
         """Translate script argument to lists
