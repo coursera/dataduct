@@ -100,15 +100,12 @@ class PipelineObject(object):
             key(str): Key of the item to be fetched
             value: Value of the item to be fetched
         """
-        # Do not add none values
-        if value is None:
-            return
-
         # Store value as a list if there is only one
         if not isinstance(value, list):
             value = [value]
 
-        self.fields[key].extend(value)
+        # Do not add none values
+        self.fields[key].extend([x for x in value if x is not None])
         if key == 'dependsOn':
             self.fields[key] = list(set(self.fields[key]))
 

@@ -23,7 +23,7 @@ class S3Node(PipelineObject):
     def __init__(self,
                  id,
                  schedule,
-                 s3_path,
+                 s3_object,
                  precondition=None,
                  format=None,
                  **kwargs):
@@ -32,7 +32,7 @@ class S3Node(PipelineObject):
         Args:
             id(str): id of the object
             schedule(Schedule): pipeline schedule
-            s3_path(S3Path / S3File / S3Directory): s3 location
+            s3_object(S3Path / S3File / S3Directory): s3 location
             precondition(Precondition): precondition to the data node
             **kwargs(optional): Keyword arguments directly passed to base class
         """
@@ -46,19 +46,19 @@ class S3Node(PipelineObject):
             raise ETLInputError(
                 'Input precondition must be of the type Precondition')
 
-        if not(isinstance(s3_path, S3Path) or
-               isinstance(s3_path, S3File) or
-               isinstance(s3_path, S3Directory)):
+        if not(isinstance(s3_object, S3Path) or
+               isinstance(s3_object, S3File) or
+               isinstance(s3_object, S3Directory)):
             raise ETLInputError('Mismatched type for S3 path')
 
         additional_args = {}
-        if isinstance(s3_path, S3Path) and s3_path.is_directory:
-            additional_args['directoryPath'] = s3_path
+        if isinstance(s3_object, S3Path) and s3_object.is_directory:
+            additional_args['directoryPath'] = s3_object
         else:
-            additional_args['filePath'] = s3_path
+            additional_args['filePath'] = s3_object
 
-        # Save the s3_path variable
-        self._s3_path = s3_path
+        # Save the s3_object variable
+        self._s3_object = s3_object
 
         # Save the dependent nodes from the S3 Node
         self._dependency_nodes = list()
@@ -75,15 +75,15 @@ class S3Node(PipelineObject):
 
 
     def path(self):
-        """Get the s3_path associated with the S3 data node
+        """Get the s3_object associated with the S3 data node
 
         Returns:
-            s3_path(S3Path): The s3 path of the node can a directory or file
+            s3_object(S3Path): The s3 path of the node can a directory or file
         """
-        if isinstance(self._s3_path, S3File):
-            return self._s3_path.s3_path
+        if isinstance(self._s3_object, S3File):
+            return self._s3_object.s3_path
         else:
-            return self._s3_path
+            return self._s3_object
 
     @property
     def dependency_nodes(self):

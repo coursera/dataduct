@@ -152,9 +152,9 @@ class ETLStep(object):
                 s3_object = s3_dir
 
         s3_node = self.create_pipeline_object(
-            S3Node,
+            object_class=S3Node,
             schedule=self.schedule,
-            s3_path=s3_object,
+            s3_object=s3_object,
             **kwargs
         )
 

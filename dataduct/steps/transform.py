@@ -1,9 +1,13 @@
 """
 ETL step wrapper for shell command activity can be executed on Ec2 / EMR
 """
+import os
+
 from .etl_step import ETLStep
 from ..pipeline import ShellCommandActivity
+from ..pipeline import S3Node
 from ..s3 import S3File
+from ..s3 import S3Directory
 from ..utils.helpers import exactly_one
 from ..utils.exceptions import ETLInputError
 from ..utils import constants as const
@@ -19,6 +23,8 @@ class TransformStep(ETLStep):
     def __init__(self,
                  command=None,
                  script=None,
+                 script_directory=None,
+                 script_name=None,
                  output_node=None,
                  script_arguments=None,
                  additional_s3_files=None,
@@ -30,6 +36,8 @@ class TransformStep(ETLStep):
         Args:
             command(str): command to be executed directly
             script(path): local path to the script that should executed
+            script_directory(path): local path to the script directory
+            script_name(str): script to be executed in the directory
             output_node(dict): output data nodes from the transform
             script_arguments(list of str): list of arguments to the script
             additional_s3_files(list of S3File): additional files used
@@ -37,8 +45,9 @@ class TransformStep(ETLStep):
         """
         super(TransformStep, self).__init__(**kwargs)
 
-        if not exactly_one(command, script):
-            raise ETLInputError('Both command or script found')
+        if not exactly_one(command, script, script_directory):
+            raise ETLInputError(
+                'Only one of script, command and directory allowed')
 
         if depends_on is not None:
             self._depends_on = depends_on
@@ -47,11 +56,38 @@ class TransformStep(ETLStep):
         base_output_node = self.create_s3_data_node(
             self.get_output_s3_path(output_path))
 
+        script_arguments = self.translate_arguments(script_arguments)
+
+        input_nodes = [self.input]
+        if script_directory:
+            # The script to be run with the directory
+            if script_name is None:
+                raise ETLInputError('script_name required with directory')
+
+            script_directory = self.create_script(
+                S3Directory(path=script_directory))
+
+            # Input node for the source code in the directory
+            input_nodes.append(self.create_pipeline_object(
+                object_class=S3Node,
+                schedule=self.schedule,
+                s3_object=script_directory
+            ))
+
+            # We need to create an additional script that later calls the main
+            # script as we need to change permissions of the input directory
+            ip_src_env = 'INPUT%d_STAGING_DIR' % (1 if not self.input else 2)
+            additional_args = ['--INPUT_SRC_ENV_VAR=%s' % ip_src_env,
+                               '--SCRIPT_NAME=%s' % script_name]
+
+            script_arguments = additional_args + script_arguments
+
+            steps_path = os.path.abspath(os.path.dirname(__file__))
+            script = os.path.join(steps_path, const.SCRIPT_RUNNER_PATH)
+
         # Create S3File if script path provided
         if script:
             script = self.create_script(S3File(path=script))
-
-        script_arguments = self.translate_arguments(script_arguments)
 
         # Translate output nodes if output map provided
         if output_node:
@@ -62,7 +98,7 @@ class TransformStep(ETLStep):
 
         self.create_pipeline_object(
             object_class=ShellCommandActivity,
-            input_node=self.input,
+            input_node=input_nodes,
             output_node=base_output_node,
             resource=self.resource,
             schedule=self.schedule,
