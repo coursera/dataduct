@@ -11,7 +11,6 @@ class EMRJobStep(ETLStep):
 
     def __init__(self,
                  step_string,
-                 depends_on=None,
                  **kwargs):
         """Constructor for the EMRJobStep class
 
@@ -24,9 +23,6 @@ class EMRJobStep(ETLStep):
             using 4 backslashes
         """
         super(EMRJobStep, self).__init__(**kwargs)
-
-        if depends_on is not None:
-            self._depends_on = depends_on
 
         self.activity = self.create_pipeline_object(
             object_class=EmrActivity,

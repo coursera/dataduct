@@ -17,7 +17,6 @@ class LoadRedshiftStep(ETLStep):
                  insert_mode="TRUNCATE",
                  max_errors=None,
                  replace_invalid_char=None,
-                 depends_on=None,
                  **kwargs):
         """Constructor for the LoadRedshiftStep class
 
@@ -31,9 +30,6 @@ class LoadRedshiftStep(ETLStep):
             **kwargs(optional): Keyword arguments directly passed to base class
         """
         super(LoadRedshiftStep, self).__init__(**kwargs)
-
-        if depends_on is not None:
-            self._depends_on = depends_on
 
         # Create output node
         self._output = self.create_pipeline_object(

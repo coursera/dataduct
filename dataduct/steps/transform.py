@@ -28,7 +28,6 @@ class TransformStep(ETLStep):
                  output_node=None,
                  script_arguments=None,
                  additional_s3_files=None,
-                 depends_on=None,
                  output_path=None,
                  **kwargs):
         """Constructor for the TransformStep class
@@ -49,16 +48,17 @@ class TransformStep(ETLStep):
             raise ETLInputError(
                 'Only one of script, command and directory allowed')
 
-        if depends_on is not None:
-            self._depends_on = depends_on
-
         # Create output_node based on output_path
         base_output_node = self.create_s3_data_node(
             self.get_output_s3_path(output_path))
 
         script_arguments = self.translate_arguments(script_arguments)
 
-        input_nodes = [self.input]
+        if self.input:
+            input_nodes = [self.input]
+        else:
+            input_nodes = list()
+
         if script_directory:
             # The script to be run with the directory
             if script_name is None:

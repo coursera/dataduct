@@ -18,7 +18,6 @@ class SqlCommandStep(ETLStep):
                  script_arguments=None,
                  queue=None,
                  command=None,
-                 depends_on=None,
                  **kwargs):
         """Constructor for the SqlCommandStep class
 
@@ -34,9 +33,6 @@ class SqlCommandStep(ETLStep):
             raise ETLInputError('Both command or script found')
 
         super(SqlCommandStep, self).__init__(**kwargs)
-
-        if depends_on is not None:
-            self._depends_on = depends_on
 
         # Create S3File with script / command provided
         if script:

@@ -1,0 +1,14 @@
+name : example_pipeline_dependency
+frequency : one-time
+load_time: 01:00  # Hour:Min in UTC
+
+steps:
+-   step_type: pipeline-dependencies
+    name: dependency_step
+    refresh_rate: 60
+    dependent_pipelines:
+    -   example_transform
+
+-   step_type: transform
+    depends_on: dependency_step
+    command: whoami >> $OUTPUT1_STAGING_DIR/output.txt

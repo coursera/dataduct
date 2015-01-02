@@ -25,6 +25,7 @@ from ..steps import ExtractRdsStep
 from ..steps import ExtractRedshiftStep
 from ..steps import ExtractS3Step
 from ..steps import LoadRedshiftStep
+from ..steps import PipelineDependenciesStep
 from ..steps import SqlCommandStep
 from ..steps import TransformStep
 from ..steps import QATransformStep
@@ -453,6 +454,9 @@ class ETLPipeline(object):
         elif step_type == 'emr-step':
             step_class = EMRJobStep
 
+        elif step_type == 'pipeline-dependencies':
+            step_class = PipelineDependenciesStep
+
         elif step_type == 'load-redshift':
             step_class = LoadRedshiftStep
 
@@ -510,7 +514,11 @@ class ETLPipeline(object):
                     'input_path' not in step_param:
                 step_param['input_node'] = input_node
 
-            step_class, step_args = self.parse_step_args(**step_param)
+            try:
+                step_class, step_args = self.parse_step_args(**step_param)
+            except Exception:
+                print 'Error creating step with params : ', step_param
+                raise
 
             try:
                 step = step_class(**step_args)

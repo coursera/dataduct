@@ -1,22 +1,23 @@
 """
-ETL step wrapper for QA step can be executed on Ec2 resource
+ETL step for pipeline dependencies using transform step
 """
+import os
+
 from .transform import TransformStep
-from ..config import Config
-
-config = Config()
-SNS_TOPIC_ARN_WARNING = config.etl['SNS_TOPIC_ARN_WARNING']
+from ..utils import constants as const
 
 
-class QATransformStep(TransformStep):
-    """QATransform Step class that helps run scripts on resouces for QA checks
+class PipelineDependenciesStep(TransformStep):
+    """PipelineDependencies Step class that helps wait for other pipelines
+        to finish
     """
 
     def __init__(self,
                  id,
-                 pipeline_name,
+                 dependent_pipelines=None,
+                 refresh_rate=300,
+                 start_date=None,
                  script_arguments=None,
-                 sns_topic_arn=SNS_TOPIC_ARN_WARNING,
                  **kwargs):
         """Constructor for the QATransformStep class
 
@@ -29,17 +30,31 @@ class QATransformStep(TransformStep):
         if script_arguments is None:
             script_arguments = list()
 
+        if dependent_pipelines is None:
+            raise ValueError('Must have some dependencies for dependency step')
+
+        if start_date is None:
+            start_date = "#{format(@scheduledStartTime,'YYYY-MM-dd')}"
+
         script_arguments.extend(
             [
-                '--sns_topic_arn=%s' % sns_topic_arn,
-                '--test_name=%s' % (pipeline_name + "." + id)
+                '--start_date=%s' % start_date,
+                '--refresh_rate=%s' % str(refresh_rate),
+                '--dependencies',
             ]
         )
+        script_arguments.extend(dependent_pipelines)
 
-        super(QATransformStep, self).__init__(
+        steps_path = os.path.abspath(os.path.dirname(__file__))
+        script = os.path.join(steps_path, const.DEPENDENCY_SCRIPT_PATH)
+
+        super(PipelineDependenciesStep, self).__init__(
             id=id,
+            script=script,
             script_arguments=script_arguments,
             **kwargs)
+
+        self._output = None
 
     @classmethod
     def arguments_processor(cls, etl, input_args):
@@ -51,7 +66,6 @@ class QATransformStep(TransformStep):
         """
         input_args = cls.pop_inputs(input_args)
         step_args = cls.base_arguments_processor(etl, input_args)
-        step_args['pipeline_name'] = etl.name
         step_args['resource'] = etl.ec2_resource
 
         return step_args

@@ -56,7 +56,7 @@ class ETLStep(object):
         self._output = None
         self._objects = dict()
         self._required_steps = list()
-        self._activities = list()
+        self._required_activities = list()
         self._input_node = input_node
 
         if input_path is not None and input_node is not None:
@@ -95,14 +95,12 @@ class ETLStep(object):
         """
         self._required_steps.extend(required_steps)
 
-        # Find all activities which need to be completed.
-        required_activities = []
-        for step in self._required_steps:
-            required_activities.extend(step.activities)
+        for step in required_steps:
+            self._required_activities.extend(step.activities)
 
         # Set required_acitivites as depend_on variable of all activities
         for activity in self.activities:
-            activity['dependsOn'] = required_activities
+            activity['dependsOn'] = self._required_activities
 
     def create_pipeline_object(self, object_class, **kwargs):
         """Create the pipeline objects associated with the step
@@ -123,6 +121,10 @@ class ETLStep(object):
             str(instance_count)
 
         new_object = object_class(object_id, **kwargs)
+
+        if isinstance(new_object, Activity):
+            new_object['dependsOn'] = self._required_activities
+
         self._objects[object_id] = new_object
         return new_object
 

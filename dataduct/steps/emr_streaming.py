@@ -81,7 +81,6 @@ class EMRStreamingStep(ETLStep):
                  mapper,
                  reducer=None,
                  hadoop_params=None,
-                 depends_on=None,
                  output_path=None,
                  **kwargs):
         """Constructor for the EMRStreamingStep class
@@ -94,9 +93,6 @@ class EMRStreamingStep(ETLStep):
             **kwargs(optional): Keyword arguments directly passed to base class
         """
         super(EMRStreamingStep, self).__init__(**kwargs)
-
-        if depends_on is not None:
-            self._depends_on = depends_on
 
         self._output = self.create_s3_data_node(
             self.get_output_s3_path(output_path))

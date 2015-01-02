@@ -39,7 +39,6 @@ class ExtractRdsStep(ETLStep):
                  host_name=None,
                  database=None,
                  output_path=None,
-                 depends_on=None,
                  **kwargs):
         """Constructor for the ExtractRdsStep class
 
@@ -54,9 +53,6 @@ class ExtractRdsStep(ETLStep):
             raise ETLInputError('Only one of table, sql needed')
 
         super(ExtractRdsStep, self).__init__(**kwargs)
-
-        if depends_on is not None:
-            self._depends_on = depends_on
 
         if table:
             sql = 'select * from %s;' % table

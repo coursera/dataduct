@@ -15,7 +15,6 @@ class ExtractRedshiftStep(ETLStep):
                  table,
                  redshift_database,
                  insert_mode="TRUNCATE",
-                 depends_on=None,
                  output_path=None,
                  **kwargs):
         """Constructor for the ExtractRedshiftStep class
@@ -28,9 +27,6 @@ class ExtractRedshiftStep(ETLStep):
             **kwargs(optional): Keyword arguments directly passed to base class
         """
         super(ExtractRedshiftStep, self).__init__(**kwargs)
-
-        if depends_on is not None:
-            self._depends_on = depends_on
 
         # Create input node
         self._input_node = self.create_pipeline_object(
