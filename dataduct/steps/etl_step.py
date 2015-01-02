@@ -53,7 +53,6 @@ class ETLStep(object):
         self.resource = resource
         self.max_retries = max_retries
         self._depends_on = list()
-        self._input = None
         self._output = None
         self._objects = dict()
         self._required_steps = list()

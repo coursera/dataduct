@@ -76,5 +76,4 @@ class ShellCommandActivity(Activity):
         )
 
         # Add the additional s3 files
-        if additional_s3_files is not None:
-            self.add_additional_files(additional_s3_files)
+        self.add_additional_files(additional_s3_files)

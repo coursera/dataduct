@@ -112,7 +112,7 @@ class ExtractRdsStep(ETLStep):
         self.create_pipeline_object(
             object_class=ShellCommandActivity,
             input_node=intermediate_node,
-            output_node=self._output,
+            output_node=self.output,
             command=command,
             max_retries=self.max_retries,
             resource=self.resource,

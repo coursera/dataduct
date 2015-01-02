@@ -35,10 +35,10 @@ class TransformStep(ETLStep):
             additional_s3_files(list of S3File): additional files used
             **kwargs(optional): Keyword arguments directly passed to base class
         """
+        super(TransformStep, self).__init__(**kwargs)
+
         if not exactly_one(command, script):
             raise ETLInputError('Both command or script found')
-
-        super(TransformStep, self).__init__(**kwargs)
 
         if depends_on is not None:
             self._depends_on = depends_on
@@ -53,9 +53,16 @@ class TransformStep(ETLStep):
 
         script_arguments = self.translate_arguments(script_arguments)
 
+        # Translate output nodes if output map provided
+        if output_node:
+            self._output = self.create_output_nodes(
+                base_output_node, output_node)
+        else:
+            self._output = base_output_node
+
         self.create_pipeline_object(
             object_class=ShellCommandActivity,
-            input_node=self._input_node,
+            input_node=self.input,
             output_node=base_output_node,
             resource=self.resource,
             schedule=self.schedule,
@@ -66,13 +73,6 @@ class TransformStep(ETLStep):
             depends_on=self.depends_on,
             additional_s3_files=additional_s3_files,
         )
-
-        # Translate output nodes if output map provided
-        if output_node:
-            self._output = self.create_output_nodes(
-                base_output_node, output_node)
-        else:
-            self._output = base_output_node
 
     def translate_arguments(self, script_arguments):
         """Translate script argument to lists

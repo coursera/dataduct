@@ -61,5 +61,4 @@ class EmrActivity(Activity):
             input=input_node,
         )
 
-        if additional_files:
-            self.add_additional_files(additional_files)
+        self.add_additional_files(additional_files)

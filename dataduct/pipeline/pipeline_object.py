@@ -118,6 +118,9 @@ class PipelineObject(object):
         Args:
             new_files(S3File): list of new S3 files for the activity
         """
+        if new_files is None:
+            return
+
         for new_file in new_files:
             if not isinstance(new_file, S3File):
                 raise ETLInputError('File must be an S3 File object')

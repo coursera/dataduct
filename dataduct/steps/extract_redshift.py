@@ -47,8 +47,8 @@ class ExtractRedshiftStep(ETLStep):
         self.create_pipeline_object(
             object_class=RedshiftCopyActivity,
             max_retries=self.max_retries,
-            input_node=self._input_node,
-            output_node=self._output,
+            input_node=self.input,
+            output_node=self.output,
             insert_mode=insert_mode,
             resource=self.resource,
             schedule=self.schedule,

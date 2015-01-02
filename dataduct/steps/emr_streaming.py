@@ -118,7 +118,7 @@ class EMRStreamingStep(ETLStep):
             input_node=self.input,
             schedule=self.schedule,
             emr_step_string=step_string,
-            output_node=self._output,
+            output_node=self.output,
             additional_files=additional_files,
             depends_on=self.depends_on,
             max_retries=self.max_retries
