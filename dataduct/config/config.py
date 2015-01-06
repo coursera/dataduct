@@ -14,7 +14,8 @@ def get_config_files():
         3. DATADUCT_PATH environment variable
     """
     dataduct_config_path = '/etc/dataduct.cfg'
-    dataduct_user_config_path = os.path.join(os.path.expanduser('~/.dataduct'))
+    dataduct_user_config_path = os.path.join(
+        os.path.expanduser('~'),'.dataduct'))
     config_files = [dataduct_config_path, dataduct_user_config_path]
 
     # Check DATADUCT_PATH env variable for other configuration locations

@@ -1,5 +1,6 @@
 """Constants shared across dataduct
 """
+import os
 
 # Constants
 ZERO = 0
@@ -20,5 +21,7 @@ DATA_STR = 'data'
 SRC_STR = 'src'
 
 # Step paths
-SCRIPT_RUNNER_PATH = 'scripts/script_runner.py'
-DEPENDENCY_SCRIPT_PATH = 'scripts/pipeline_dependency_check.py'
+SCRIPTS_DIRECTORY = 'scripts'
+SCRIPT_RUNNER_PATH = os.path.join(SCRIPTS_DIRECTORY, 'script_runner.py')
+DEPENDENCY_SCRIPT_PATH = os.path.join(SCRIPTS_DIRECTORY,
+                                      'pipeline_dependency_check.py')
