@@ -6,20 +6,21 @@ from ..config import Config
 from .pipeline_object import PipelineObject
 from ..s3 import S3LogPath
 from .schedule import Schedule
+from ..utils import constants as const
 from ..utils.exceptions import ETLInputError
 
 config = Config()
-NUM_CORE_INSTANCES = config.emr.get('NUM_CORE_INSTANCES', None)
-CORE_INSTANCE_TYPE = config.emr.get('CORE_INSTANCE_TYPE', 'm1.large')
-TASK_INSTANCE_BID_PRICE = config.emr.get('TASK_INSTANCE_BID_PRICE', None)
-TASK_INSTANCE_TYPE = config.emr.get('TASK_INSTANCE_TYPE', 'm1.large')
-MASTER_INSTANCE_TYPE = config.emr.get('MASTER_INSTANCE_TYPE', 'm1.large')
-CLUSTER_TIMEOUT = config.emr.get('CLUSTER_TIMEOUT', '6 Hours')
-HADOOP_VERSION = config.emr.get('HADOOP_VERSION', None)
-HIVE_VERSION = config.emr.get('HIVE_VERSION', None)
-PIG_VERSION = config.emr.get('PIG_VERSION', None)
+NUM_CORE_INSTANCES = config.emr.get('NUM_CORE_INSTANCES', const.NONE)
+CORE_INSTANCE_TYPE = config.emr.get('CORE_INSTANCE_TYPE', const.M1_LARGE)
+TASK_INSTANCE_BID_PRICE = config.emr.get('TASK_INSTANCE_BID_PRICE', const.NONE)
+TASK_INSTANCE_TYPE = config.emr.get('TASK_INSTANCE_TYPE', const.M1_LARGE)
+MASTER_INSTANCE_TYPE = config.emr.get('MASTER_INSTANCE_TYPE', const.M1_LARGE)
+CLUSTER_TIMEOUT = config.emr.get('CLUSTER_TIMEOUT', const.DEFAULT_TIMEOUT)
+HADOOP_VERSION = config.emr.get('HADOOP_VERSION', const.NONE)
+HIVE_VERSION = config.emr.get('HIVE_VERSION', const.NONE)
+PIG_VERSION = config.emr.get('PIG_VERSION', const.NONE)
 CLUSTER_AMI = config.emr.get('CLUSTER_AMI', '2.4.7')
-KEY_PAIR = config.etl.get('KEY_PAIR', None)
+KEY_PAIR = config.etl.get('KEY_PAIR', const.NONE)
 
 
 class EmrResource(PipelineObject):

@@ -10,10 +10,11 @@ from .schedule import Schedule
 from ..s3 import S3Path
 from ..s3 import S3File
 from ..s3 import S3Directory
+from ..utils import constants as const
 from ..utils.exceptions import ETLInputError
 
 config = Config()
-RETRY_DELAY = config.etl.get('RETRY_DELAY', '10 Minutes')
+RETRY_DELAY = config.etl.get('RETRY_DELAY', const.DEFAULT_DELAY)
 
 
 class S3Node(PipelineObject):

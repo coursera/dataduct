@@ -6,17 +6,18 @@ from ..config import Config
 from .pipeline_object import PipelineObject
 from ..s3 import S3LogPath
 from .schedule import Schedule
+from ..utils import constants as const
 from ..utils.exceptions import ETLInputError
 
 config = Config()
 ROLE = config.etl['ROLE']
 RESOURCE_ROLE = config.etl['RESOURCE_ROLE']
 
-INSTANCE_TYPE = config.ec2.get('INSTANCE_TYPE', 'm1.large')
-ETL_AMI = config.ec2.get('ETL_AMI', None)
-SECURITY_GROUP = config.ec2.get('SECURITY_GROUP', None)
-KEY_PAIR = config.etl.get('KEY_PAIR', None)
-RETRY_DELAY = config.etl.get('RETRY_DELAY', '10 Minutes')
+INSTANCE_TYPE = config.ec2.get('INSTANCE_TYPE', const.M1_LARGE)
+ETL_AMI = config.ec2.get('ETL_AMI', const.NONE)
+SECURITY_GROUP = config.ec2.get('SECURITY_GROUP', const.NONE)
+KEY_PAIR = config.etl.get('KEY_PAIR', const.NONE)
+RETRY_DELAY = config.etl.get('RETRY_DELAY', const.DEFAULT_DELAY)
 
 
 class Ec2Resource(PipelineObject):

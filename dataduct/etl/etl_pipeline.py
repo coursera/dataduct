@@ -40,15 +40,9 @@ from ..utils import constants as const
 
 config = Config()
 S3_ETL_BUCKET = config.etl['S3_ETL_BUCKET']
-MAX_RETRIES = config.etl.get('MAX_RETRIES', 0)
-S3_BASE_PATH = config.etl.get('S3_BASE_PATH', '')
-SNS_TOPIC_ARN_FAILURE = config.etl.get('SNS_TOPIC_ARN_FAILURE', None)
-
-EC2_RESOURCE_STR = 'ec2'
-LOG_STR = 'logs'
-DATA_STR = 'data'
-SRC_STR = 'src'
-CUSTOM_STEPS_PATH = 'CUSTOM_STEPS_PATH'
+MAX_RETRIES = config.etl.get('MAX_RETRIES', const.ZERO)
+S3_BASE_PATH = config.etl.get('S3_BASE_PATH', const.EMPTY_STR)
+SNS_TOPIC_ARN_FAILURE = config.etl.get('SNS_TOPIC_ARN_FAILURE', const.NONE)
 
 
 class ETLPipeline(object):
@@ -222,17 +216,19 @@ class ETLPipeline(object):
         Returns:
             s3_path(S3Path): S3 location of directory of the given data type
         """
-        if data_type not in [SRC_STR, LOG_STR, DATA_STR]:
+        if data_type not in [const.SRC_STR, const.LOG_STR, const.DATA_STR]:
             raise ETLInputError('Unknown data type found')
 
         # Versioning prevents using data from older versions
         key = [S3_BASE_PATH, data_type, self.name, self.version_name]
 
-        if self.frequency == 'daily' and data_type in [LOG_STR, DATA_STR]:
+        if self.frequency == 'daily' and \
+            data_type in [const.LOG_STR, const.DATA_STR]:
+
             # For repeated loads, include load date
             key.append("#{format(@scheduledStartTime, 'YYYYMMdd')}")
 
-        if data_type == LOG_STR:
+        if data_type == const.LOG_STR:
             return S3LogPath(key, bucket=S3_ETL_BUCKET, is_directory=True)
         else:
             return S3Path(key, bucket=S3_ETL_BUCKET, is_directory=True)
@@ -244,7 +240,7 @@ class ETLPipeline(object):
         Returns:
             s3_dir(S3Directory): Directory where s3 log will be stored.
         """
-        return self._s3_uri(LOG_STR)
+        return self._s3_uri(const.LOG_STR)
 
     @property
     def s3_data_dir(self):
@@ -253,7 +249,7 @@ class ETLPipeline(object):
         Returns:
             s3_dir(S3Directory): Directory where s3 data will be stored.
         """
-        return self._s3_uri(DATA_STR)
+        return self._s3_uri(const.DATA_STR)
 
     @property
     def s3_source_dir(self):
@@ -262,7 +258,7 @@ class ETLPipeline(object):
         Returns:
             s3_dir(S3Directory): Directory where s3 src will be stored.
         """
-        return self._s3_uri(SRC_STR)
+        return self._s3_uri(const.SRC_STR)
 
     @property
     def ec2_resource(self):
@@ -282,7 +278,7 @@ class ETLPipeline(object):
                 terminate_after=self.ec2_resource_terminate_after,
             )
 
-            self.create_bootstrap_steps(EC2_RESOURCE_STR)
+            self.create_bootstrap_steps(const.EC2_RESOURCE_STR)
         return self._ec2_resource
 
     @property
@@ -396,7 +392,7 @@ class ETLPipeline(object):
 
         for step_def in getattr(config, 'custom_steps', list()):
             step_type = step_def['step_type']
-            path = parse_path(step_def['file_path'], CUSTOM_STEPS_PATH)
+            path = parse_path(step_def['file_path'], 'CUSTOM_STEPS_PATH')
 
             # Load source from the file path provided
             step_mod = imp.load_source(step_type, path)

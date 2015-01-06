@@ -4,9 +4,10 @@ Pipeline object class for sns
 
 from ..config import Config
 from .pipeline_object import PipelineObject
+from ..utils import constants as const
 
 config = Config()
-SNS_TOPIC_ARN_FAILURE = config.etl.get('SNS_TOPIC_ARN_FAILURE', None)
+SNS_TOPIC_ARN_FAILURE = config.etl.get('SNS_TOPIC_ARN_FAILURE', const.NONE)
 ROLE = config.etl['ROLE']
 
 

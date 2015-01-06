@@ -13,6 +13,9 @@ from ..utils.helpers import exactly_one
 from ..utils.exceptions import ETLInputError
 
 config = Config()
+if not hasattr(config, 'mysql'):
+    raise ETLInputError('MySQL config not specified in ETL')
+
 MYSQL_CONFIG = config.mysql
 
 

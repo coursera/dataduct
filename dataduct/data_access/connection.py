@@ -15,7 +15,7 @@ def redshift_connection(**kwargs):
     """Fetch a psql connection object to redshift
     """
     if not hasattr(config, 'redshift'):
-        raise ETLConfigError('Redshift not found in dataduct configs')
+        raise ETLConfigError('Redshift config not found')
 
     connection = psycopg2.connect(
         host=config.redshift['HOST'],

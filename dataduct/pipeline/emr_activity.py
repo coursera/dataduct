@@ -5,10 +5,11 @@ Pipeline object class for EmrActivity
 from .activity import Activity
 from ..config import Config
 from .schedule import Schedule
+from ..utils import constants as const
 from ..utils.exceptions import ETLInputError
 
 config = Config()
-MAX_RETRIES = config.etl.get('MAX_RETRIES', 0)
+MAX_RETRIES = config.etl.get('MAX_RETRIES', const.ZERO)
 
 
 class EmrActivity(Activity):

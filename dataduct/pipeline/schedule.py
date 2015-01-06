@@ -6,10 +6,11 @@ from datetime import timedelta
 
 from ..config import Config
 from .pipeline_object import PipelineObject
+from ..utils import constants as const
 from ..utils.exceptions import ETLInputError
 
 config = Config()
-DAILY_LOAD_TIME = config.etl.get('DAILY_LOAD_TIME', 1)
+DAILY_LOAD_TIME = config.etl.get('DAILY_LOAD_TIME', const.ONE)
 
 
 FEQUENCY_PERIOD_CONVERTION = {

@@ -8,10 +8,11 @@ from ..pipeline import S3Node
 from ..s3 import S3Path
 from ..s3 import S3File
 from ..s3 import S3LogPath
+from ..utils import constants as const
 from ..utils.exceptions import ETLInputError
 
 config = Config()
-MAX_RETRIES = config.etl.get('MAX_RETRIES', 0)
+MAX_RETRIES = config.etl.get('MAX_RETRIES', const.ZERO)
 
 
 class ETLStep(object):
