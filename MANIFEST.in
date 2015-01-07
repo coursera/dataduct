@@ -3,4 +3,3 @@ include *.md
 include *.rst
 include *.py
 recursive-include bin *
-recursive-include scripts *

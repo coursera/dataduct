@@ -7,7 +7,7 @@ pipeline objects.
 
 **Documentation and Details**
 
-Documentation and more details can be found at http://pythonhosted.org/dataduct/
+Documentation and more details can be found at http://dataduct.readthedocs.org/en/latest/
 
 **License**
 
