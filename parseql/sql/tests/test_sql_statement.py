@@ -15,7 +15,7 @@ class TestSqlStatement(TestCase):
         """Basic test for statement declaration
         """
         query = 'select \n 1;'
-        result = 'select \n 1'
+        result = 'select 1'
 
         eq_(SqlStatement(query).sql(), result)
 

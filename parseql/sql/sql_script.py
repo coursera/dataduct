@@ -26,10 +26,11 @@ class SqlScript(object):
 
         self._raw_sql = sql
         self._raw_statements = self._sanatize_sql()
-        self._statements = self.initialize_statements()
+        self._statements = self._initialize_statements()
 
         # Add the statements that the script was initialized from
-        self.append(statements)
+        if statements:
+            self.append(statements)
 
     def __str__(self):
         """Print a SqlScript object
@@ -55,7 +56,7 @@ class SqlScript(object):
     def sql(self):
         """Returns the sql for the SqlScript
         """
-        return ';\n'.join([x.sql() for x in self._statements])
+        return ';\n'.join([x.sql() for x in self._statements]) + ';'
 
     def _sanatize_sql(self):
         """Clean the SQL, remove comments and empty statements
@@ -100,5 +101,7 @@ class SqlScript(object):
         """Wrap the script in transaction
         """
         new_script = self.__class__()
-        new_script.append([BeginStatement(), self, CommitStatement()])
+        new_script.append(
+            [BeginStatement()] + self.statements + [CommitStatement()])
+
         return new_script

@@ -7,6 +7,7 @@ from ..transform import split_statements
 from ..transform import remove_comments
 from ..transform import remove_empty_statements
 from ..transform import remove_transactional
+from ..transform import remove_newlines
 
 
 class TestRemoveEmptyStatements(TestCase):
@@ -47,6 +48,37 @@ class TestRemoveEmptyStatements(TestCase):
         result = ' a; b; c;'
 
         eq_(remove_empty_statements(data), result)
+
+
+class TestRemoveNewLines(TestCase):
+    """Tests for remove_empty_statements function
+    """
+    @staticmethod
+    def test_basic():
+        """Basic test for single location of seperator
+        """
+        data = 'a\n \n;'
+        result = 'a ;'
+
+        eq_(remove_newlines(data), result)
+
+    @staticmethod
+    def test_advanced():
+        """Basic test for single location of seperator
+        """
+        data = 'a,\nb,\nc\n\rfrom \r\n xyz'
+        result = 'a, b, c from xyz'
+
+        eq_(remove_newlines(data), result)
+
+    @staticmethod
+    def test_quoted_newlines():
+        """Basic test for single location of seperator
+        """
+        data = "a,\nb,\nc\n\rfrom \r\n xyz where b='a\nc'"
+        result = "a, b, c from xyz where b='a\nc'"
+
+        eq_(remove_newlines(data), result)
 
 
 class TestRemoveComments(TestCase):

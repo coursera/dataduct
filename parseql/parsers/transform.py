@@ -1,6 +1,8 @@
 """Module containing basic transform functions on strings
 """
 
+import re
+
 from pyparsing import CaselessKeyword
 from pyparsing import CharsNotIn
 from pyparsing import delimitedList
@@ -94,3 +96,11 @@ def split_statements(string, seperator=';'):
     tokens = delimitedList(content, seperator).parseString(string)
 
     return tokens.asList()
+
+
+def remove_newlines(string):
+    """Remove new lines from a string unless in single quotes
+    """
+    # In general the aim is to avoid regex as they are hard to maintain
+    regex = r"(?:[^\s\n\r']|'(?:\\.|[^'])*')+"
+    return ' '.join(re.findall(regex, string))

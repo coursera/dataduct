@@ -31,7 +31,7 @@ class SqlStatement(object):
         if self._raw_sql is None:
             return ''
 
-        raw_statements = sanatize_sql(self._raw_sql)
+        raw_statements = sanatize_sql(self._raw_sql, keep_transaction=True)
 
         if len(raw_statements) > 1:
             raise ValueError('SQL Statement can not contain more than 1 query')

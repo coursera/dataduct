@@ -5,6 +5,7 @@ from ..parsers import remove_comments
 from ..parsers import remove_empty_statements
 from ..parsers import split_statements
 from ..parsers import remove_transactional
+from ..parsers import remove_newlines
 
 
 def atmost_one(*args):
@@ -16,14 +17,18 @@ def atmost_one(*args):
     return sum([1 for a in args if a is not None]) <= 1
 
 
-def sanatize_sql(sql):
+def sanatize_sql(sql, keep_transaction=False):
     """Sanatize the sql string
     """
     # remove comments
     string = remove_comments(sql)
 
     # remove transactionals
-    string = remove_transactional(string)
+    if not keep_transaction:
+        string = remove_transactional(string)
+
+    # remove new lines
+    string = remove_newlines(string)
 
     # remove empty statements
     string = remove_empty_statements(string)
