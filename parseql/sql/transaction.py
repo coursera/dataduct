@@ -10,7 +10,7 @@ class BeginStatement(SqlStatement):
     def __init__(self):
         """Constructor for begin class
         """
-        super(BeginStatement, self).__init__('BEGIN')
+        super(BeginStatement, self).__init__('BEGIN', True)
 
 
 class CommitStatement(SqlStatement):
@@ -19,4 +19,4 @@ class CommitStatement(SqlStatement):
     def __init__(self):
         """Constructor for Commit class
         """
-        super(CommitStatement, self).__init__('COMMIT')
+        super(CommitStatement, self).__init__('COMMIT', True)

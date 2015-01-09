@@ -13,6 +13,7 @@ from pyparsing import originalTextFor
 from pyparsing import printables
 from pyparsing import replaceWith
 from pyparsing import Word
+from pyparsing import WordStart
 from pyparsing import ZeroOrMore
 
 
@@ -54,7 +55,7 @@ def remove_comments(string):
     string = multiline_comment.transformString(string)
 
     # Remove single line comments
-    singleline_comment = Literal('--') +  ZeroOrMore(CharsNotIn('\n'))
+    singleline_comment = Literal('--') + ZeroOrMore(CharsNotIn('\n'))
     string = singleline_comment.suppress().transformString(string)
 
     return string
@@ -69,7 +70,9 @@ def remove_transactional(string):
     Returns:
         result(str): String with begin and commit trimmed
     """
-    transaction = (CaselessKeyword('BEGIN')| CaselessKeyword('COMMIT'))
+    transaction = WordStart() + (
+        CaselessKeyword('BEGIN')| CaselessKeyword('COMMIT'))
+
     return transaction.suppress().transformString(string)
 
 

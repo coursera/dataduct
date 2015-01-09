@@ -7,12 +7,13 @@ from .utils import sanatize_sql
 class SqlStatement(object):
     """Class representing a single SQL statement
     """
-    def __init__(self, sql=None):
+    def __init__(self, sql=None, transactional=False):
         """Constructor for the SqlStatement class
         """
         if sql is None:
             sql = ''
         self._raw_sql = sql
+        self.transactional = transactional
         self._raw_statement = self._sanatize_sql()
 
     def __str__(self):
@@ -31,7 +32,7 @@ class SqlStatement(object):
         if self._raw_sql is None:
             return ''
 
-        raw_statements = sanatize_sql(self._raw_sql, keep_transaction=True)
+        raw_statements = sanatize_sql(self._raw_sql, self.transactional)
 
         if len(raw_statements) > 1:
             raise ValueError('SQL Statement can not contain more than 1 query')

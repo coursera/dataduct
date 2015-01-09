@@ -99,6 +99,6 @@ class TestSqlScript(TestCase):
     def test_paranthesis():
         """Test sql with paranthesis is sanatized correctly
         """
-        script = SqlScript('create table test (session_id INTEGER);')
-        result = 'create table test (session_id INTEGER);'
+        script = SqlScript('create table test_begin (session_id INTEGER);')
+        result = 'create table test_begin (session_id INTEGER);'
         eq_(script.sql(), result)
