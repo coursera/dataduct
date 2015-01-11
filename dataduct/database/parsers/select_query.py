@@ -5,8 +5,6 @@ from pyparsing import MatchFirst
 from pyparsing import delimitedList
 from pyparsing import WordStart
 
-from ..sql.sql_statement import SqlStatement
-
 from .utils import _db_name
 from .utils import _from
 from .utils import _join
@@ -23,10 +21,6 @@ def parse_select_base(statement):
     Returns:
         result(list of str): List of dependent tables
     """
-
-    if not isinstance(statement, SqlStatement):
-        raise ValueError('Input to table parser must of a SqlStatement object')
-
     string = statement.sql()
 
     if string == '':
@@ -47,10 +41,6 @@ def parse_select_dependencies(statement):
     Returns:
         result(list of str): List of dependent tables
     """
-
-    if not isinstance(statement, SqlStatement):
-        raise ValueError('Input to table parser must of a SqlStatement object')
-
     string = statement.sql()
 
     if string == '':
@@ -76,10 +66,6 @@ def parse_select_columns(statement):
     Returns:
         result(list of str): List of columns
     """
-
-    if not isinstance(statement, SqlStatement):
-        raise ValueError('Input to table parser must of a SqlStatement object')
-
     string = statement.sql()
 
     if string == '':

@@ -3,3 +3,8 @@ from .transform import remove_empty_statements
 from .transform import remove_transactional
 from .transform import split_statements
 from .transform import remove_newlines
+
+from .select_query import parse_select_dependencies
+from .select_query import parse_select_columns
+
+from .create_table import parse_create_table

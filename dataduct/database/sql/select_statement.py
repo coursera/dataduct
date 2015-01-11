@@ -2,8 +2,8 @@
 """
 
 from .sql_statement import SqlStatement
-from ..parsers.select_query import parse_select_dependencies
-from ..parsers.select_query import parse_select_columns
+from ..parsers import parse_select_dependencies
+from ..parsers import parse_select_columns
 
 
 class SelectStatement(SqlStatement):

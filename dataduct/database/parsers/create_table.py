@@ -6,7 +6,7 @@ from pyparsing import ParseException
 from pyparsing import ParseResults
 from pyparsing import ZeroOrMore
 
-from ..sql.sql_statement import SqlStatement
+from ..sql import SqlStatement
 
 from .utils import _all
 from .utils import _create

@@ -2,9 +2,9 @@
 """
 from copy import deepcopy
 
-from ..parsers.create_table import parse_create_table
-from ..sql.sql_script import SqlScript
-from ..sql.sql_statement import SqlStatement
+from .parsers import parse_create_table
+from .sql import SqlScript
+from .sql import SqlStatement
 from .column import Column
 
 

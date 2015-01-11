@@ -5,8 +5,9 @@ from copy import deepcopy
 from .sql_statement import SqlStatement
 from .transaction import BeginStatement
 from .transaction import CommitStatement
-from .utils import atmost_one
 from .utils import sanatize_sql
+
+from ...utils.helpers import atmost_one
 
 
 class SqlScript(object):
