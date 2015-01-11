@@ -4,6 +4,7 @@ from copy import deepcopy
 
 from ..parsers.create_table import parse_create_table
 from ..sql.sql_script import SqlScript
+from ..sql.sql_statement import SqlStatement
 from .column import Column
 
 
@@ -20,7 +21,7 @@ class Table(object):
 
         parameters = parse_create_table(sql)
 
-        self.sql = sql
+        self.sql_statement = sql
         self.parameters = parameters
 
         self.full_name = parameters.get('full_name')
@@ -45,7 +46,7 @@ class Table(object):
     def __str__(self):
         """Output for the print statement of the table
         """
-        return self.sql
+        return self.sql_statement
 
     def copy(self):
         """Create a copy of the Table object
@@ -112,7 +113,7 @@ class Table(object):
             if 'fk_table' in constraint:
                 result.append((constraint.get('fk_columns'),
                                constraint.get('fk_table'),
-                               constraint.get('fk_reference_columns')))
+                               constraint.get('fk_reference')))
         return result
 
     @property
@@ -120,3 +121,32 @@ class Table(object):
         """List of tables which this table references.
         """
         return [table_name for _, table_name, _ in self.foreign_key_references]
+
+    def temporary_clone_statement(self):
+        """Sql statement to create a temporary clone table
+
+        Note:
+            The temporary table only copies the schema and not any data
+        """
+
+        # We don't need to use schema for temp tables
+        table_name = self.table_name + '_temp'
+
+        # Create a list of column definitions
+        columns = ', '.join(
+            ['%s %s' %(c.column_name, c.column_type) for c in self.columns])
+
+        # We don't need any constraints to be specified on the temp table
+        sql = ['CREATE TEMPORARY TABLE %s ( %s )' % (table_name, columns)]
+
+        return SqlStatement(sql)
+
+    def drop_statement(self):
+        """Sql statment to drop the table
+        """
+        return SqlStatement('DROP TABLE %s CASCADE' % self.full_name)
+
+    def analyze_statement(self):
+        """Sql statment to analyze the table
+        """
+        return SqlStatement('ANALYZE %s' % self.full_name)

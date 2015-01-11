@@ -3,6 +3,9 @@
 
 from pyparsing import alphanums
 from pyparsing import CaselessKeyword
+from pyparsing import CharsNotIn
+from pyparsing import OneOrMore
+from pyparsing import ZeroOrMore
 from pyparsing import Combine
 from pyparsing import nums
 from pyparsing import Optional
@@ -45,6 +48,11 @@ _all = CaselessKeyword('ALL')
 _even = CaselessKeyword('EVEN')
 _key = CaselessKeyword('KEY')
 
+# Select SQL Keywords
+_select = CaselessKeyword('SELECT')
+_from = CaselessKeyword('FROM')
+_join = CaselessKeyword('JOIN')
+
 # Parsers
 _db_name = Word(alphanums+"_-.")
 temporary_check = Optional(_temp | _temporary).setParseAction(isNotEmpty)
@@ -53,3 +61,7 @@ pk_check = (_primary_key | _unique)
 
 column_types = _smallint | _integer | _bigint | _decimal | _real | _double
 column_types |= _boolean | _char | _varchar | _date | _timestamp
+
+subquery = Combine('(' + ZeroOrMore(CharsNotIn(')')) + ')')
+_word = Word(alphanums+"_-. *")
+def_field = Combine(OneOrMore(_word | subquery))

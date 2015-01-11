@@ -1,13 +1,9 @@
 """Create SQL parser
 """
-from pyparsing import alphanums
-from pyparsing import CharsNotIn
-from pyparsing import Combine
 from pyparsing import delimitedList
 from pyparsing import OneOrMore
 from pyparsing import ParseException
 from pyparsing import ParseResults
-from pyparsing import Word
 from pyparsing import ZeroOrMore
 
 from ..sql.sql_statement import SqlStatement
@@ -27,13 +23,14 @@ from .utils import _references
 from .utils import _sortkey
 from .utils import _table
 from .utils import column_types
+from .utils import def_field
 from .utils import existance_check
 from .utils import isNotEmpty
 from .utils import pk_check
 from .utils import temporary_check
 
 
-FK_REFERENCE = 'fk_reference_columns'
+FK_REFERENCE = 'fk_reference'
 
 
 def paranthesis_list(output_name, input_var=_db_name):
@@ -70,10 +67,6 @@ def get_base_parser():
 
     # Initial portions of the table definition
     def_start = _create + temp_check + _table + table_name + exists_check
-
-    subquery = Combine('(' + ZeroOrMore(CharsNotIn(')')) + ')')
-    _word = Word(alphanums+"_-. ")
-    def_field = Combine(OneOrMore(_word | subquery))
 
     table_def = def_start + paranthesis_list('raw_fields', def_field) + \
                 get_attributes_parser()
@@ -178,8 +171,7 @@ def parse_create_table(statement):
 
             # Change fk_reference_column to string from list
             if FK_REFERENCE in column:
-                column['fk_reference'] = column[FK_REFERENCE][0]
-                column.pop(FK_REFERENCE)
+                column[FK_REFERENCE] = column[FK_REFERENCE][0]
 
             table_data['columns'].append(column)
 
