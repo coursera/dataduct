@@ -33,6 +33,9 @@ from .utils import pk_check
 from .utils import temporary_check
 
 
+FK_REFERENCE = 'fk_reference_columns'
+
+
 def paranthesis_list(output_name, input_var=_db_name):
     """Parser for a delimiedList enclosed in paranthesis
     """
@@ -42,7 +45,7 @@ def paranthesis_list(output_name, input_var=_db_name):
 def fk_reference():
     """Get Parser for foreign key references
     """
-    fk_reference_columns = paranthesis_list('fk_reference_columns')
+    fk_reference_columns = paranthesis_list(FK_REFERENCE)
     fk_table = _db_name.setResultsName('fk_table')
     return _references + fk_table + fk_reference_columns
 
@@ -61,9 +64,9 @@ def get_base_parser():
     """
 
     temp_check = temporary_check.setResultsName('temporary')
-    exists_check = existance_check.setResultsName('if_exists')
+    exists_check = existance_check.setResultsName('exists_checks')
 
-    table_name = _db_name.setResultsName('table_name')
+    table_name = _db_name.setResultsName('full_name')
 
     # Initial portions of the table definition
     def_start = _create + temp_check + _table + table_name + exists_check
@@ -89,7 +92,7 @@ def get_column_parser():
 
     constraints = exists(_not_null, 'is_not_null')
     constraints |= exists(_null, 'is_null')
-    constraints |= exists(pk_check, 'is_primary_key')
+    constraints |= exists(pk_check, 'is_primarykey')
     constraints |= exists(_distkey, 'is_distkey')
     constraints |= exists(_sortkey, 'is_sortkey')
     constraints |= fk_reference()
@@ -164,10 +167,22 @@ def parse_create_table(statement):
     table_data['columns'] = list()
     table_data['constraints'] = list()
 
+    column_position = 0
     for field in table_data['raw_fields']:
         try:
             column = to_dict(get_column_parser().parseString(field))
+
+            # Add position of the column
+            column['position'] = column_position
+            column_position += 1
+
+            # Change fk_reference_column to string from list
+            if FK_REFERENCE in column:
+                column['fk_reference'] = column[FK_REFERENCE][0]
+                column.pop(FK_REFERENCE)
+
             table_data['columns'].append(column)
+
         except ParseException:
             try:
                 constraint = to_dict(
