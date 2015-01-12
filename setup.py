@@ -11,6 +11,7 @@ setup(
         'dataduct',
         'dataduct.config',
         'dataduct.data_access',
+        'dataduct.database',
         'dataduct.etl',
         'dataduct.pipeline',
         'dataduct.qa',
