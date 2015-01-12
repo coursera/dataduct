@@ -4,8 +4,6 @@ from pyparsing import OneOrMore
 from pyparsing import ParseException
 from pyparsing import ZeroOrMore
 
-from ..sql import SqlStatement
-
 from .utils import _all
 from .utils import _create
 from .utils import _db_name
@@ -123,10 +121,6 @@ def parse_create_table(statement):
     Returns:
         table_data(dict): table_data dictionary for instantiating a table object
     """
-
-    if not isinstance(statement, SqlStatement):
-        raise ValueError('Input to table parser must of a SqlStatement object')
-
     string = statement.sql()
 
     # Parse the base table definitions

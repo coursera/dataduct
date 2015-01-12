@@ -44,4 +44,4 @@ class View(Relation):
     def drop_script(self):
         """Sql script to drop the view
         """
-        return SqlScript('DROP VIEW %s CASCADE' % self.full_name)
+        return SqlScript('DROP VIEW IF EXISTS %s CASCADE' % self.full_name)

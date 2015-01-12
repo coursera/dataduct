@@ -6,8 +6,6 @@ from pyparsing import StringEnd
 from pyparsing import Word
 from pyparsing import ZeroOrMore
 
-from ..sql import SqlStatement
-
 from .utils import _create
 from .utils import _view
 from .utils import _db_name
@@ -29,10 +27,6 @@ def parse_create_view(statement):
     Returns:
         view_data(dict): view_data dictionary for instantiating a view object
     """
-
-    if not isinstance(statement, SqlStatement):
-        raise ValueError('Input to view parser must of a SqlStatement object')
-
     string = statement.sql()
 
     end = ')' + StringEnd()

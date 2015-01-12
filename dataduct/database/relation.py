@@ -76,9 +76,9 @@ class Relation(object):
             script.append(self.grant_script())
         return script
 
-    def recreate_script(self):
+    def recreate_script(self, grant_permissions=True):
         """Sql script to recreate the view
         """
         script = self.drop_script()
-        script.append(self.create_script())
+        script.append(self.create_script(grant_permissions))
         return script

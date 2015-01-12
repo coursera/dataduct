@@ -120,7 +120,7 @@ class Table(Relation):
     def drop_script(self):
         """Sql script to drop the table
         """
-        return SqlScript('DROP TABLE %s CASCADE' % self.full_name)
+        return SqlScript('DROP TABLE IF EXISTS %s CASCADE' % self.full_name)
 
     def analyze_script(self):
         """Sql script to analyze the table

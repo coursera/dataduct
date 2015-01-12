@@ -1,4 +1,4 @@
-from .table import Table
-from .sql import SqlStatement
-from .sql import SqlScript
 from .sql import SelectStatement
+from .sql import SqlScript
+from .sql import SqlStatement
+from .table import Table
