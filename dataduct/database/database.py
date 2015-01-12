@@ -4,6 +4,7 @@ from copy import deepcopy
 from .relation import Relation
 from .view import View
 from .table import Table
+from .sql import SqlScript
 
 
 class Database(object):
@@ -104,3 +105,55 @@ class Database(object):
             if not acyclic:
                 raise RuntimeError("A cyclic dependency occurred")
         return sorted_relations
+
+    def relations_script(self, function_name, **kwargs):
+        """SQL Script for all the relations of the database
+        """
+        result = SqlScript()
+        for relation in self.sorted_relations():
+            func = getattr(relation, function_name)
+            result.append(func(**kwargs))
+        return result
+
+    def grant_relations_script(self):
+        """SQL Script for granting permissions all the relations of the database
+        """
+        return self.relations_script('grant_script')
+
+    def create_relations_script(self, grant_permissions=True):
+        """SQL Script for creating all the relations of the database
+        """
+        return self.relations_script(
+            'create_script', grant_permissions=grant_permissions)
+
+    def recreate_relations_script(self, grant_permissions=True):
+        """SQL Script for recreating all the relations of the database
+        """
+        return self.relations_script(
+            'recreate_script', grant_permissions=grant_permissions)
+
+    def recreate_table_dependencies(self, table_name):
+        """Recreate the dependencies for a particular table from the database
+        """
+        result = SqlScript()
+        for relation in self.relations():
+            if relation.full_name == table_name:
+                # Continue as cannnot be dependecy of self
+                continue
+
+            if isinstance(relation, Table):
+                # Recreate foreign key relations
+                for column_names, ref_name, ref_columns in \
+                        relation.forign_key_references():
+                    if ref_name == table_name:
+                        result.append(
+                            relation.foreign_key_reference_script(
+                                source_columns=column_names,
+                                reference_name=ref_name,
+                                reference_columns=ref_columns))
+
+            if isinstance(relation, View):
+                # Recreate view if pointing to table
+                if table_name in relation.dependencies:
+                    result.append(relation.recreate_script())
+        return result

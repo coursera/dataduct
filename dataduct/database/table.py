@@ -126,3 +126,18 @@ class Table(Relation):
         """Sql script to analyze the table
         """
         return SqlScript('ANALYZE %s' % self.full_name)
+
+    def foreign_key_reference_script(self, source_columns, reference_name,
+                                     reference_columns):
+        """Sql Script to create a FK reference from table x to y
+        """
+        sql = """
+            ALTER TABLE {source_name}
+            ADD FOREIGN KEY ({source_columns})
+            REFERENCES {reference_name} ({reference_columns})
+        """.format(source_name=self.full_name,
+                   source_columns=', '.join(source_columns),
+                   reference_name=reference_name,
+                   reference_columns=', '.join(reference_columns))
+
+        return SqlScript(sql)
