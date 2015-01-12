@@ -8,12 +8,8 @@ from pyparsing import OneOrMore
 from pyparsing import ZeroOrMore
 from pyparsing import Combine
 from pyparsing import nums
-from pyparsing import Optional
 from pyparsing import Word
 
-
-# Functions
-isNotEmpty = lambda x: len(x) > 0
 
 # Data types
 _smallint = CaselessKeyword('SMALLINT')
@@ -31,9 +27,11 @@ _timestamp = CaselessKeyword('TIMESTAMP')
 # Create SQL keywords
 _create = CaselessKeyword('CREATE')
 _table = CaselessKeyword('TABLE')
+_view = CaselessKeyword('VIEW')
 _temp = CaselessKeyword('TEMP')
 _temporary = CaselessKeyword('TEMPORARY')
 _if_not_exists = CaselessKeyword('IF NOT EXISTS')
+_or_replace = CaselessKeyword('OR REPLACE')
 _primary_key = CaselessKeyword('PRIMARY KEY')
 _foreign_key = CaselessKeyword('FOREIGN KEY')
 _references = CaselessKeyword('REFERENCES')
@@ -51,12 +49,11 @@ _key = CaselessKeyword('KEY')
 # Select SQL Keywords
 _select = CaselessKeyword('SELECT')
 _from = CaselessKeyword('FROM')
+_as = CaselessKeyword('AS')
 _join = CaselessKeyword('JOIN')
 
 # Parsers
 _db_name = Word(alphanums+"_-.")
-temporary_check = Optional(_temp | _temporary).setParseAction(isNotEmpty)
-existance_check = Optional(_if_not_exists).setParseAction(isNotEmpty)
 pk_check = (_primary_key | _unique)
 
 column_types = _smallint | _integer | _bigint | _decimal | _real | _double

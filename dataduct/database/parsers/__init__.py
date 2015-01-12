@@ -8,3 +8,4 @@ from .select_query import parse_select_dependencies
 from .select_query import parse_select_columns
 
 from .create_table import parse_create_table
+from .create_view import parse_create_view

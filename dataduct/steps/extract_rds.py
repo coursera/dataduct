@@ -1,8 +1,6 @@
 """
 ETL step wrapper to extract data from RDS to S3
 """
-from re import findall
-
 from ..config import Config
 from .etl_step import ETLStep
 from ..pipeline import CopyActivity
@@ -11,25 +9,13 @@ from ..pipeline import PipelineObject
 from ..pipeline import ShellCommandActivity
 from ..utils.helpers import exactly_one
 from ..utils.exceptions import ETLInputError
+from ..database import SelectStatement
 
 config = Config()
 if not hasattr(config, 'mysql'):
     raise ETLInputError('MySQL config not specified in ETL')
 
 MYSQL_CONFIG = config.mysql
-
-
-def guess_input_tables(sql):
-    """Guess input tables from the sql query
-
-    Returns:
-        results(list of str): tables which are used in the sql statement
-    """
-    results = findall(r'from ([A-Za-z0-9._]+)', sql)
-    results.extend(findall(r'FROM ([A-Za-z0-9._]+)', sql))
-    results.extend(findall(r'join ([A-Za-z0-9._]+)', sql))
-    results.extend(findall(r'JOIN ([A-Za-z0-9._]+)', sql))
-    return list(set(results))
 
 
 class ExtractRdsStep(ETLStep):
@@ -58,9 +44,9 @@ class ExtractRdsStep(ETLStep):
         super(ExtractRdsStep, self).__init__(**kwargs)
 
         if table:
-            sql = 'select * from %s;' % table
+            sql = 'SELECT * FROM %s;' % table
         elif sql:
-            table = guess_input_tables(sql)
+            table = SelectStatement(sql).dependencies
         else:
             raise ETLInputError('Provide a sql statement or a table name')
 

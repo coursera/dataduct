@@ -1,9 +1,7 @@
 """Create SQL parser
 """
-from pyparsing import delimitedList
 from pyparsing import OneOrMore
 from pyparsing import ParseException
-from pyparsing import ParseResults
 from pyparsing import ZeroOrMore
 
 from ..sql import SqlStatement
@@ -24,19 +22,16 @@ from .utils import _sortkey
 from .utils import _table
 from .utils import column_types
 from .utils import def_field
-from .utils import existance_check
-from .utils import isNotEmpty
 from .utils import pk_check
-from .utils import temporary_check
+
+from .helpers import existance_check
+from .helpers import exists
+from .helpers import paranthesis_list
+from .helpers import temporary_check
+from .helpers import to_dict
 
 
 FK_REFERENCE = 'fk_reference'
-
-
-def paranthesis_list(output_name, input_var=_db_name):
-    """Parser for a delimiedList enclosed in paranthesis
-    """
-    return '(' + delimitedList(input_var).setResultsName(output_name) + ')'
 
 
 def fk_reference():
@@ -45,12 +40,6 @@ def fk_reference():
     fk_reference_columns = paranthesis_list(FK_REFERENCE)
     fk_table = _db_name.setResultsName('fk_table')
     return _references + fk_table + fk_reference_columns
-
-
-def exists(parser, output_name):
-    """Get a parser that returns boolean on existance
-    """
-    return parser.setParseAction(isNotEmpty).setResultsName(output_name)
 
 
 def get_base_parser():
@@ -123,19 +112,6 @@ def get_attributes_parser():
     sortkey_def = _sortkey + paranthesis_list('sortkey')
 
     return OneOrMore(diststyle_def | sortkey_def | distkey_def)
-
-
-def to_dict(input):
-    """Purge the ParseResults from output dictionary
-    """
-    output = dict()
-    for key, value in input.asDict().iteritems():
-        if isinstance(value, ParseResults):
-            output[key] = value.asList()
-        else:
-            output[key] = value
-
-    return output
 
 
 def parse_create_table(statement):

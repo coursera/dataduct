@@ -8,6 +8,20 @@ from ..parsers import remove_transactional
 from ..parsers import remove_newlines
 
 
+def balanced_parenthesis(statement):
+    """Check if the SQL statement is balanced
+    """
+    counter = 0
+    for character in statement:
+        if character == '(':
+            counter += 1
+        if character == ')':
+            counter -= 1
+            if counter < 0:
+                return False
+    return counter == 0
+
+
 def sanatize_sql(sql, keep_transaction=False):
     """Sanatize the sql string
     """

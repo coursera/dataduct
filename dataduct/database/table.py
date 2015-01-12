@@ -4,7 +4,6 @@ from copy import deepcopy
 
 from .parsers import parse_create_table
 from .sql import SqlScript
-from .sql import SqlStatement
 from .column import Column
 
 
@@ -122,8 +121,8 @@ class Table(object):
         """
         return [table_name for _, table_name, _ in self.foreign_key_references]
 
-    def temporary_clone_statement(self):
-        """Sql statement to create a temporary clone table
+    def temporary_clone_script(self):
+        """Sql script to create a temporary clone table
 
         Note:
             The temporary table only copies the schema and not any data
@@ -139,14 +138,14 @@ class Table(object):
         # We don't need any constraints to be specified on the temp table
         sql = ['CREATE TEMPORARY TABLE %s ( %s )' % (table_name, columns)]
 
-        return SqlStatement(sql)
+        return SqlScript(sql)
 
-    def drop_statement(self):
-        """Sql statment to drop the table
+    def drop_script(self):
+        """Sql script to drop the table
         """
-        return SqlStatement('DROP TABLE %s CASCADE' % self.full_name)
+        return SqlScript('DROP TABLE %s CASCADE' % self.full_name)
 
-    def analyze_statement(self):
-        """Sql statment to analyze the table
+    def analyze_script(self):
+        """Sql script to analyze the table
         """
-        return SqlStatement('ANALYZE %s' % self.full_name)
+        return SqlScript('ANALYZE %s' % self.full_name)
