@@ -1,6 +1,6 @@
 """Script that contains the sql statement class
 """
-
+from copy import deepcopy
 from .utils import sanatize_sql
 
 
@@ -20,6 +20,11 @@ class SqlStatement(object):
         """Print a SqlStatement object
         """
         return self.sql()
+
+    def copy(self):
+        """Create a copy of the relation object
+        """
+        return deepcopy(self)
 
     def sql(self):
         """Returns the raw_sql for the SqlStatement

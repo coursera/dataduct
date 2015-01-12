@@ -1,18 +1,18 @@
 """Script containing the table class object
 """
-from copy import deepcopy
-
 from .parsers import parse_create_table
 from .sql import SqlScript
 from .column import Column
+from .relation import Relation
 
 
-class Table(object):
+class Table(Relation):
     """Class representing tables in the database
     """
     def __init__(self, sql):
         """Constructor for Table class
         """
+        super(Table, self).__init__()
 
         if isinstance(sql, SqlScript):
             # Take the first statement and ignore the rest
@@ -41,29 +41,6 @@ class Table(object):
         self.schema_name, self.table_name = self.initialize_name()
         self.update_attributes_from_columns()
         self.update_columns_with_constrains()
-
-    def __str__(self):
-        """Output for the print statement of the table
-        """
-        return self.sql_statement
-
-    def copy(self):
-        """Create a copy of the Table object
-        """
-        return deepcopy(self)
-
-    def initialize_name(self):
-        """Parse the full name to declare the schema and table name
-        """
-        split_name = self.full_name.split('.')
-        if len(split_name) == 2:
-            schema_name = split_name[0]
-            table_name = split_name[1]
-        else:
-            schema_name = None
-            table_name = self.full_name
-
-        return schema_name, table_name
 
     def update_attributes_from_columns(self):
         """ Update attributes sortkey and distkey based on columns

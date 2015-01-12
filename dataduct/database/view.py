@@ -1,19 +1,18 @@
 """Script containing the view class object
 """
-from copy import deepcopy
-
 from .parsers import parse_create_view
 from .sql import SqlScript
 from .sql import SelectStatement
+from .relation import Relation
 
 
-class View(object):
+class View(Relation):
     """Class representing view in the database
     """
     def __init__(self, sql):
         """Constructor for view class
         """
-
+        super(View, self).__init__()
         if isinstance(sql, SqlScript):
             # Take the first statement and ignore the rest
             sql = SqlScript.statements[0]
@@ -29,29 +28,6 @@ class View(object):
         self.select_statement = SelectStatement(parameters.get('select_statement'))
 
         self.schema_name, self.view_name = self.initialize_name()
-
-    def __str__(self):
-        """Output for the print statement of the view
-        """
-        return self.sql_statement
-
-    def copy(self):
-        """Create a copy of the view object
-        """
-        return deepcopy(self)
-
-    def initialize_name(self):
-        """Parse the full name to declare the schema and view name
-        """
-        split_name = self.full_name.split('.')
-        if len(split_name) == 2:
-            schema_name = split_name[0]
-            view_name = split_name[1]
-        else:
-            schema_name = None
-            view_name = self.view_name
-
-        return schema_name, view_name
 
     @property
     def dependencies(self):
