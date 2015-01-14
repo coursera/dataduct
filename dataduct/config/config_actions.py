@@ -2,19 +2,19 @@
 Script that has action functions for config
 """
 from .config import Config
-
 from ..s3 import S3Path
 from ..s3 import S3File
 
-config = Config()
-CONFIG_STR = 'config'
-DATADUCT_FILE_NAME = 'dataduct.cfg'
+from .constants import CONFIG_STR
+from .constants import DATADUCT_CFG_FILE
 
+
+config = Config()
 
 def s3_config_path():
     """S3 uri for the config files
     """
-    key = [config.etl.get('S3_BASE_PATH', ''), CONFIG_STR, DATADUCT_FILE_NAME]
+    key = [config.etl.get('S3_BASE_PATH', ''), CONFIG_STR, DATADUCT_CFG_FILE]
     return S3Path(bucket=config.etl['S3_ETL_BUCKET'], key=key)
 
 

@@ -1,7 +1,12 @@
 """Module that maintains the config singleton object used across the package
 """
-import os
+from os.path import expanduser
+from os.path import join
+from os import environ
 import yaml
+
+from .constants import DATADUCT_CFG_FILE
+from .constants import DATADUCT_DIR
 
 
 def get_config_files():
@@ -11,17 +16,17 @@ def get_config_files():
         The order of precedence is:
         1. /etc/dataduct.cfg
         2. ~/.dataduct
-        3. DATADUCT_PATH environment variable
+        3. DATADUCT_CONFIG_PATH environment variable
     """
-    dataduct_config_path = '/etc/dataduct.cfg'
-    dataduct_user_config_path = os.path.join(os.path.expanduser('~'),
-                                             '.dataduct')
+    dataduct_config_path = join('/etc', DATADUCT_CFG_FILE)
+    dataduct_user_config_path = join(expanduser('~'), DATADUCT_DIR,
+                                     DATADUCT_CFG_FILE)
     config_files = [dataduct_config_path, dataduct_user_config_path]
 
-    # Check DATADUCT_PATH env variable for other configuration locations
-    if 'DATADUCT_PATH' in os.environ:
-        for path in os.environ['DATADUCT_PATH'].split(":"):
-            config_files.append(os.path.expanduser(path))
+    # Check DATADUCT_CONFIG_PATH env variable for other configuration locations
+    if 'DATADUCT_CONFIG_PATH' in environ:
+        for path in environ['DATADUCT_CONFIG_PATH'].split(":"):
+            config_files.append(expanduser(path))
 
     return config_files
 
