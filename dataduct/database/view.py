@@ -2,7 +2,7 @@
 """
 from .parsers import parse_create_view
 from .sql import SqlScript
-from .sql import SelectStatement
+from .select_statement import SelectStatement
 from .relation import Relation
 
 

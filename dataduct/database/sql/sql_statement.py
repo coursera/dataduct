@@ -2,6 +2,8 @@
 """
 from copy import deepcopy
 from .utils import sanatize_sql
+from ..parsers import parse_create_table
+from ..parsers import parse_create_view
 
 
 class SqlStatement(object):
@@ -45,3 +47,22 @@ class SqlStatement(object):
             return raw_statements[0]
         else:
             return ''
+
+    def _validate_parser(self, func):
+        """Check if a parser satisfies the sql statement
+        """
+        try:
+            func(self.sql())
+        except Exception:
+            return False
+        return True
+
+    def creates_table(self):
+        """SQL statement creates a table.
+        """
+        return self._validate_parser(parse_create_table)
+
+    def creates_view(self):
+        """SQL statement creates a view.
+        """
+        return self._validate_parser(parse_create_view)

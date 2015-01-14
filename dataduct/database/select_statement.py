@@ -1,9 +1,11 @@
 """Script containing the SelectStatement object
 """
 
-from .sql_statement import SqlStatement
-from ..parsers import parse_select_dependencies
-from ..parsers import parse_select_columns
+from .sql import SqlStatement
+from .column import Column
+from .parsers import parse_select_dependencies
+from .parsers import parse_select_columns
+from .parsers import parse_column_name
 
 
 class SelectStatement(SqlStatement):
@@ -15,7 +17,9 @@ class SelectStatement(SqlStatement):
         super(SelectStatement, self).__init__(sql)
 
         self._dependencies = parse_select_dependencies(self.sql())
-        self._columns = parse_select_columns(self.sql())
+        self._raw_columns = parse_select_columns(self.sql())
+        self._columns = [
+            Column(parse_column_name(c), None) for c in self._raw_columns]
 
     @property
     def dependencies(self):

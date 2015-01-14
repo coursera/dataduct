@@ -33,7 +33,9 @@ class Column(object):
     def __str__(self):
         """String output for the columns
         """
-        return ' '.join(self.column_name, self.column_type)
+        if self.column_type is not None:
+            return '%s %s' % (self.column_name, self.column_type)
+        return self.column_name
 
     @property
     def primary(self):
