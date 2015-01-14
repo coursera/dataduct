@@ -1,20 +1,30 @@
 """Script containing the database class object
 """
 from copy import deepcopy
+
 from .relation import Relation
 from .view import View
 from .table import Table
 from .sql import SqlScript
+
+from ..utils.helpers import atmost_one
+from ..utils.helpers import parse_path
 
 
 class Database(object):
     """Class representing a database
     """
 
-    def __init__(self, relations=None):
+    def __init__(self, relations=None, files=None):
         """Constructor for the database class
         """
         self._relations = {}
+
+        if not atmost_one(relations, files):
+            raise ValueError('Only one of relations and files should be given')
+
+        if files:
+            relations = self._initialize_relations(files)
 
         if relations:
             for relation in relations:
@@ -24,6 +34,22 @@ class Database(object):
         """Create a copy of the database object
         """
         return deepcopy(self)
+
+    @staticmethod
+    def _initialize_relations(files):
+        """Read the files and create relations from the files
+        """
+        relations = []
+        for filename in files:
+            with open(parse_path(filename)) as f:
+                script = SqlScript(f.read())
+                if script.creates_table():
+                    relations.append(Table(script))
+                elif script.creates_view():
+                    relations.append(View(script))
+                else:
+                    raise ValueError('File does not create a relation')
+        return relations
 
     def add_relation(self, relation):
         """Add a relation, only if its name is not already used.
