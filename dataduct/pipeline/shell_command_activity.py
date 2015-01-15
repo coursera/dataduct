@@ -5,12 +5,12 @@ Pipeline object class for ShellCommandActivity
 from .activity import Activity
 from ..config import Config
 from .schedule import Schedule
-
+from ..utils import constants as const
 from ..utils.exceptions import ETLInputError
 
 config = Config()
-DEFAULT_MAX_RETRIES = config.etl['DEFAULT_MAX_RETRIES']
-RETRY_DELAY = config.etl['RETRY_DELAY']
+MAX_RETRIES = config.etl.get('MAX_RETRIES', const.ZERO)
+RETRY_DELAY = config.etl.get('RETRY_DELAY', const.DEFAULT_DELAY)
 
 
 class ShellCommandActivity(Activity):
@@ -57,7 +57,7 @@ class ShellCommandActivity(Activity):
         if depends_on is None:
             depends_on = []
         if max_retries is None:
-            max_retries = DEFAULT_MAX_RETRIES
+            max_retries = MAX_RETRIES
 
         super(ShellCommandActivity, self).__init__(
             id=id,
@@ -76,5 +76,4 @@ class ShellCommandActivity(Activity):
         )
 
         # Add the additional s3 files
-        if additional_s3_files is not None:
-            self.add_additional_files(additional_s3_files)
+        self.add_additional_files(additional_s3_files)

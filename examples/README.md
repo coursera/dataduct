@@ -1,1 +1,1 @@
-#### THIS IS THE EXAMPLES FOLDER
+#### Examples

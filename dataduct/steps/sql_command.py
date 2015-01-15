@@ -2,8 +2,8 @@
 ETL step wrapper for SqlActivity can be executed on Ec2
 """
 from .etl_step import ETLStep
-from ..pipeline.sql_activity import SqlActivity
-from ..s3.s3_file import S3File
+from ..pipeline import SqlActivity
+from ..s3 import S3File
 from ..utils.helpers import exactly_one
 from ..utils.exceptions import ETLInputError
 
@@ -18,7 +18,6 @@ class SqlCommandStep(ETLStep):
                  script_arguments=None,
                  queue=None,
                  command=None,
-                 depends_on=None,
                  **kwargs):
         """Constructor for the SqlCommandStep class
 
@@ -34,9 +33,6 @@ class SqlCommandStep(ETLStep):
             raise ETLInputError('Both command or script found')
 
         super(SqlCommandStep, self).__init__(**kwargs)
-
-        if depends_on is not None:
-            self._depends_on = depends_on
 
         # Create S3File with script / command provided
         if script:
@@ -55,3 +51,18 @@ class SqlCommandStep(ETLStep):
             script=script,
             queue=queue,
         )
+
+    @classmethod
+    def arguments_processor(cls, etl, input_args):
+        """Parse the step arguments according to the ETL pipeline
+
+        Args:
+            etl(ETLPipeline): Pipeline object containing resources and steps
+            step_args(dict): Dictionary of the step arguments for the class
+        """
+        input_args = cls.pop_inputs(input_args)
+        step_args = cls.base_arguments_processor(etl, input_args)
+        step_args['redshift_database'] = etl.redshift_database
+        step_args['resource'] = etl.ec2_resource
+
+        return step_args

@@ -6,10 +6,11 @@ from datetime import timedelta
 
 from ..config import Config
 from .pipeline_object import PipelineObject
+from ..utils import constants as const
 from ..utils.exceptions import ETLInputError
 
 config = Config()
-DAILY_LOAD_TIME = config.etl['DAILY_LOAD_TIME']
+DAILY_LOAD_TIME = config.etl.get('DAILY_LOAD_TIME', const.ONE)
 
 
 FEQUENCY_PERIOD_CONVERTION = {
@@ -52,8 +53,10 @@ class Schedule(PipelineObject):
 
         if delay is None:
             delay = timedelta(0)
+        elif isinstance(delay, int):
+            delay = timedelta(days=delay)
         elif not isinstance(delay, timedelta):
-            raise ETLInputError('Delay must be an instance of timedelta')
+            raise ETLInputError('Delay must be an instance of timedelta or int')
 
         if frequency in FEQUENCY_PERIOD_CONVERTION:
             period, occurrences = FEQUENCY_PERIOD_CONVERTION[frequency]

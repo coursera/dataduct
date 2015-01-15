@@ -1,0 +1,10 @@
+language: python
+
+# command to install dependencies
+install:
+  - pip install -r requirements.txt
+
+# command to run tests
+script: nosetests
+
+# TODO: Setup config file so that we can actually run this

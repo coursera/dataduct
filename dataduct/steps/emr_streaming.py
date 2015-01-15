@@ -1,12 +1,9 @@
 """
-ETL step wrapper for EmrActivity can be executed on Ec2
+ETL step wrapper for EmrStreamingActivity can be executed on EMR Cluster
 """
 from .etl_step import ETLStep
-from ..pipeline.emr_activity import EmrActivity
-from ..s3.s3_file import S3File
-from ..s3.s3_path import S3Path
-from ..utils.exceptions import ETLInputError
-
+from ..pipeline import EmrActivity
+from ..s3 import S3File
 
 HADOOP_1_SERIES = ['1', '2']
 
@@ -48,7 +45,7 @@ def create_command_hadoop_2(mapper, reducer, command, command_options):
     return ','.join(command)
 
 
-def create_command(mapper, reducer, ami_version, input_uri, output,
+def create_command(mapper, reducer, ami_version, input, output,
                    hadoop_params):
     """Create the command step string given the input to streaming step
     """
@@ -66,13 +63,7 @@ def create_command(mapper, reducer, ami_version, input_uri, output,
     command_options.extend(['-output', output.path().uri])
 
     # Add input uri
-    if isinstance(input_uri, list):
-        for i in input_uri:
-            assert isinstance(i, S3Path)
-            command_options.extend(['-input', i.uri])
-    else:
-        assert isinstance(input_uri, S3Path), type(input_uri)
-        command_options.extend(['-input', input_uri.uri])
+    command_options.extend(['-input', input.path().uri])
 
     if ami_family in HADOOP_1_SERIES:
         return create_command_hadoop_1(mapper, reducer, command,
@@ -89,9 +80,8 @@ class EMRStreamingStep(ETLStep):
     def __init__(self,
                  mapper,
                  reducer=None,
-                 input=None,
                  hadoop_params=None,
-                 depends_on=None,
+                 output_path=None,
                  **kwargs):
         """Constructor for the EMRStreamingStep class
 
@@ -102,23 +92,10 @@ class EMRStreamingStep(ETLStep):
             hadoop_params(list of str): arguments to the hadoop command
             **kwargs(optional): Keyword arguments directly passed to base class
         """
-
-        # As EMR streaming allows inputs as both input_node and input
-        # We remove the default input_node if input is given
-        if input is not None:
-            input_node = kwargs.pop('input_node', None)
-        else:
-            input_node = kwargs.get('input_node', None)
-
-        if input is not None and 'input_node' in kwargs:
-            raise ETLInputError('Both input and input_node specified')
-
         super(EMRStreamingStep, self).__init__(**kwargs)
 
-        if depends_on is not None:
-            self._depends_on = depends_on
-
-        self._output = self.create_s3_data_node()
+        self._output = self.create_s3_data_node(
+            self.get_output_s3_path(output_path))
 
         # Create S3File with script / command provided
         mapper = self.create_script(S3File(path=mapper))
@@ -128,43 +105,30 @@ class EMRStreamingStep(ETLStep):
             reducer = self.create_script(S3File(path=reducer))
             additional_files.append(reducer)
 
-        if input is not None:
-            if isinstance(input, list):
-                input = [S3Path(uri=i) for i in input]
-            else:
-                input = S3Path(uri=input)
-        else:
-            if isinstance(input_node, list):
-                input = [i.path() for i in input_node]
-            elif isinstance(input_node, dict):
-                input = [i.path() for i in input_node.values()]
-            else:
-                input = input_node.path()
-
         step_string = create_command(mapper, reducer, self.resource.ami_version,
-                                     input, self._output, hadoop_params)
+                                     self.input, self.output, hadoop_params)
 
         self.activity = self.create_pipeline_object(
             object_class=EmrActivity,
             resource=self.resource,
+            input_node=self.input,
             schedule=self.schedule,
             emr_step_string=step_string,
-            output_node=self._output,
+            output_node=self.output,
             additional_files=additional_files,
             depends_on=self.depends_on,
             max_retries=self.max_retries
         )
 
-    def merge_s3_nodes(self, input_nodes):
-        """Override the merge S3Node case for EMR Streaming Step
+    @classmethod
+    def arguments_processor(cls, etl, input_args):
+        """Parse the step arguments according to the ETL pipeline
 
         Args:
-            input_nodes(dict): Map of the form {'node_name': node}
-
-        Returns:
-            output_node(list of S3Node): list of input nodes
-            depends_on(list): Empty list
+            etl(ETLPipeline): Pipeline object containing resources and steps
+            step_args(dict): Dictionary of the step arguments for the class
         """
-        depends_on = []
-        output_node = input_nodes.values()
-        return output_node, depends_on
+        step_args = cls.base_arguments_processor(etl, input_args)
+        step_args['resource'] = etl.emr_cluster
+
+        return step_args

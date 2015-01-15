@@ -4,10 +4,11 @@ Pipeline object class for sns
 
 from ..config import Config
 from .pipeline_object import PipelineObject
+from ..utils import constants as const
 
 config = Config()
-DATA_PIPELINE_TOPIC_ARN = config.etl['DATA_PIPELINE_TOPIC_ARN']
-DEFAULT_ROLE = config.ec2['DEFAULT_ROLE']
+SNS_TOPIC_ARN_FAILURE = config.etl.get('SNS_TOPIC_ARN_FAILURE', const.NONE)
+ROLE = config.etl['ROLE']
 
 
 class SNSAlarm(PipelineObject):
@@ -18,6 +19,7 @@ class SNSAlarm(PipelineObject):
                  id,
                  pipeline_name=None,
                  failure_message=None,
+                 topic_arn=None,
                  **kwargs):
         """Constructor for the SNSAlarm class
 
@@ -40,11 +42,14 @@ class SNSAlarm(PipelineObject):
                 'Error Stack Trace: #{node.errorStackTrace}'
             ])
 
+        if topic_arn is None:
+            topic_arn = SNS_TOPIC_ARN_FAILURE
+
         super(SNSAlarm, self).__init__(
             id=id,
             type='SnsAlarm',
-            topicArn=DATA_PIPELINE_TOPIC_ARN,
-            role=DEFAULT_ROLE,
+            topicArn=topic_arn,
+            role=ROLE,
             subject='Data Pipeline Failure',
             message=failure_message,
         )

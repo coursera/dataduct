@@ -6,8 +6,8 @@ from .pipeline_object import PipelineObject
 from ..config import Config
 
 config = Config()
-DEFAULT_ROLE = config.ec2['DEFAULT_ROLE']
-DEFAULT_RESOURCE_ROLE = config.ec2['DEFAULT_RESOURCE_ROLE']
+ROLE = config.etl['ROLE']
+RESOURCE_ROLE = config.etl['RESOURCE_ROLE']
 
 
 class DefaultObject(PipelineObject):
@@ -15,7 +15,7 @@ class DefaultObject(PipelineObject):
     """
 
     def __init__(self,
-                 id='Default',
+                 id,
                  sns=None,
                  scheduleType='cron',
                  failureAndRerunMode='CASCADE',
@@ -34,10 +34,10 @@ class DefaultObject(PipelineObject):
         """
 
         super(DefaultObject, self).__init__(
-            id=id,
+            id='Default', # This should always have the default id
             scheduleType=scheduleType,
             failureAndRerunMode=failureAndRerunMode,
-            role=DEFAULT_ROLE,
-            resourceRole=DEFAULT_RESOURCE_ROLE,
+            role=ROLE,
+            resourceRole=RESOURCE_ROLE,
             onFail=sns
         )

@@ -1,11 +1,19 @@
 """
 ETL step wrapper for shell command activity can be executed on Ec2 / EMR
 """
+import os
+
 from .etl_step import ETLStep
-from ..pipeline.shell_command_activity import ShellCommandActivity
-from ..s3.s3_file import S3File
+from ..pipeline import ShellCommandActivity
+from ..pipeline import S3Node
+from ..s3 import S3File
+from ..s3 import S3Directory
 from ..utils.helpers import exactly_one
 from ..utils.exceptions import ETLInputError
+from ..utils import constants as const
+
+SCRIPT_ARGUMENT_TYPE_STRING = 'string'
+SCRIPT_ARGUMENT_TYPE_SQL = 'sql'
 
 
 class TransformStep(ETLStep):
@@ -15,43 +23,83 @@ class TransformStep(ETLStep):
     def __init__(self,
                  command=None,
                  script=None,
-                 output=None,
+                 script_directory=None,
+                 script_name=None,
+                 output_node=None,
                  script_arguments=None,
                  additional_s3_files=None,
-                 depends_on=None,
+                 output_path=None,
                  **kwargs):
         """Constructor for the TransformStep class
 
         Args:
             command(str): command to be executed directly
             script(path): local path to the script that should executed
-            output(dict): output data nodes from the transform
+            script_directory(path): local path to the script directory
+            script_name(str): script to be executed in the directory
+            output_node(dict): output data nodes from the transform
             script_arguments(list of str): list of arguments to the script
             additional_s3_files(list of S3File): additional files used
             **kwargs(optional): Keyword arguments directly passed to base class
         """
-        if not exactly_one(command, script):
-            raise ETLInputError('Both command or script found')
-
         super(TransformStep, self).__init__(**kwargs)
 
-        if depends_on is not None:
-            self._depends_on = depends_on
+        if not exactly_one(command, script, script_directory):
+            raise ETLInputError(
+                'Only one of script, command and directory allowed')
 
-        # Create output_node if not provided
-        if self._output is None:
-            output_node = self.create_s3_data_node()
+        # Create output_node based on output_path
+        base_output_node = self.create_s3_data_node(
+            self.get_output_s3_path(output_path))
+
+        script_arguments = self.translate_arguments(script_arguments)
+
+        if self.input:
+            input_nodes = [self.input]
         else:
-            output_node = self._output
+            input_nodes = list()
+
+        if script_directory:
+            # The script to be run with the directory
+            if script_name is None:
+                raise ETLInputError('script_name required with directory')
+
+            script_directory = self.create_script(
+                S3Directory(path=script_directory))
+
+            # Input node for the source code in the directory
+            input_nodes.append(self.create_pipeline_object(
+                object_class=S3Node,
+                schedule=self.schedule,
+                s3_object=script_directory
+            ))
+
+            # We need to create an additional script that later calls the main
+            # script as we need to change permissions of the input directory
+            ip_src_env = 'INPUT%d_STAGING_DIR' % (1 if not self.input else 2)
+            additional_args = ['--INPUT_SRC_ENV_VAR=%s' % ip_src_env,
+                               '--SCRIPT_NAME=%s' % script_name]
+
+            script_arguments = additional_args + script_arguments
+
+            steps_path = os.path.abspath(os.path.dirname(__file__))
+            script = os.path.join(steps_path, const.SCRIPT_RUNNER_PATH)
 
         # Create S3File if script path provided
         if script:
             script = self.create_script(S3File(path=script))
 
+        # Translate output nodes if output map provided
+        if output_node:
+            self._output = self.create_output_nodes(
+                base_output_node, output_node)
+        else:
+            self._output = base_output_node
+
         self.create_pipeline_object(
             object_class=ShellCommandActivity,
-            input_node=self._input_node,
-            output_node=output_node,
+            input_node=input_nodes,
+            output_node=base_output_node,
             resource=self.resource,
             schedule=self.schedule,
             script_uri=script,
@@ -62,9 +110,64 @@ class TransformStep(ETLStep):
             additional_s3_files=additional_s3_files,
         )
 
-        # Translate output nodes if output map provided
-        if self._output is None:
-            if output:
-                self._output = self.create_output_nodes(output_node, output)
-            else:
-                self._output = output_node
+    def translate_arguments(self, script_arguments):
+        """Translate script argument to lists
+
+        Args:
+            script_arguments(list of str/dict): arguments to the script
+
+        Note:
+            Dict: (k -> v) is turned into an argument "--k=v"
+            List: Either pure strings or dictionaries with name, type and value
+        """
+        if script_arguments is None:
+            return script_arguments
+
+        elif isinstance(script_arguments, list):
+            result = list()
+            for argument in script_arguments:
+                if isinstance(argument, dict):
+                    argument_type = argument.get('type',
+                                                 SCRIPT_ARGUMENT_TYPE_STRING)
+                    if argument_type == SCRIPT_ARGUMENT_TYPE_SQL:
+                        # TODO: Change to SQL Parsing
+                        result.append(self.input_format(
+                            argument['name'], argument['value']))
+                    else:
+                        result.append(self.input_format(
+                            argument['name'], argument['value']))
+                else:
+                    result.append(str(argument))
+            return result
+
+        elif isinstance(script_arguments, dict):
+            return [self.input_format(key, value)
+                    for key, value in script_arguments.iteritems()]
+
+        elif isinstance(script_arguments, str):
+            return [script_arguments]
+
+        else:
+            raise ETLInputError('Script Arguments for unrecognized type')
+
+    @staticmethod
+    def input_format(key, value):
+        """Format the key and value to command line arguments
+        """
+        return ''.join('--', key, '=', value)
+
+    @classmethod
+    def arguments_processor(cls, etl, input_args):
+        """Parse the step arguments according to the ETL pipeline
+
+        Args:
+            etl(ETLPipeline): Pipeline object containing resources and steps
+            step_args(dict): Dictionary of the step arguments for the class
+        """
+        step_args = cls.base_arguments_processor(etl, input_args)
+        if step_args.pop('resource_type', None) == const.EMR_CLUSTER_STR:
+            step_args['resource'] = etl.emr_cluster
+        else:
+            step_args['resource'] = etl.ec2_resource
+
+        return step_args

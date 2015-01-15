@@ -1,17 +1,18 @@
 """
 Base class for an etl step
 """
-
 from ..config import Config
-from ..pipeline.activity import Activity
-from ..pipeline.copy_activity import CopyActivity
-from ..pipeline.s3_node import S3Node
-from ..s3.s3_path import S3Path
-from ..s3.s3_file import S3File
+from ..pipeline import Activity
+from ..pipeline import CopyActivity
+from ..pipeline import S3Node
+from ..s3 import S3Path
+from ..s3 import S3File
+from ..s3 import S3LogPath
+from ..utils import constants as const
 from ..utils.exceptions import ETLInputError
 
 config = Config()
-DEFAULT_MAX_RETRIES = config.etl['DEFAULT_MAX_RETRIES']
+MAX_RETRIES = config.etl.get('MAX_RETRIES', const.ZERO)
 
 
 class ETLStep(object):
@@ -31,8 +32,8 @@ class ETLStep(object):
 
     def __init__(self, id, s3_data_dir=None, s3_log_dir=None,
                  s3_source_dir=None, schedule=None, resource=None,
-                 input_node=None, required_steps=None,
-                 max_retries=DEFAULT_MAX_RETRIES):
+                 input_node=None, input_path=None, required_steps=None,
+                 max_retries=MAX_RETRIES):
         """Constructor for the ETLStep object
 
         Args:
@@ -53,13 +54,17 @@ class ETLStep(object):
         self.resource = resource
         self.max_retries = max_retries
         self._depends_on = list()
-        self._input = input_node
         self._output = None
         self._objects = dict()
         self._required_steps = list()
-
-        self._activities = list()
+        self._required_activities = list()
         self._input_node = input_node
+
+        if input_path is not None and input_node is not None:
+            raise ETLInputError('Both input_path and input_node specified')
+
+        if input_path is not None:
+            self._input_node = self.create_s3_data_node(S3Path(uri=input_path))
 
         if isinstance(input_node, list):
             if len(input_node) == 0:
@@ -91,14 +96,12 @@ class ETLStep(object):
         """
         self._required_steps.extend(required_steps)
 
-        # Find all activities which need to be completed.
-        required_activities = []
-        for step in self._required_steps:
-            required_activities.extend(step.activities)
+        for step in required_steps:
+            self._required_activities.extend(step.activities)
 
         # Set required_acitivites as depend_on variable of all activities
         for activity in self.activities:
-            activity['dependsOn'] = required_activities
+            activity['dependsOn'] = self._required_activities
 
     def create_pipeline_object(self, object_class, **kwargs):
         """Create the pipeline objects associated with the step
@@ -119,6 +122,10 @@ class ETLStep(object):
             str(instance_count)
 
         new_object = object_class(object_id, **kwargs)
+
+        if isinstance(new_object, Activity):
+            new_object['dependsOn'] = self._required_activities
+
         self._objects[object_id] = new_object
         return new_object
 
@@ -148,9 +155,9 @@ class ETLStep(object):
                 s3_object = s3_dir
 
         s3_node = self.create_pipeline_object(
-            S3Node,
+            object_class=S3Node,
             schedule=self.schedule,
-            s3_path=s3_object,
+            s3_object=s3_object,
             **kwargs
         )
 
@@ -174,12 +181,16 @@ class ETLStep(object):
         Returns:
             s3_output_nodes(dict of s3Node): Output nodes keyed with sub dirs
         """
-        return dict(
-            (
-                sub_dir,
-                self.create_s3_data_node(S3Path(sub_dir, is_directory=True,
-                                                parent_dir=output_node.path()))
-            ) for sub_dir in sub_dirs)
+        output_map = dict()
+        for sub_dir in sub_dirs:
+            new_node = self.create_s3_data_node(
+                S3Path(sub_dir, is_directory=True,
+                       parent_dir=output_node.path()))
+            new_node.add_dependency_node(output_node)
+
+            output_map[sub_dir] = new_node
+
+        return output_map
 
     def create_script(self, s3_object):
         """Set the s3 path for s3 objects with the s3_source_dir
@@ -211,16 +222,6 @@ class ETLStep(object):
         if not(isinstance(input_node, S3Node) and isinstance(dest_uri, S3Path)):
             raise ETLInputError('input_node and uri have type mismatch')
 
-        # Copy the input node. We need to use directories for copying if we
-        # are going to omit the data format
-        if input_node.path().is_directory:
-            uri = input_node.path().uri
-        else:
-            uri = '/'.join(input_node.path().uri.split('/')[:-1])
-
-        new_input_node = self.create_s3_data_node(
-            s3_object=S3Path(uri=uri, is_directory=True))
-
         # create s3 node for output
         output_node = self.create_s3_data_node(dest_uri)
 
@@ -229,7 +230,7 @@ class ETLStep(object):
             CopyActivity,
             schedule=self.schedule,
             resource=self.resource,
-            input_node=new_input_node,
+            input_node=input_node,
             output_node=output_node,
             max_retries=self.max_retries
         )
@@ -250,12 +251,15 @@ class ETLStep(object):
         """
         depends_on = list()
         combined_node = self.create_s3_data_node()
-        for input_node in input_nodes:
-            dest_uri = S3Path(key=input_node, is_directory=True,
+
+        for string_key, input_node in input_nodes.iteritems():
+            dest_uri = S3Path(key=string_key, is_directory=True,
                               parent_dir=combined_node.path())
-            copy_activity = self.copy_s3(input_node=input_nodes[input_node],
+            copy_activity = self.copy_s3(input_node=input_node,
                                          dest_uri=dest_uri)
             depends_on.append(copy_activity)
+            combined_node.add_dependency_node(copy_activity.output)
+
         return combined_node, depends_on
 
     @property
@@ -268,7 +272,7 @@ class ETLStep(object):
         Note:
             Input is represented as None, a single node or dict of nodes
         """
-        return self._input
+        return self._input_node
 
     @property
     def output(self):
@@ -341,3 +345,109 @@ class ETLStep(object):
             result: All aws activites that are created for this step
         """
         return [x for x in self._objects.values() if isinstance(x, Activity)]
+
+    @classmethod
+    def base_arguments_processor(cls, etl, input_args):
+        """Process the step arguments according to the ETL pipeline
+
+        Args:
+            etl(ETLPipeline): Pipeline object containing resources and steps
+            input_args(dict): Dictionary of the step arguments from the YAML
+        """
+        # Base dictionary for every step
+        step_args = {
+            'resource': None,
+            'schedule': etl.schedule,
+            'max_retries': etl.max_retries,
+            'required_steps': list()
+        }
+        step_args.update(input_args)
+
+        # Description is optional and should not be passed
+        step_args.pop('description', None)
+
+        # Add dependencies
+        depends_on = step_args.pop('depends_on', None)
+        if isinstance(depends_on, str):
+            depends_on = [depends_on]
+
+        if depends_on:
+            for step_id in list(depends_on):
+                if step_id not in etl.steps:
+                    raise ETLInputError('Step depends on non-existent step')
+                step_args['required_steps'].append(etl.steps[step_id])
+
+        # Set input node and required_steps
+        input_node = step_args.get('input_node', None)
+        if input_node:
+            if isinstance(input_node, dict):
+                input_node = etl.translate_input_nodes(input_node)
+            elif isinstance(input_node, str):
+                input_node = etl.intermediate_nodes[input_node]
+            step_args['input_node'] = input_node
+
+            # Add dependencies from steps that create input nodes
+            if isinstance(input_node, dict):
+                required_nodes = input_node.values()
+            else:
+                required_nodes = [input_node]
+
+            for required_node in required_nodes:
+                for step in etl.steps.values():
+                    if step not in step_args['required_steps'] and \
+                            required_node in step.pipeline_objects:
+                        step_args['required_steps'].append(step)
+
+        # Set the name if name not provided
+        if 'name' in step_args:
+            name = step_args.pop('name')
+        else:
+            # If the name of the step is not provided, one is assigned as:
+            #   [step_class][index]
+            name = cls.__name__ + str(sum(
+                [1 for a in etl.steps.values() if isinstance(a, cls)]
+            ))
+
+        # Each step is given it's own directory so that there is no clashing
+        # of file names.
+        step_args.update({
+            'id': name,
+            's3_log_dir': S3LogPath(name, parent_dir=etl.s3_log_dir,
+                                    is_directory=True),
+            's3_data_dir': S3Path(name, parent_dir=etl.s3_data_dir,
+                                  is_directory=True),
+            's3_source_dir': S3Path(name, parent_dir=etl.s3_source_dir,
+                                    is_directory=True),
+        })
+
+        return step_args
+
+    @classmethod
+    def arguments_processor(cls, etl, input_args):
+        """Parse the step arguments according to the ETL pipeline
+
+        Args:
+            etl(ETLPipeline): Pipeline object containing resources and steps
+            step_args(dict): Dictionary of the step arguments for the class
+        """
+        step_args = cls.base_arguments_processor(etl, input_args)
+        return step_args
+
+    @staticmethod
+    def pop_inputs(input_args):
+        """Remove the input nodes from the arguments dictionary
+        """
+        input_args.pop('input_node', None)
+        input_args.pop('input_path', None)
+
+        return input_args
+
+    @staticmethod
+    def get_output_s3_path(output_path):
+        """Create an S3 Path variable based on the output path
+        """
+        if output_path:
+            s3_path = S3Path(uri=output_path)
+        else:
+            s3_path = None
+        return s3_path

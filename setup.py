@@ -10,7 +10,11 @@ setup(
     packages=[
         'dataduct',
         'dataduct.config',
+        'dataduct.data_access',
+        'dataduct.database',
+        'dataduct.etl',
         'dataduct.pipeline',
+        'dataduct.qa',
         'dataduct.s3',
         'dataduct.steps',
         'dataduct.utils',
@@ -21,10 +25,13 @@ setup(
     long_description=open('README.rst').read(),
     author_email='data-infra@coursera.org',
     license='Apache License 2.0',
-    description='DataPipeline for Humans.',
+    description='DataPipeline for Humans',
     install_requires=[
         'boto>=2.32',
-        'pyyaml'
+        'PyYAML',
+        'pandas',
+        'psycopg2',
+        'MySQL-python',
     ],
     scripts=['bin/dataduct'],
     classifiers=[

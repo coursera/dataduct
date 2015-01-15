@@ -5,15 +5,52 @@ Script that helps create and validate pipelines from command line
 """
 
 import argparse
-from dataduct.definition_parser import read_pipeline_definition
-from dataduct.definition_parser import create_pipeline
-from dataduct.definition_parser import validate_pipeline
-from dataduct.definition_parser import activate_pipeline
 
+from dataduct.config import Config
 
 CREATE_STR = 'create'
 VALIDATE_STR = 'validate'
 ACTIVATE_STR = 'activate'
+VISUALIZE_STR = 'visualize'
+SYNC_CONFIG_TO_S3 = 'sync_config_to_s3'
+SYNC_CONFIG_FROM_S3 = 'sync_config_from_s3'
+
+
+def config_actions(action, filename):
+    """Config related actions are executed in this block
+    """
+    from dataduct.config.config_actions import sync_to_s3
+    from dataduct.config.config_actions import sync_from_s3
+
+    if action == SYNC_CONFIG_TO_S3:
+        return sync_to_s3()
+
+    if action == SYNC_CONFIG_FROM_S3:
+        return sync_from_s3(filename)
+
+
+def pipeline_actions(action, load_definitions, force_overwrite, filename,
+                     delay):
+    """Pipeline related actions are executed in this block
+    """
+    from dataduct.etl import activate_pipeline
+    from dataduct.etl import create_pipeline
+    from dataduct.etl import read_pipeline_definition
+    from dataduct.etl import validate_pipeline
+    from dataduct.etl import visualize_pipeline
+
+    for load_definition in load_definitions:
+        definition = read_pipeline_definition(load_definition)
+        definition.update({'delay': delay})
+
+        etl = create_pipeline(definition)
+        if action in [VISUALIZE_STR]:
+            visualize_pipeline(etl, filename)
+        if action in [VALIDATE_STR, ACTIVATE_STR]:
+            validate_pipeline(etl, force_overwrite)
+        if action == ACTIVATE_STR:
+            activate_pipeline(etl)
+
 
 def main():
     """Main function"""
@@ -26,31 +63,62 @@ def main():
             CREATE_STR: 'Create a pipeline locally',
             VALIDATE_STR: 'Validate a pipeline with AWS without activating',
             ACTIVATE_STR: 'create a pipeline and activate it on AWS',
+            VISUALIZE_STR: 'visualize a pipeline',
+            SYNC_CONFIG_TO_S3: 'sync config file from local to s3',
+            SYNC_CONFIG_FROM_S3: 'sync config file from s3 to local file',
         },
         default=CREATE_STR,
     )
     parser.add_argument(
         'load_definitions',
         nargs='*',
-        help='Enter the paths of the load definitions.',
+        help='Enter the paths of the load definitions',
     )
     parser.add_argument(
         '-f',
         '--force_overwrite',
         action='store_true',
         default=False,
-        help='Indicates that if this pipeline exists, it will be destroyed'
-        ' first.',
+        help='Indicates that if this pipeline exists, it will be destroyed',
+    )
+    parser.add_argument(
+        '-m',
+        '--mode',
+        default=None,
+        help='Mode to run the pipeline and config overrides to use',
+    )
+    parser.add_argument(
+        '-d',
+        '--delay',
+        default=0,
+        type=int,
+        help='Delay the pipeline by x days',
+    )
+    parser.add_argument(
+        '-F',
+        '--filename',
+        default=None,
+        help='Filename for various actions',
     )
     args = parser.parse_args()
 
-    for load_definition in args.load_definitions:
-        definition = read_pipeline_definition(load_definition)
-        etl = create_pipeline(definition)
-        if args.action in [VALIDATE_STR, ACTIVATE_STR]:
-            validate_pipeline(etl, args.force_overwrite)
-        if args.action == ACTIVATE_STR:
-            activate_pipeline(etl)
+    mode = args.mode
+    if mode is not None:
+        # We assume mode:dev = mode:None
+        if mode == 'dev':
+            mode = None
+
+        # To instantiate the singleton object with the correct state
+        # As this is the single entry point to the library
+        # We can use the __new__ function to set the debug_level
+        config = Config(mode=mode)
+        print 'Running the pipeline in %s mode.' %config.mode
+
+    if args.action in [SYNC_CONFIG_TO_S3, SYNC_CONFIG_FROM_S3]:
+        config_actions(args.action, args.filename)
+    else:
+        pipeline_actions(args.action, args.load_definitions,
+                         args.force_overwrite, args.filename, args.delay)
 
 
 if __name__ == '__main__':
