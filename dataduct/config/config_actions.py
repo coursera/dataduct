@@ -6,7 +6,7 @@ from ..s3 import S3Path
 from ..s3 import S3File
 
 from .constants import CONFIG_STR
-from .constants import DATADUCT_CFG_FILE
+from .constants import CFG_FILE
 
 
 config = Config()
@@ -14,7 +14,7 @@ config = Config()
 def s3_config_path():
     """S3 uri for the config files
     """
-    key = [config.etl.get('S3_BASE_PATH', ''), CONFIG_STR, DATADUCT_CFG_FILE]
+    key = [config.etl.get('S3_BASE_PATH', ''), CONFIG_STR, CFG_FILE]
     return S3Path(bucket=config.etl['S3_ETL_BUCKET'], key=key)
 
 
