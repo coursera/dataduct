@@ -85,7 +85,7 @@ def activate_pipeline(etl):
         URL_TEMPLATE.format(ID=etl.pipeline.id)
 
 
-def visualize_pipeline(etl, filename=None):
+def visualize_pipeline(etl, activities_only, filename=None):
     """Visualize the pipeline that was created
 
     Args:
@@ -110,27 +110,29 @@ def visualize_pipeline(etl, filename=None):
         if isinstance(p_object, Activity):
             graph.add_node(p_object.id, shape='diamond', color='turquoise',
                            style='filled')
-        if isinstance(p_object, MysqlNode):
-            graph.add_node(p_object.id, shape='egg', color='beige',
-                           style='filled')
-        if isinstance(p_object, RedshiftNode):
-            graph.add_node(p_object.id, shape='egg', color='goldenrod',
-                           style='filled')
-        if isinstance(p_object, S3Node):
-            graph.add_node(p_object.id, shape='folder', color='grey',
-                           style='filled')
+        if not activities_only:
+            if isinstance(p_object, MysqlNode):
+                graph.add_node(p_object.id, shape='egg', color='beige',
+                               style='filled')
+            if isinstance(p_object, RedshiftNode):
+                graph.add_node(p_object.id, shape='egg', color='goldenrod',
+                               style='filled')
+            if isinstance(p_object, S3Node):
+                graph.add_node(p_object.id, shape='folder', color='grey',
+                               style='filled')
 
     # Add data dependencies
-    for p_object in pipeline_objects:
-        if isinstance(p_object, Activity):
-            if p_object.input:
-                if isinstance(p_object.input, list):
-                    for ip in p_object.input:
-                        graph.add_edge(ip.id, p_object.id)
-                else:
-                    graph.add_edge(p_object.input.id, p_object.id)
-            if p_object.output:
-                graph.add_edge(p_object.id, p_object.output.id)
+    if not activities_only:
+        for p_object in pipeline_objects:
+            if isinstance(p_object, Activity):
+                if p_object.input:
+                    if isinstance(p_object.input, list):
+                        for ip in p_object.input:
+                            graph.add_edge(ip.id, p_object.id)
+                    else:
+                        graph.add_edge(p_object.input.id, p_object.id)
+                if p_object.output:
+                    graph.add_edge(p_object.id, p_object.output.id)
 
     # Add depends_on dependencies
     for p_object in pipeline_objects:
@@ -145,7 +147,7 @@ def visualize_pipeline(etl, filename=None):
             for dependency in dependencies:
                 graph.add_edge(dependency.id, p_object.id, color='blue')
 
-        if isinstance(p_object, S3Node):
+        if not activities_only and isinstance(p_object, S3Node):
             for dependency in p_object.dependency_nodes:
                 graph.add_edge(dependency.id, p_object.id, color='grey')
 
