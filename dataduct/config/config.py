@@ -5,8 +5,8 @@ from os.path import join
 from os import environ
 import yaml
 
-from .constants import DATADUCT_CFG_FILE
-from .constants import DATADUCT_DIR
+from .constants import CFG_FILE
+from .constants import CONFIG_DIR
 
 
 def get_config_files():
@@ -18,9 +18,9 @@ def get_config_files():
         2. ~/.dataduct
         3. DATADUCT_CONFIG_PATH environment variable
     """
-    dataduct_config_path = join('/etc', DATADUCT_CFG_FILE)
-    dataduct_user_config_path = join(expanduser('~'), DATADUCT_DIR,
-                                     DATADUCT_CFG_FILE)
+    dataduct_config_path = join('/etc', CFG_FILE)
+    dataduct_user_config_path = join(expanduser('~'), CONFIG_DIR,
+                                     CFG_FILE)
     config_files = [dataduct_config_path, dataduct_user_config_path]
 
     # Check DATADUCT_CONFIG_PATH env variable for other configuration locations

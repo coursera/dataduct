@@ -2,5 +2,6 @@
 """
 
 CONFIG_STR = 'config'
-DATADUCT_CFG_FILE = 'dataduct.cfg'
-DATADUCT_DIR = '.dataduct'
+CONFIG_DIR = '.dataduct'
+CFG_FILE = 'dataduct.cfg'
+LOG_FILE = 'dataduct.log'

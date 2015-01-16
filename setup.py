@@ -27,7 +27,7 @@ setup(
     license='Apache License 2.0',
     description='DataPipeline for Humans',
     install_requires=[
-        'boto>=2.32',
+        'boto>=2.34',
         'PyYAML',
         'pandas',
         'psycopg2',

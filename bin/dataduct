@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 
-"""
-Script that helps create and validate pipelines from command line
+"""Script that helps create and validate pipelines from command line
 """
 
 import argparse
 
 from dataduct.config import Config
+from dataduct.config import logger_configuration
 
 CREATE_STR = 'create'
 VALIDATE_STR = 'validate'
@@ -153,7 +153,10 @@ def main():
         # As this is the single entry point to the library
         # We can use the __new__ function to set the debug_level
         config = Config(mode=mode)
-        print 'Running the pipeline in %s mode.' % config.mode
+        print '[WARNING] Running the pipeline in %s mode.' % config.mode
+
+    # Setup up logging for package
+    logger_configuration()
 
     if args.command == CONFIG_COMMAND:
         config_actions(args.action, args.filename)
