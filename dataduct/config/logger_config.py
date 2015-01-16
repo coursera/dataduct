@@ -1,5 +1,4 @@
-"""
-Script that has the base logger configurations
+"""Script that has the base logger configurations
 """
 import os
 import logging
@@ -10,7 +9,7 @@ from .constants import CONFIG_DIR
 from .constants import LOG_FILE
 
 FILE_FORMAT_STR = '%(asctime)s [%(levelname)s]: %(message)s ' + \
-                  '[in %(module)s:%(lineno)d in %(funcName)s]'
+                  '[in %(name)s:%(lineno)d in %(funcName)s]'
 CONSOLE_FORMAT_STR = '[%(levelname)s]: %(message)s'
 
 
@@ -34,7 +33,7 @@ def logger_configuration():
     file_handler = RotatingFileHandler(os.path.join(log_directory, file_name),
                                        maxBytes=200000,
                                        backupCount=10)
-    file_handler.setLevel(logging.DEBUG)
+    file_handler.setLevel(logging.INFO)
     file_handler.setFormatter(logging.Formatter(FILE_FORMAT_STR,
                                                 datefmt='%Y-%m-%d %H:%M'))
 

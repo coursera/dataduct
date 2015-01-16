@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
-"""
-Script that helps create and validate pipelines from command line
+"""Script that helps create and validate pipelines from command line
 """
 
 import argparse
