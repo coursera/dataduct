@@ -5,7 +5,6 @@ from .transform import TransformStep
 from ..config import Config
 
 config = Config()
-SNS_TOPIC_ARN_WARNING = config.etl['SNS_TOPIC_ARN_WARNING']
 
 
 class QATransformStep(TransformStep):
@@ -16,7 +15,7 @@ class QATransformStep(TransformStep):
                  id,
                  pipeline_name,
                  script_arguments=None,
-                 sns_topic_arn=SNS_TOPIC_ARN_WARNING,
+                 sns_topic_arn=None,
                  **kwargs):
         """Constructor for the QATransformStep class
 
@@ -25,6 +24,9 @@ class QATransformStep(TransformStep):
             script_arguments(list of str): list of arguments to the script
             **kwargs(optional): Keyword arguments directly passed to base class
         """
+
+        if sns_topic_arn is None:
+            sns_topic_arn = config.etl['SNS_TOPIC_ARN_WARNING']
 
         if script_arguments is None:
             script_arguments = list()

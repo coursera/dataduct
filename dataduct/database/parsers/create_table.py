@@ -109,20 +109,18 @@ def get_attributes_parser():
     distkey_def = _distkey + paranthesis_list('distkey')
     sortkey_def = _sortkey + paranthesis_list('sortkey')
 
-    return OneOrMore(diststyle_def | sortkey_def | distkey_def)
+    return ZeroOrMore(diststyle_def | sortkey_def | distkey_def)
 
 
-def parse_create_table(statement):
+def parse_create_table(string):
     """Parse the create table sql query and return metadata
 
     Args:
-        statement(SqlStatement): Input sql statement that should be parsed
+        string(sql): SQL string from a SQL Statement
 
     Returns:
         table_data(dict): table_data dictionary for instantiating a table object
     """
-    string = statement.sql()
-
     # Parse the base table definitions
     table_data = to_dict(get_base_parser().parseString(string))
 

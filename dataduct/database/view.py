@@ -17,7 +17,7 @@ class View(Relation):
             # Take the first statement and ignore the rest
             sql = SqlScript.statements[0]
 
-        parameters = parse_create_view(sql)
+        parameters = parse_create_view(sql.sql())
 
         self.sql_statement = sql
         self.parameters = parameters
