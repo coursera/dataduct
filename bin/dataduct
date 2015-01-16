@@ -59,13 +59,13 @@ def pipeline_actions(action, load_definitions, force_overwrite, delay):
             activate_pipeline(etl)
 
 
-def visualize_actions(load_definitions, filename):
+def visualize_actions(load_definitions, activities_only, filename):
     """Visualization actions are executed in this block
     """
     from dataduct.etl import visualize_pipeline
 
     for etl in initialize_etl_objects(load_definitions):
-        visualize_pipeline(etl, filename)
+        visualize_pipeline(etl, activities_only, filename)
 
 
 def main():
@@ -141,6 +141,11 @@ def main():
         help='Enter the paths of the load definitions',
     )
 
+    visualize_parser.add_argument(
+        '--activities-only',
+        action='store_true',
+    )
+
     args = parser.parse_args()
 
     mode = args.mode
@@ -161,7 +166,8 @@ def main():
         pipeline_actions(args.action, args.load_definitions,
                          args.force_overwrite, args.delay)
     else:
-        visualize_actions(args.load_definitions, args.filename)
+        visualize_actions(args.load_definitions, args.activities_only,
+                          args.filename)
 
 
 if __name__ == '__main__':
