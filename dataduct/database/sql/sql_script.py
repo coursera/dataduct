@@ -106,3 +106,13 @@ class SqlScript(object):
             [BeginStatement()] + self.statements + [CommitStatement()])
 
         return new_script
+
+    def creates_table(self):
+        """SQL script creates a table.
+        """
+        return self.statements[0].creates_table()
+
+    def creates_view(self):
+        """SQL script creates a view.
+        """
+        return self.statements[0].creates_view()

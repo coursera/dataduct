@@ -25,7 +25,7 @@ class Table(Relation):
             # Take the first statement and ignore the rest
             sql = SqlScript.statements[0]
 
-        parameters = parse_create_table(sql)
+        parameters = parse_create_table(sql.sql())
 
         self.sql_statement = sql
         self.parameters = parameters
