@@ -4,37 +4,43 @@ Script that has the base logger configurations
 import os
 import logging
 from logging.handlers import RotatingFileHandler
-from logging import StreamHandler
 
 from .config import Config
 from .constants import CONFIG_DIR
 from .constants import LOG_FILE
 
-DATE_FMT = '%m-%d %H:%M'
-LOG_FMT = '%(asctime)s %(name)-12s %(levelname)-8s %(message)s'
+FILE_FORMAT_STR = '%(asctime)s [%(levelname)s]: %(message)s ' + \
+                  '[in %(module)s:%(lineno)d in %(funcName)s]'
+CONSOLE_FORMAT_STR = '[%(levelname)s]: %(message)s'
 
-config = Config()
 
 def logger_configuration():
     """Set the logger configurations for dataduct
     """
-    if not os.path.exists(CONFIG_DIR):
-        os.makedir(CONFIG_DIR)
+    config = Config()
 
-    log_directory = os.path.join(os.path.expanduser(CONFIG_DIR))
-    file_name = LOG_FILE
-    if hasattr(config, 'logging') and 'LOG_DIR' in config.logging:
-        log_directory = config.logging.get('LOG_DIR')
-        file_name = config.logging.get('LOG_FILE')
+    if hasattr(config, 'logging'):
+        log_directory = config.logging.get(
+            'LOG_DIR', os.path.join(os.path.expanduser(CONFIG_DIR)))
+        file_name = config.logging.get('LOG_FILE', LOG_FILE)
+        console_level = config.logging.get('DEBUG_LEVEL', logging.WARNING)
 
-    logging.basicConfig(level=logging.DEBUG,
-                        format=LOG_FMT,
-                        datefmt=DATE_FMT)
+    if not os.path.exists(log_directory):
+        os.makedir(log_directory)
+
+    logger = logging.getLogger()
+    logger.setLevel(logging.DEBUG)
 
     file_handler = RotatingFileHandler(os.path.join(log_directory, file_name),
-                                       maxBytes=200000, backupCount=10)
-    console_handler = StreamHandler()
-    console_handler.setLevel(logging.WARNING)
+                                       maxBytes=200000,
+                                       backupCount=10)
+    file_handler.setLevel(logging.DEBUG)
+    file_handler.setFormatter(logging.Formatter(FILE_FORMAT_STR,
+                                                datefmt='%Y-%m-%d %H:%M'))
 
-    logging.getLogger('').addHandler(file_handler)
-    logging.getLogger('').addHandler(console_handler)
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(console_level)
+    console_handler.setFormatter(logging.Formatter(CONSOLE_FORMAT_STR))
+
+    logger.addHandler(console_handler)
+    logger.addHandler(file_handler)

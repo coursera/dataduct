@@ -12,6 +12,9 @@ from ..utils.exceptions import ETLInputError
 
 URL_TEMPLATE = 'https://console.aws.amazon.com/datapipeline/?#ExecutionDetailsPlace:pipelineId={ID}&show=latest'  # noqa
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 def read_pipeline_definition(file_path):
     """Function reads the yaml pipeline definitions.
@@ -99,8 +102,8 @@ def visualize_pipeline(etl, filename=None):
     if filename is None:
         raise ETLInputError('Filename must be provided for visualization')
 
+    logger.info('Creating a visualization of %s', etl.name)
     graph = pygraphviz.AGraph(name=etl.name, directed=True, label=etl.name)
-
     pipeline_objects = etl.pipeline_objects()
 
     # Add nodes for all activities
