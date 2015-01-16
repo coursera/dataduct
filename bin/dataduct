@@ -144,6 +144,7 @@ def main():
     visualize_parser.add_argument(
         '--activities-only',
         action='store_true',
+        help='Visualize only activities',
     )
 
     args = parser.parse_args()
