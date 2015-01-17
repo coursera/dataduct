@@ -89,7 +89,6 @@ class Table(Relation):
         """
         return [c.name for c in self.columns if c.primary]
 
-    @property
     def foreign_key_references(self):
         """Get a list of all foreign key references from the table
         """

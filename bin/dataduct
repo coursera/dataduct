@@ -176,7 +176,7 @@ def main():
     database_parser.add_argument(
         'table_definitions',
         nargs='+',
-        help='Enter the paths of the load definitions',
+        help='Enter the paths of the table definitions',
     )
 
     # Visualize parser declaration

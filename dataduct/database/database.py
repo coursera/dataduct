@@ -65,7 +65,6 @@ class Database(object):
 
         self._relations[relation.full_name] = relation
 
-    @property
     def relations(self):
         """Unsorted list of relations of the database
         """
@@ -195,8 +194,7 @@ class Database(object):
         return result
 
     def _make_node_label(self, relation):
-        """
-        Output: a pydot format of this table.
+        """Create the html table layout for graph nodes
         """
         html_lines = ['<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0">']
         html_lines += ['<TR><TD BGCOLOR="grey"><U>' + relation.full_name +
@@ -227,7 +225,7 @@ class Database(object):
             name='database', label='database')
 
         # Add nodes
-        for relation in self.relations:
+        for relation in self.relations():
             if isinstance(relation, Table):
                 graph.add_node(relation.full_name)
                 node = graph.get_node(relation.full_name)
@@ -235,10 +233,10 @@ class Database(object):
                 node.attr['shape'] = 'none'
 
         # Add edges
-        for relation in self.relations:
+        for relation in self.relations():
             if isinstance(relation, Table):
                 for cols, ref_table_name, ref_col_names in \
-                        relation.foreign_key_references:
+                        relation.foreign_key_references():
                     # ref_name = ref_table_name + \
                     #     ':' + ref_col_names
                     graph.add_edge(relation.full_name, ref_table_name)
