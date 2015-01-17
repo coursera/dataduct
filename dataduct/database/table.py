@@ -96,7 +96,7 @@ class Table(Relation):
         for column in self.columns:
             if column.fk_table is not None:
                 result.append((
-                    [column.name], column.fk_table, column.fk_reference))
+                    [column.name], column.fk_table, [column.fk_reference]))
 
         for constraint in self._constraints:
             if 'fk_table' in constraint:

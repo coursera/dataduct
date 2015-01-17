@@ -179,7 +179,7 @@ class Database(object):
             if isinstance(relation, Table):
                 # Recreate foreign key relations
                 for column_names, ref_name, ref_columns in \
-                        relation.forign_key_references():
+                        relation.foreign_key_references():
                     if ref_name == table_name:
                         result.append(
                             relation.foreign_key_reference_script(
@@ -193,19 +193,21 @@ class Database(object):
                     result.append(relation.recreate_script())
         return result
 
-    def _make_node_label(self, relation):
-        """Create the html table layout for graph nodes
+    @staticmethod
+    def _make_node_label(relation):
+        """Create the table layout for graph nodes
         """
-        html_lines = ['<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0">']
-        html_lines += ['<TR><TD BGCOLOR="grey"><U>' + relation.full_name +
-                       '</U></TD></TR>']
-        for col in sorted(relation.columns, key=lambda x: x.position):
-            col_name = col.name + (' PK' if col.primary else '')
-            html_lines += ['<TR><TD ALIGN="left" PORT="' + col.name + '">' +
-                           col_name + '</TD></TR>']
-        html_lines += ['</TABLE>>']
+        columns = list()
+        row = '<TR><TD ALIGN="left" PORT="{col_name}">{col_name}{pk}</TD></TR>'
+        for column in sorted(relation.columns, key=lambda x: x.position):
+            columns.append(row.format(col_name=column.name,
+                                      pk=' (PK)' if column.primary else ''))
 
-        return '\n'.join(html_lines)
+        layout = ('<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0">\n'
+                  '<TR><TD BGCOLOR="lightblue">{table_name}</TD></TR>\n'
+                  '{columns}</TABLE>>').format(table_name=relation.full_name,
+                                               columns='\n'.join(columns))
+        return layout
 
     def visualize(self, filename=None):
         """Visualize databases
@@ -222,25 +224,21 @@ class Database(object):
 
         logger.info('Creating a visualization of the database')
         graph = pygraphviz.AGraph(
-            name='database', label='database')
+            name='Database', label='Database')
+
+        tables = [r for r in self.relations() if isinstance(r, Table)]
 
         # Add nodes
-        for relation in self.relations():
-            if isinstance(relation, Table):
-                graph.add_node(relation.full_name)
-                node = graph.get_node(relation.full_name)
-                node.attr['label'] = self._make_node_label(relation)
-                node.attr['shape'] = 'none'
+        for table in tables:
+            graph.add_node(table.full_name, shape='none',
+                           label=self._make_node_label(table))
 
         # Add edges
-        for relation in self.relations():
-            if isinstance(relation, Table):
-                for cols, ref_table_name, ref_col_names in \
-                        relation.foreign_key_references():
-                    # ref_name = ref_table_name + \
-                    #     ':' + ref_col_names
-                    graph.add_edge(relation.full_name, ref_table_name)
-                    # graph.add_edge(t.full_name + ":" + cols[0], ref_name)
+        for table in tables:
+            for cols, ref_table, ref_cols in table.foreign_key_references():
+                graph.add_edge(ref_table, table.full_name, tailport=ref_cols[0],
+                               headport=cols[0], dir='both', arrowhead='crow',
+                               arrowtail='dot')
 
         # Plotting the graph with dot layout
         graph.layout(prog='dot')
