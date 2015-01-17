@@ -23,7 +23,7 @@ class Table(Relation):
 
         if isinstance(sql, SqlScript):
             # Take the first statement and ignore the rest
-            sql = SqlScript.statements[0]
+            sql = sql.statements[0]
 
         parameters = parse_create_table(sql.sql())
 
@@ -89,7 +89,8 @@ class Table(Relation):
         """
         return [c.name for c in self.columns if c.primary]
 
-    def forign_key_references(self):
+    @property
+    def foreign_key_references(self):
         """Get a list of all foreign key references from the table
         """
         result = list()

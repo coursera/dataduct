@@ -11,11 +11,15 @@ from dataduct.config import logger_configuration
 CREATE_STR = 'create'
 VALIDATE_STR = 'validate'
 ACTIVATE_STR = 'activate'
+DROP_STR = 'drop'
+GRANT_STR = 'grant'
+RECREATE_STR = 'recreate'
 
 CONFIG_TO_S3 = 'sync_to_s3'
 CONFIG_FROM_S3 = 'sync_from_s3'
 
 CONFIG_COMMAND = 'config'
+DATABASE_COMMAND = 'database'
 PIPELINE_COMMAND = 'pipeline'
 VISUALIZE_COMMAND = 'visualize'
 
@@ -59,13 +63,41 @@ def pipeline_actions(action, load_definitions, force_overwrite, delay):
             activate_pipeline(etl)
 
 
-def visualize_actions(load_definitions, activities_only, filename):
-    """Visualization actions are executed in this block
+def database_actions(action, table_definitions):
+    """Database related actions are executed in this block
     """
+    from dataduct.database import Database
+
+    database = Database(files=table_definitions)
+    if action == CREATE_STR:
+        script = database.create_relations_script()
+    elif action == DROP_STR:
+        script = database.drop_relations_script()
+    elif action == GRANT_STR:
+        script = database.grant_relations_script()
+    elif action == RECREATE_STR:
+        script = database.recreate_relations_script()
+    print script
+
+
+def visualize_pipeline_actions(load_definitions, activities_only, filename):
+    """Visualization actions for pipelines are executed in this block
+    """
+
     from dataduct.etl import visualize_pipeline
 
     for etl in initialize_etl_objects(load_definitions):
         visualize_pipeline(etl, activities_only, filename)
+
+
+def visualize_database_actions(table_definitions, filename):
+    """Visualization actions for databases are executed in this block
+    """
+
+    from dataduct.database import Database
+
+    database = Database(files=table_definitions)
+    database.visualize(filename)
 
 
 def main():
@@ -129,22 +161,57 @@ def main():
         help='Delay the pipeline by x days',
     )
 
-    # Visualize parser declaration
-    visualize_parser = subparsers.add_parser(VISUALIZE_COMMAND)
-    visualize_parser.add_argument(
-        'filename',
-        help='Filename for the graph',
+    # Database parser declaration
+    database_parser = subparsers.add_parser(DATABASE_COMMAND)
+    database_parser.add_argument(
+        'action',
+        type=str,
+        choices={
+            CREATE_STR: 'Create tables',
+            DROP_STR: 'Drop views and tables',
+            GRANT_STR: 'Grant permissions to neccessary groups',
+            RECREATE_STR: 'Recreate tables, load new data, drop old tables',
+        },
     )
-    visualize_parser.add_argument(
-        'load_definitions',
+    database_parser.add_argument(
+        'table_definitions',
         nargs='+',
         help='Enter the paths of the load definitions',
     )
 
-    visualize_parser.add_argument(
+    # Visualize parser declaration
+    visualize_parser = subparsers.add_parser(VISUALIZE_COMMAND)
+    visualize_subparsers = visualize_parser.add_subparsers(
+        help='Commands', dest='visualize_command')
+
+    # Visualize pipeline parser declaration
+    visualize_pipeline_parser = \
+        visualize_subparsers.add_parser(PIPELINE_COMMAND)
+    visualize_pipeline_parser.add_argument(
+        'filename',
+        help='Filename for the graph',
+    )
+    visualize_pipeline_parser.add_argument(
+        'load_definitions',
+        nargs='+',
+        help='Enter the paths of the load definitions',
+    )
+    visualize_pipeline_parser.add_argument(
         '--activities-only',
         action='store_true',
         help='Visualize only activities',
+    )
+
+    visualize_database_parser = \
+        visualize_subparsers.add_parser(DATABASE_COMMAND)
+    visualize_database_parser.add_argument(
+        'filename',
+        help='Filename for the graph',
+    )
+    visualize_database_parser.add_argument(
+        'table_definitions',
+        nargs='+',
+        help='Enter the paths of the table definitions',
     )
 
     args = parser.parse_args()
@@ -169,9 +236,15 @@ def main():
     elif args.command == PIPELINE_COMMAND:
         pipeline_actions(args.action, args.load_definitions,
                          args.force_overwrite, args.delay)
+    elif args.command == DATABASE_COMMAND:
+        database_actions(args.action, args.table_definitions)
     else:
-        visualize_actions(args.load_definitions, args.activities_only,
-                          args.filename)
+        if args.visualize_command == PIPELINE_COMMAND:
+            visualize_pipeline_actions(
+                args.load_definitions, args.activities_only, args.filename)
+        else:
+            visualize_database_actions(
+                args.table_definitions, args.filename)
 
 
 if __name__ == '__main__':

@@ -16,7 +16,7 @@ class SqlScript(object):
     def __init__(self, sql=None, statements=None, filename=None):
         """Constructor for the SqlScript class
         """
-        assert atmost_one(sql, statements, filename), 'Multiple intializer'
+        assert atmost_one(sql, statements, filename), 'Multiple initializer'
 
         if sql is None:
             sql = ''
@@ -77,6 +77,9 @@ class SqlScript(object):
     def append(self, elements):
         """Append the elements to the SQL script
         """
+        if elements is None:
+            return self.copy()
+
         if isinstance(elements, SqlStatement):
             self.add_statement(elements)
             return self.copy()

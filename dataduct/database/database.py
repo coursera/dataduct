@@ -10,6 +10,10 @@ from .sql import SqlScript
 from ..utils.helpers import atmost_one
 from ..utils.helpers import parse_path
 
+from ..utils.exceptions import DatabaseInputError
+
+import logging
+logger = logging.getLogger(__name__)
 
 class Database(object):
     """Class representing a database
@@ -61,6 +65,7 @@ class Database(object):
 
         self._relations[relation.full_name] = relation
 
+    @property
     def relations(self):
         """Unsorted list of relations of the database
         """
@@ -152,6 +157,11 @@ class Database(object):
         return self.relations_script(
             'create_script', grant_permissions=grant_permissions)
 
+    def drop_relations_script(self):
+        """SQL Script for dropping all the relations for the database
+        """
+        return self.relations_script('drop_script')
+
     def recreate_relations_script(self, grant_permissions=True):
         """SQL Script for recreating all the relations of the database
         """
@@ -183,3 +193,57 @@ class Database(object):
                 if table_name in relation.dependencies:
                     result.append(relation.recreate_script())
         return result
+
+    def _make_node_label(self, relation):
+        """
+        Output: a pydot format of this table.
+        """
+        html_lines = ['<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0">']
+        html_lines += ['<TR><TD BGCOLOR="grey"><U>' + relation.full_name +
+                       '</U></TD></TR>']
+        for col in sorted(relation.columns, key=lambda x: x.position):
+            col_name = col.name + (' PK' if col.primary else '')
+            html_lines += ['<TR><TD ALIGN="left" PORT="' + col.name + '">' +
+                           col_name + '</TD></TR>']
+        html_lines += ['</TABLE>>']
+
+        return '\n'.join(html_lines)
+
+    def visualize(self, filename=None):
+        """Visualize databases
+        """
+        # Import pygraphviz for plotting the graphs
+        try:
+            import pygraphviz
+        except ImportError:
+            raise ImportError('Install pygraphviz for visualizing databases')
+
+        if filename is None:
+            raise DatabaseInputError(
+                'Filename must be provided for visualization')
+
+        logger.info('Creating a visualization of the database')
+        graph = pygraphviz.AGraph(
+            name='database', label='database')
+
+        # Add nodes
+        for relation in self.relations:
+            if isinstance(relation, Table):
+                graph.add_node(relation.full_name)
+                node = graph.get_node(relation.full_name)
+                node.attr['label'] = self._make_node_label(relation)
+                node.attr['shape'] = 'none'
+
+        # Add edges
+        for relation in self.relations:
+            if isinstance(relation, Table):
+                for cols, ref_table_name, ref_col_names in \
+                        relation.foreign_key_references:
+                    # ref_name = ref_table_name + \
+                    #     ':' + ref_col_names
+                    graph.add_edge(relation.full_name, ref_table_name)
+                    # graph.add_edge(t.full_name + ":" + cols[0], ref_name)
+
+        # Plotting the graph with dot layout
+        graph.layout(prog='dot')
+        graph.draw(filename)
