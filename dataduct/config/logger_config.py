@@ -25,7 +25,7 @@ def logger_configuration():
         console_level = config.logging.get('DEBUG_LEVEL', logging.WARNING)
 
     if not os.path.exists(log_directory):
-        os.makedir(log_directory)
+        os.mkdir(log_directory)
 
     logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)

@@ -10,6 +10,10 @@ from .sql import SqlScript
 from ..utils.helpers import atmost_one
 from ..utils.helpers import parse_path
 
+from ..utils.exceptions import DatabaseInputError
+
+import logging
+logger = logging.getLogger(__name__)
 
 class Database(object):
     """Class representing a database
@@ -152,6 +156,11 @@ class Database(object):
         return self.relations_script(
             'create_script', grant_permissions=grant_permissions)
 
+    def drop_relations_script(self):
+        """SQL Script for dropping all the relations for the database
+        """
+        return self.relations_script('drop_script')
+
     def recreate_relations_script(self, grant_permissions=True):
         """SQL Script for recreating all the relations of the database
         """
@@ -170,7 +179,7 @@ class Database(object):
             if isinstance(relation, Table):
                 # Recreate foreign key relations
                 for column_names, ref_name, ref_columns in \
-                        relation.forign_key_references():
+                        relation.foreign_key_references():
                     if ref_name == table_name:
                         result.append(
                             relation.foreign_key_reference_script(
@@ -183,3 +192,57 @@ class Database(object):
                 if table_name in relation.dependencies:
                     result.append(relation.recreate_script())
         return result
+
+    @staticmethod
+    def _make_node_label(relation):
+        """Create the table layout for graph nodes
+        """
+        columns = list()
+        row = '<TR><TD ALIGN="left" PORT="{col_name}">{col_name}{pk}</TD></TR>'
+        for column in sorted(relation.columns, key=lambda x: x.position):
+            columns.append(row.format(col_name=column.name,
+                                      pk=' (PK)' if column.primary else ''))
+
+        layout = ('<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0">\n'
+                  '<TR><TD BGCOLOR="lightblue">{table_name}</TD></TR>\n'
+                  '{columns}</TABLE>>').format(table_name=relation.full_name,
+                                               columns='\n'.join(columns))
+        return layout
+
+    def visualize(self, filename=None):
+        """Visualize databases and create an er-diagram
+
+        Args:
+            filename(str): filepath for saving the er-diagram
+        """
+        # Import pygraphviz for plotting the graphs
+        try:
+            import pygraphviz
+        except ImportError:
+            logger.error('Install pygraphviz for visualizing databases')
+            raise
+
+        if filename is None:
+            raise DatabaseInputError(
+                'Filename must be provided for visualization')
+
+        logger.info('Creating a visualization of the database')
+        graph = pygraphviz.AGraph(name='Database', label='Database')
+
+        tables = [r for r in self.relations() if isinstance(r, Table)]
+
+        # Add nodes
+        for table in tables:
+            graph.add_node(table.full_name, shape='none',
+                           label=self._make_node_label(table))
+
+        # Add edges
+        for table in tables:
+            for cols, ref_table, ref_cols in table.foreign_key_references():
+                graph.add_edge(ref_table, table.full_name, tailport=ref_cols[0],
+                               headport=cols[0], dir='both', arrowhead='crow',
+                               arrowtail='dot')
+
+        # Plotting the graph with dot layout
+        graph.layout(prog='dot')
+        graph.draw(filename)
