@@ -96,7 +96,8 @@ def visualize_pipeline(etl, activities_only, filename=None):
     try:
         import pygraphviz
     except ImportError:
-        raise ImportError('Install pygraphviz for visualizing pipelines')
+        logger.error('Install pygraphviz for visualizing pipelines')
+        raise
 
     if filename is None:
         raise ETLInputError('Filename must be provided for visualization')

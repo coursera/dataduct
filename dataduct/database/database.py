@@ -210,21 +210,24 @@ class Database(object):
         return layout
 
     def visualize(self, filename=None):
-        """Visualize databases
+        """Visualize databases and create an er-diagram
+
+        Args:
+            filename(str): filepath for saving the er-diagram
         """
         # Import pygraphviz for plotting the graphs
         try:
             import pygraphviz
         except ImportError:
-            raise ImportError('Install pygraphviz for visualizing databases')
+            logger.error('Install pygraphviz for visualizing databases')
+            raise
 
         if filename is None:
             raise DatabaseInputError(
                 'Filename must be provided for visualization')
 
         logger.info('Creating a visualization of the database')
-        graph = pygraphviz.AGraph(
-            name='Database', label='Database')
+        graph = pygraphviz.AGraph(name='Database', label='Database')
 
         tables = [r for r in self.relations() if isinstance(r, Table)]
 
