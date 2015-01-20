@@ -68,3 +68,10 @@ class TestImports(TestCase):
         """
         print 'Trying to import sphinx_rtd_theme'
         import sphinx_rtd_theme
+
+    @staticmethod
+    def test_testfixtures():
+        """Testing testfixtures
+        """
+        print 'Trying to import testfixtures'
+        import testfixtures

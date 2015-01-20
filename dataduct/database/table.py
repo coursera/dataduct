@@ -109,7 +109,8 @@ class Table(Relation):
     def dependencies(self):
         """List of tables which this table references.
         """
-        return [table_name for _, table_name, _ in self.foreign_key_references]
+        return [table_name for _, table_name, _
+                in self.foreign_key_references()]
 
     def temporary_clone_script(self):
         """Sql script to create a temporary clone table

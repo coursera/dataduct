@@ -3,8 +3,11 @@
 Tests for the definition parser functions
 """
 import unittest
+from ..etl_actions import read_pipeline_definition
+from ...utils.exceptions import ETLInputError
 
-class DefitionParserTests(unittest.TestCase):
+
+class DefinitionParserTests(unittest.TestCase):
     """Tests for the definition parser.
     """
 
@@ -13,7 +16,11 @@ class DefitionParserTests(unittest.TestCase):
         """
         pass
 
-    def test_yaml_extention(self):
-        """Test if the pipeline extention is yaml
+    def test_yaml_extension(self):
+        """Test if the yaml extension check works correctly
         """
-        pass
+        try:
+            read_pipeline_definition("name.txt")
+            assert False
+        except ETLInputError:
+            pass
