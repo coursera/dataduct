@@ -13,11 +13,6 @@ class DefinitionParserTests(unittest.TestCase):
     """Tests for the definition parser.
     """
 
-    def setUp(self):
-        """Fixtures for the definition test
-        """
-        pass
-
     @raises(ETLInputError)
     def test_yaml_extension(self):
         """Test if the yaml extension check works correctly

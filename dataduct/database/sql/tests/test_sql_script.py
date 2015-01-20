@@ -126,7 +126,6 @@ class TestSqlScript(TestCase):
             SELECT * FROM test_begin;
             CREATE TABLE test_begin (session_id INTEGER);
         """)
-
         eq_(script.creates_table(), False)
 
     @staticmethod
@@ -161,7 +160,6 @@ class TestSqlScript(TestCase):
             SELECT * FROM test_begin;
             CREATE VIEW test_begin AS (SELECT * FROM test_table);
         """)
-
         eq_(script.creates_view(), False)
 
     @staticmethod

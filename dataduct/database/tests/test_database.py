@@ -191,28 +191,26 @@ class TestDatabase(TestCase):
     def test_database_create_relations_script(self):
         """Creating relations in the database
         """
-        self._test_database_scripts(
-            'create_relations_script',
-            'CREATE TABLE test_table ( id INTEGER );\n'
-            'CREATE VIEW test_view AS ( SELECT id FROM test_table );')
+
+        result = ('CREATE TABLE test_table ( id INTEGER );\n'
+                  'CREATE VIEW test_view AS ( SELECT id FROM test_table );')
+        self._test_database_scripts('create_relations_script', result)
 
     def test_database_drop_relations_script(self):
         """Dropping relations in the database
         """
-        self._test_database_scripts(
-            'drop_relations_script',
-            'DROP TABLE IF EXISTS test_table CASCADE;\n'
-            'DROP VIEW IF EXISTS test_view CASCADE;')
+        result = ('DROP TABLE IF EXISTS test_table CASCADE;\n'
+                  'DROP VIEW IF EXISTS test_view CASCADE;')
+        self._test_database_scripts('drop_relations_script', result)
 
     def test_database_recreate_relations_script(self):
         """Recreating relations in the database
         """
-        self._test_database_scripts(
-            'recreate_relations_script',
-            'DROP TABLE IF EXISTS test_table CASCADE;\n'
-            'CREATE TABLE test_table ( id INTEGER );\n'
-            'DROP VIEW IF EXISTS test_view CASCADE;\n'
-            'CREATE VIEW test_view AS ( SELECT id FROM test_table );')
+        result = ('DROP TABLE IF EXISTS test_table CASCADE;\n'
+                  'CREATE TABLE test_table ( id INTEGER );\n'
+                  'DROP VIEW IF EXISTS test_view CASCADE;\n'
+                  'CREATE VIEW test_view AS ( SELECT id FROM test_table );')
+        self._test_database_scripts('recreate_relations_script', result)
 
     def test_database_recreate_table_dependencies(self):
         """Recreating table dependencies
@@ -224,9 +222,9 @@ class TestDatabase(TestCase):
         database = Database(relations=[self.first_table_dependent,
                                        self.second_table, view])
 
-        eq_(database.recreate_table_dependencies('second_table').sql(),
-            'ALTER TABLE first_table ADD FOREIGN KEY (id2) '
-            'REFERENCES second_table (id2);\n'
-            'DROP VIEW IF EXISTS view CASCADE;\n'
-            'CREATE VIEW view AS ( SELECT id1 FROM second_table );')
+        result = ('ALTER TABLE first_table ADD FOREIGN KEY (id2) '
+                  'REFERENCES second_table (id2);\n'
+                  'DROP VIEW IF EXISTS view CASCADE;\n'
+                  'CREATE VIEW view AS ( SELECT id1 FROM second_table );')
+        eq_(database.recreate_table_dependencies('second_table').sql(), result)
         eq_(database.recreate_table_dependencies('first_table').sql(), ';')
