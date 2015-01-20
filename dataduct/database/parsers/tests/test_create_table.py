@@ -3,6 +3,7 @@
 
 from unittest import TestCase
 from nose.tools import eq_
+from nose.tools import raises
 
 from pyparsing import ParseException
 
@@ -33,27 +34,21 @@ class TestCreateTableStatement(TestCase):
         eq_(len(output['columns']), 2)
 
     @staticmethod
+    @raises(ParseException)
     def test_bad_input():
         """Feeding malformed input into create table
         """
         query = 'CREATE TABLE orders (' +\
                 'customer_id INTEGER DISTKEY PRIMARY KEY'
 
-        try:
-            parse_create_table(query)
-            assert False
-        except ParseException:
-            pass
+        parse_create_table(query)
 
     @staticmethod
+    @raises(ParseException)
     def test_bad_input_in_columns():
         """Feeding malformed input into create table
         """
         query = 'CREATE TABLE orders (' +\
                 'customer_id NEGATIVE DISTKEY PRIMARY KEY)'
 
-        try:
-            parse_create_table(query)
-            assert False
-        except ParseException:
-            pass
+        parse_create_table(query)

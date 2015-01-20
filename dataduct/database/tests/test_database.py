@@ -6,6 +6,7 @@ from unittest import TestCase
 from testfixtures import TempDirectory
 from nose.tools import assert_not_equal
 from nose.tools import eq_
+from nose.tools import raises
 
 from ..database import Database
 from ..table import Table
@@ -29,37 +30,77 @@ class TestDatabase(TestCase):
         """
         return View(SqlScript(sql))
 
+    def setUp(self):
+        """Setup test fixtures for the database tests
+        """
+        # A basic table and view
+        self.basic_table = self._create_table(
+            'CREATE TABLE test_table (id INTEGER);')
+        self.basic_view = self._create_view(
+            'CREATE VIEW test_view AS (SELECT * FROM test_table);')
+
+        # Create tables with dependencies between them
+        self.first_table = self._create_table(
+            """CREATE TABLE first_table (
+                id1 INTEGER,
+                id2 INTEGER
+            );""")
+        self.first_table_dependent = self._create_table(
+            """CREATE TABLE first_table (
+                id1 INTEGER,
+                id2 INTEGER REFERENCES second_table(id2)
+            );""")
+        self.second_table = self._create_table(
+            """CREATE TABLE second_table (
+                id1 INTEGER,
+                id2 INTEGER
+            );""")
+        self.second_table_dependent = self._create_table(
+            """CREATE TABLE second_table (
+                id1 INTEGER REFERENCES first_table(id1),
+                id2 INTEGER
+            );""")
+
+        # Create a template database to test script generation
+        table = self._create_table('CREATE TABLE test_table ( id INTEGER );')
+        view = self._create_view("""CREATE VIEW test_view AS (
+                                         SELECT id FROM test_table
+                                     );""")
+        self.script_database = Database(relations=[table, view])
+
     def test_create(self):
         """Tests database initialization
         """
-        table = self._create_table('CREATE TABLE test_begin (id INTEGER);')
-        database = Database(relations=[table])
+        database = Database(relations=[self.basic_table])
 
         # Verify that the database is constructed properly
         eq_(database.num_tables, 1)
         eq_(database.num_views, 0)
-        assert_not_equal(database.relation('test_begin'), None)
+        assert_not_equal(database.relation(self.basic_table.full_name), None)
 
-    @staticmethod
-    def test_create_from_file():
+    def test_create_from_file(self):
         """Tests database initialization from file
         """
         with TempDirectory() as d:
             # Create files in the temp directory
-            d.write('test_table.sql',
-                    'CREATE TABLE test_table (session_id INTEGER);')
-            d.write('test_view.sql',
-                    'CREATE VIEW test_view AS (SELECT * FROM test_table);')
-            database = Database(files=[os.path.join(d.path, 'test_table.sql'),
-                                       os.path.join(d.path, 'test_view.sql')])
+            d.write(self.basic_table.full_name,
+                    self.basic_table.sql_statement.sql())
+            d.write(self.basic_view.full_name,
+                    self.basic_view.sql_statement.sql())
+            database = Database(
+                files=[os.path.join(d.path, self.basic_table.full_name),
+                       os.path.join(d.path, self.basic_view.full_name)])
 
             # Verify that the database is constructed properly
             eq_(database.num_tables, 1)
             eq_(database.num_views, 1)
-            assert_not_equal(database.relation('test_table'), None)
-            assert_not_equal(database.relation('test_view'), None)
+            assert_not_equal(
+                database.relation(self.basic_table.full_name), None)
+            assert_not_equal(
+                database.relation(self.basic_view.full_name), None)
 
     @staticmethod
+    @raises(ValueError)
     def test_create_from_file_no_relation():
         """Database initialization with a file that does not create a
         relation
@@ -68,153 +109,83 @@ class TestDatabase(TestCase):
             # Create a file in the temp directory
             d.write('test.sql',
                     'SELECT * FROM test_table;')
-            try:
-                Database(files=[os.path.join(d.path, 'test.sql')])
-                assert False
-            except ValueError:
-                pass
+            Database(files=[os.path.join(d.path, 'test.sql')])
 
     @staticmethod
+    @raises(ValueError)
     def test_create_two_arguments():
         """Must create database with less than two arguments
         """
-        try:
-            Database(relations=['test_rel'], files=['test_file'])
-            assert False
-        except ValueError:
-            pass
+        Database(relations=['test_rel'], files=['test_file'])
 
+    @raises(ValueError)
     def test_create_duplicate_relations(self):
-        """Database initalization with duplicate relations
+        """Database initialization with duplicate relations
         """
-        table = self._create_table(
-            'CREATE TABLE test_begin (session_id INTEGER);')
-        try:
-            Database(relations=[table, table])
-            assert False
-        except ValueError:
-            pass
+        Database(relations=[self.basic_table, self.basic_table])
 
     def test_database_copy(self):
         """Copying a database is a deepcopy
         """
-        table = self._create_table(
-            'CREATE TABLE test_begin (session_id INTEGER);')
-        database = Database(relations=[table])
+        database = Database(relations=[self.basic_table])
         database_copy = database.copy()
 
         # Check that the copied database contains the relation
-        assert_not_equal(database_copy.relation('test_begin'), None)
+        assert_not_equal(
+            database_copy.relation(self.basic_table.full_name), None)
 
         # Delete the relation in the copy
         database_copy._relations = {}
 
         # Check that the original database still contains the relation
-        assert_not_equal(database.relation('test_begin'), None)
+        assert_not_equal(
+            database.relation(self.basic_table.full_name), None)
 
     def test_database_has_cycles(self):
         """Check if a database has cycles
         """
-        first_table = self._create_table(
-            """CREATE TABLE first_table (
-                id1 INTEGER,
-                id2 INTEGER REFERENCES second_table(id2)
-            );""")
-        second_table = self._create_table(
-            """CREATE TABLE second_table (
-                id1 INTEGER REFERENCES first_table(id1),
-                id2 INTEGER
-            );""")
-
-        database = Database(relations=[first_table, second_table])
+        database = Database(relations=[self.first_table_dependent,
+                                       self.second_table_dependent])
         eq_(database.has_cycles(), True)
 
     def test_database_has_no_cycles(self):
         """Check if a database has no cycles
         """
-        first_table = self._create_table(
-            """CREATE TABLE first_table (
-                id1 INTEGER,
-                id2 INTEGER REFERENCES second_table(id2)
-            );""")
-        second_table = self._create_table(
-            """CREATE TABLE second_table (
-                id1 INTEGER,
-                id2 INTEGER
-            );""")
-
-        database = Database(relations=[first_table, second_table])
+        database = Database(relations=[self.first_table_dependent,
+                                       self.second_table])
         eq_(database.has_cycles(), False)
 
     def test_database_has_no_cycles_2(self):
         """Check if a database has no cycles
         """
-        first_table = self._create_table(
-            """CREATE TABLE first_table (
-                id1 INTEGER,
-                id2 INTEGER
-            );""")
-        second_table = self._create_table(
-            """CREATE TABLE second_table (
-                id1 INTEGER REFERENCES first_table(id1),
-                id2 INTEGER
-            );""")
-
-        database = Database(relations=[first_table, second_table])
+        database = Database(relations=[self.first_table,
+                                       self.second_table_dependent])
         eq_(database.has_cycles(), False)
 
     def test_database_sorted_relations(self):
         """Get the topological sort of the database
         """
-        first_table = self._create_table(
-            """CREATE TABLE first_table (
-                id1 INTEGER,
-                id2 INTEGER REFERENCES second_table(id2)
-            );""")
-        second_table = self._create_table(
-            """CREATE TABLE second_table (
-                id1 INTEGER,
-                id2 INTEGER
-            );""")
-
-        database = Database(relations=[first_table, second_table])
+        database = Database(relations=[self.first_table_dependent,
+                                       self.second_table])
         relations = database.sorted_relations()
 
         # Verify that the relations are sorted correctly
         eq_(len(relations), 2)
-        eq_(relations[0].table_name, 'second_table')
-        eq_(relations[1].table_name, 'first_table')
+        eq_(relations[0].table_name, self.second_table.full_name)
+        eq_(relations[1].table_name, self.first_table_dependent.full_name)
 
+    @raises(RuntimeError)
     def test_database_sorted_relations_cyclic(self):
         """Get the topological sort of the database with cycles
         """
-        first_table = self._create_table(
-            """CREATE TABLE first_table (
-                id1 INTEGER,
-                id2 INTEGER REFERENCES second_table(id2)
-            );""")
-        second_table = self._create_table(
-            """CREATE TABLE second_table (
-                id1 INTEGER REFERENCES first_table(id1),
-                id2 INTEGER
-            );""")
-
-        database = Database(relations=[first_table, second_table])
-        try:
-            database.sorted_relations()
-            assert False
-        except RuntimeError:
-            pass
+        database = Database(relations=[self.first_table_dependent,
+                                       self.second_table_dependent])
+        database.sorted_relations()
 
     def _test_database_scripts(self, function_name, expected_sql, **kwargs):
         """Generate SQL scripts with a preset database
         """
-        table = self._create_table('CREATE TABLE test_table ( id INTEGER );')
-        view = self._create_view("""CREATE VIEW test_view AS (
-                                         SELECT id FROM test_table
-                                     );""")
-        database = Database(relations=[table, view])
-        func = getattr(database, function_name)
+        func = getattr(self.script_database, function_name)
         eq_(func(**kwargs).sql(), expected_sql)
 
     def test_database_create_relations_script(self):
@@ -246,21 +217,12 @@ class TestDatabase(TestCase):
     def test_database_recreate_table_dependencies(self):
         """Recreating table dependencies
         """
-        first_table = self._create_table(
-            """CREATE TABLE first_table (
-                id1 INTEGER,
-                id2 INTEGER REFERENCES second_table(id2)
-            );""")
-        second_table = self._create_table(
-            """CREATE TABLE second_table (
-                id1 INTEGER,
-                id2 INTEGER
-            );""")
         view = self._create_view(
             """CREATE VIEW view AS (
                 SELECT id1 FROM second_table
             );""")
-        database = Database(relations=[first_table, second_table, view])
+        database = Database(relations=[self.first_table_dependent,
+                                       self.second_table, view])
 
         eq_(database.recreate_table_dependencies('second_table').sql(),
             'ALTER TABLE first_table ADD FOREIGN KEY (id2) '
