@@ -127,15 +127,8 @@ class TransformStep(ETLStep):
             result = list()
             for argument in script_arguments:
                 if isinstance(argument, dict):
-                    argument_type = argument.get('type',
-                                                 SCRIPT_ARGUMENT_TYPE_STRING)
-                    if argument_type == SCRIPT_ARGUMENT_TYPE_SQL:
-                        # TODO: Change to SQL Parsing
-                        result.append(self.input_format(
-                            argument['name'], argument['value']))
-                    else:
-                        result.append(self.input_format(
-                            argument['name'], argument['value']))
+                    result.extend([self.input_format(key, value)
+                                   for key, value in argument.iteritems()])
                 else:
                     result.append(str(argument))
             return result

@@ -3,6 +3,7 @@ Connections to various databases such as RDS and Redshift
 """
 import psycopg2
 import MySQLdb
+import MySQLdb.cursors
 
 from ..config import Config
 from ..utils.helpers import retry

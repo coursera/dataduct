@@ -85,7 +85,7 @@ def activate_pipeline(etl):
         URL_TEMPLATE.format(ID=etl.pipeline.id)
 
 
-def visualize_pipeline(etl, activities_only, filename=None):
+def visualize_pipeline(etl, activities_only=False, filename=None):
     """Visualize the pipeline that was created
 
     Args:
