@@ -2,23 +2,14 @@
 Setup file for installation of the etllib code
 """
 from setuptools import setup
+from setuptools import find_packages
 
 setup(
     name='dataduct',
     version='0.1.0',
     author='Coursera Inc.',
-    packages=[
-        'dataduct',
-        'dataduct.config',
-        'dataduct.data_access',
-        'dataduct.database',
-        'dataduct.etl',
-        'dataduct.pipeline',
-        'dataduct.qa',
-        'dataduct.s3',
-        'dataduct.steps',
-        'dataduct.utils',
-    ],
+    packages=find_packages(
+        exclude=["*.tests", "*.tests.*", "tests.*", "tests"]),
     namespace_packages=['dataduct'],
     include_package_data=True,
     url='https://github.com/coursera/dataduct',

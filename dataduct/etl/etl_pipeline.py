@@ -29,6 +29,7 @@ from ..steps import PipelineDependenciesStep
 from ..steps import SqlCommandStep
 from ..steps import TransformStep
 from ..steps import QATransformStep
+from ..steps import PrimaryKeyCheckStep
 
 from ..s3 import S3File
 from ..s3 import S3Path
@@ -431,6 +432,9 @@ class ETLPipeline(object):
 
         elif step_type == 'extract-s3':
             step_class = ExtractS3Step
+
+        elif step_type == 'primary-key-check':
+            step_class = PrimaryKeyCheckStep
 
         elif step_type == 'extract-local':
             step_class = ExtractLocalStep
