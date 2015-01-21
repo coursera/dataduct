@@ -13,7 +13,7 @@ class Relation(object):
     def __str__(self):
         """Output for the print statement of the relation
         """
-        return self.sql_statement
+        return self.sql_statement.sql()
 
     def copy(self):
         """Create a copy of the relation object

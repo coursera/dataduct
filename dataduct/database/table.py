@@ -71,29 +71,33 @@ class Table(Relation):
             for col_name in constraint.get('pk_columns', list()):
                 self._columns[col_name].primary = True
 
-    @property
     def columns(self):
-        """Columns for the table
+        """Unsorted list of columns in the table
         """
         return self._columns.values()
+
+    def column(self, column_name):
+        """Get the column with the given name
+        """
+        return self._columns.get(column_name, None)
 
     @property
     def primary_keys(self):
         """Primary keys of the table
         """
-        return [c for c in self.columns if c.primary]
+        return [c for c in self.columns() if c.primary]
 
     @property
     def primary_key_names(self):
         """Primary keys of the table
         """
-        return [c.name for c in self.columns if c.primary]
+        return [c.name for c in self.columns() if c.primary]
 
     def foreign_key_references(self):
         """Get a list of all foreign key references from the table
         """
         result = list()
-        for column in self.columns:
+        for column in self.columns():
             if column.fk_table is not None:
                 result.append((
                     [column.name], column.fk_table, [column.fk_reference]))
@@ -123,10 +127,20 @@ class Table(Relation):
         table_name = self.table_name + '_temp'
 
         # Create a list of column definitions
-        columns = comma_seperated(
-            ['%s %s' %(c.column_name, c.column_type) for c in self.columns])
+        # We need to keep primary key constraints on the temp table
+        column_template = '{column_name} {column_type} {primary_text}'
+        columns = []
+        for column in self.columns():
+            primary_text = ''
+            if column.primary:
+                primary_text = 'PRIMARY KEY'
+            columns.append(
+                column_template.format(column_name=column.column_name,
+                                       column_type=column.column_type,
+                                       primary_text=primary_text))
 
-        # We don't need any constraints to be specified on the temp table
+        columns = comma_seperated(columns)
+
         sql = ['CREATE TEMPORARY TABLE %s ( %s )' % (table_name, columns)]
 
         return SqlScript(sql)
@@ -185,11 +199,11 @@ class Table(Relation):
     def _source_sql(self, source_relation):
         """Get the source sql based on the type of the source specified
         """
-        if not (isinstance(source_relation, Relation) or \
+        if not (isinstance(source_relation, Relation) or
                 isinstance(source_relation, SelectStatement)):
             raise ValueError('Source Relation must be a relation or select')
 
-        if len(self.columns) < len(source_relation.columns):
+        if len(self.columns()) < len(source_relation.columns()):
             raise ValueError('Source has more columns than destination')
 
         if isinstance(source_relation, SelectStatement):
@@ -202,7 +216,7 @@ class Table(Relation):
     def insert_script(self, source_relation):
         """Sql Script to insert into the table while avoiding PK violations
         """
-        sql = 'INSERT INTO %s (SELECT * FROM %s)' %(
+        sql = 'INSERT INTO %s (SELECT * FROM %s)' % (
             self.full_name, self._source_sql(source_relation))
         return SqlScript(sql)
 
@@ -214,11 +228,10 @@ class Table(Relation):
                 'Cannot delete matching rows from table with no primary keys')
 
         source_col_names, pk_names = [], []
-        source_columns = source_relation.columns
-        for i, column in enumerate(self.columns):
+        for column in self.columns():
             if column.primary:
                 pk_names.append(column.name)
-                source_col_names.append(source_columns[i].name)
+                source_col_names.append(column.name)
 
         where_condition = 'WHERE (%s) IN (SELECT DISTINCT %s FROM %s)' % (
             comma_seperated(pk_names), comma_seperated(source_col_names),
@@ -234,7 +247,7 @@ class Table(Relation):
                 'Cannot de-duplicate table with no primary keys')
 
         script = self.temporary_clone_script()
-        column_names = [c.name for c in self.columns]
+        column_names = [c.name for c in self.columns()]
 
         # Create a temporary clone from the script
         temp_table = self.__class__(script)
