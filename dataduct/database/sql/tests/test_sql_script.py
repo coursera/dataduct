@@ -15,8 +15,8 @@ class TestSqlScript(TestCase):
     def test_basic():
         """Basic test for Script declaration
         """
-        query = 'select \n 1;'
-        result = 'select 1;'
+        query = 'SELECT \n 1;'
+        result = 'SELECT 1;'
 
         eq_(SqlScript(query).sql(), result)
 
@@ -24,8 +24,8 @@ class TestSqlScript(TestCase):
     def test_sanatization():
         """Sanatization of comments
         """
-        query = 'select 1 -- test connect \n;'
-        result = 'select 1;'
+        query = 'SELECT 1 -- test connect \n;'
+        result = 'SELECT 1;'
 
         eq_(SqlScript(query).sql(), result)
 
@@ -33,8 +33,8 @@ class TestSqlScript(TestCase):
     def test_multiple_queries():
         """Raise error if multiple queries are passed
         """
-        query = 'select 1; select 2;'
-        result = 'select 1;\nselect 2;'
+        query = 'SELECT 1; SELECT 2;'
+        result = 'SELECT 1;\nSELECT 2;'
         eq_(SqlScript(query).sql(), result)
 
     @staticmethod
@@ -47,7 +47,7 @@ class TestSqlScript(TestCase):
     def test_length():
         """Length of sql script
         """
-        query = 'select 1; select 2;'
+        query = 'SELECT 1; SELECT 2;'
         result = 2
         eq_(len(SqlScript(query)), result)
 
@@ -56,31 +56,31 @@ class TestSqlScript(TestCase):
         """Appending a statement to sql script
         """
         script = SqlScript()
-        script.append(SqlStatement('Select 1'))
-        eq_(script.sql(), 'Select 1;')
+        script.append(SqlStatement('SELECT 1'))
+        eq_(script.sql(), 'SELECT 1;')
 
     @staticmethod
     def test_append_script():
         """Appending a script to sql script
         """
-        script = SqlScript('Select 1;')
-        script_new = SqlScript('Select 2;')
+        script = SqlScript('SELECT 1;')
+        script_new = SqlScript('SELECT 2;')
         script.append(script_new)
-        eq_(script.sql(), 'Select 1;\nSelect 2;')
+        eq_(script.sql(), 'SELECT 1;\nSELECT 2;')
 
     @staticmethod
     def test_append_string():
         """Appending a string to sql script
         """
-        script = SqlScript('Select 1;')
-        script.append('Select 2;')
-        eq_(script.sql(), 'Select 1;\nSelect 2;')
+        script = SqlScript('SELECT 1;')
+        script.append('SELECT 2;')
+        eq_(script.sql(), 'SELECT 1;\nSELECT 2;')
 
     @staticmethod
     def test_copy():
         """Copy a sql script
         """
-        script = SqlScript('Select 1;')
+        script = SqlScript('SELECT 1;')
         script_new = script.copy()
         eq_(script.sql(), script_new.sql())
 
@@ -91,14 +91,80 @@ class TestSqlScript(TestCase):
     def test_wrap_transaction():
         """Wrap the sql script in a transaction
         """
-        script = SqlScript('Select 1;').wrap_transaction()
-        result = 'BEGIN;\nSelect 1;\nCOMMIT;'
+        script = SqlScript('SELECT 1;').wrap_transaction()
+        result = 'BEGIN;\nSELECT 1;\nCOMMIT;'
         eq_(script.sql(), result)
 
     @staticmethod
     def test_paranthesis():
         """Test sql with paranthesis is sanatized correctly
         """
-        script = SqlScript('create table test_begin (session_id INTEGER);')
-        result = 'create table test_begin (session_id INTEGER);'
+        script = SqlScript('CREATE TABLE test_begin (session_id INTEGER);')
+        result = 'CREATE TABLE test_begin (session_id INTEGER);'
         eq_(script.sql(), result)
+
+    @staticmethod
+    def test_creates_table_success():
+        """Correctly recognizes that the sql creates a table
+        """
+        script = SqlScript('CREATE TABLE test_begin (session_id INTEGER);')
+        eq_(script.creates_table(), True)
+
+    @staticmethod
+    def test_creates_table_failure():
+        """Correctly recognizes that the sql does not create a table
+        """
+        script = SqlScript('SELECT * FROM test_begin;')
+        eq_(script.creates_table(), False)
+
+    @staticmethod
+    def test_creates_table_failure_not_first_statement():
+        """Correctly recognizes that the first sql statement does not create
+           a table
+        """
+        script = SqlScript("""
+            SELECT * FROM test_begin;
+            CREATE TABLE test_begin (session_id INTEGER);
+        """)
+        eq_(script.creates_table(), False)
+
+    @staticmethod
+    def test_creates_table_failure_bad_syntax():
+        """Correctly recognizes bad syntax when creating a view
+        """
+        script = SqlScript(
+            'CREATE TABLE test_begin AS (SELECT * FROM test_table);')
+        eq_(script.creates_table(), False)
+
+    @staticmethod
+    def test_creates_view_success():
+        """Correctly recognizes that the sql creates a view
+        """
+        script = SqlScript(
+            'CREATE VIEW test_begin AS (SELECT * FROM test_table);')
+        eq_(script.creates_view(), True)
+
+    @staticmethod
+    def test_creates_view_failure():
+        """Correctly recognizes that the sql does not create a view
+        """
+        script = SqlScript('SELECT * FROM test_begin;')
+        eq_(script.creates_table(), False)
+
+    @staticmethod
+    def test_creates_view_failure_not_first_statement():
+        """Correctly recognizes that the first sql statment does not create
+           a view
+        """
+        script = SqlScript("""
+            SELECT * FROM test_begin;
+            CREATE VIEW test_begin AS (SELECT * FROM test_table);
+        """)
+        eq_(script.creates_view(), False)
+
+    @staticmethod
+    def test_creates_view_failure_bad_syntax():
+        """Correctly recognizes bad syntax when creating a view
+        """
+        script = SqlScript('CREATE VIEW test_begin (session_id INTEGER);')
+        eq_(script.creates_view(), False)

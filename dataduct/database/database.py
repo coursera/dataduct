@@ -105,9 +105,9 @@ class Database(object):
             if relation.full_name in visited:
                 return True
             # Make a copy for immutability
-            visited = deepcopy(visited)
-            visited.append(relation.full_name)
-            if self.has_cycles(relation, visited):
+            visited_copy = deepcopy(visited)
+            visited_copy.append(relation.full_name)
+            if self.has_cycles(relation, visited_copy):
                 return True
         return False
 

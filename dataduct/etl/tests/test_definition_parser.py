@@ -3,17 +3,18 @@
 Tests for the definition parser functions
 """
 import unittest
+from nose.tools import raises
 
-class DefitionParserTests(unittest.TestCase):
+from ..etl_actions import read_pipeline_definition
+from ...utils.exceptions import ETLInputError
+
+
+class DefinitionParserTests(unittest.TestCase):
     """Tests for the definition parser.
     """
 
-    def setUp(self):
-        """Fixtures for the definition test
+    @raises(ETLInputError)
+    def test_yaml_extension(self):
+        """Test if the yaml extension check works correctly
         """
-        pass
-
-    def test_yaml_extention(self):
-        """Test if the pipeline extention is yaml
-        """
-        pass
+        read_pipeline_definition("name.txt")

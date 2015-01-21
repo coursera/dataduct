@@ -202,6 +202,7 @@ def main():
         help='Visualize only activities',
     )
 
+    # Visualize database parser declaration
     visualize_database_parser = \
         visualize_subparsers.add_parser(DATABASE_COMMAND)
     visualize_database_parser.add_argument(

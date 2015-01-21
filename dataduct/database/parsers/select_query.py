@@ -14,16 +14,15 @@ from .utils import _select
 from .utils import def_field
 
 
-def parse_select_base(statement):
+def parse_select_base(string):
     """Parse a select query and return the dependencies
 
     Args:
-        statement(SqlStatement): Input sql statement that should be parsed
+        string(str): Input string to be parsed
 
     Returns:
         result(list of str): List of dependent tables
     """
-    string = statement.sql()
 
     if string == '':
         return
@@ -34,16 +33,15 @@ def parse_select_base(statement):
     base_parser.parseString(string)
 
 
-def parse_select_dependencies(statement):
+def parse_select_dependencies(string):
     """Parse a select query and return the dependencies
 
     Args:
-        statement(SqlStatement): Input sql statement that should be parsed
+        string(str): Input string to be parsed
 
     Returns:
         result(list of str): List of dependent tables
     """
-    string = statement.sql()
 
     if string == '':
         return list()
@@ -59,16 +57,15 @@ def parse_select_dependencies(statement):
     return list(set(flattened_output))
 
 
-def parse_select_columns(statement):
+def parse_select_columns(string):
     """Parse a select query and return the columns
 
     Args:
-        statement(SqlStatement): Input sql statement that should be parsed
+        string(str): Input string to be parsed
 
     Returns:
         result(list of str): List of columns
     """
-    string = statement.sql()
 
     if string == '':
         return list()

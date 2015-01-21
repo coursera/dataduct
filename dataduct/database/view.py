@@ -13,9 +13,10 @@ class View(Relation):
         """Constructor for view class
         """
         super(View, self).__init__()
+
         if isinstance(sql, SqlScript):
             # Take the first statement and ignore the rest
-            sql = SqlScript.statements[0]
+            sql = sql.statements[0]
 
         parameters = parse_create_view(sql.sql())
 

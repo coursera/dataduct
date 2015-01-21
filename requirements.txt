@@ -9,3 +9,4 @@ PyYAML
 coverage
 pyparsing>=2
 pygraphviz
+testfixtures>=4.1.1
