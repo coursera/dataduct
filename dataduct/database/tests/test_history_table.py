@@ -47,14 +47,16 @@ class TestHistoryTable(TestCase):
     def test_history_script(self):
         """Diff comparison of generated SQL script
         """
-        sql = (
+        expected_script = [
+            # Create temp table
             'CREATE TEMPORARY TABLE test_table_temp ( '
                 'id INTEGER,'
                 'value VARCHAR(25), '
                 'PRIMARY KEY( id ) '
-            ');\n'
-            'INSERT INTO test_table_temp (SELECT * FROM test_table);\n'
-
+            ')',
+            # Update temp table with source table's entries
+            'INSERT INTO test_table_temp (SELECT * FROM test_table)',
+            # Expire updated rows
             'UPDATE test_history_table '
                 'SET expiration_ts = SYSDATE - INTERVAL \'0.000001 seconds\' '
             'FROM test_table '
@@ -70,16 +72,16 @@ class TestHistoryTable(TestCase):
                     'AND test_table.value IS NULL '
                 ') '
             ') '
-            'AND expiration_ts = \'9999-12-31 23:59:59.999999\';\n'
-
+            'AND expiration_ts = \'9999-12-31 23:59:59.999999\'',
+            # Expire deleted rows
             'UPDATE test_history_table '
                 'SET expiration_ts = SYSDATE - INTERVAL \'0.000001 seconds\' '
             'WHERE ( id ) NOT IN ( '
                 'SELECT id '
                 'FROM test_table '
             ') '
-            'AND expiration_ts = \'9999-12-31 23:59:59.999999\';\n'
-
+            'AND expiration_ts = \'9999-12-31 23:59:59.999999\'',
+            # Delete updated rows from temp table
             'DELETE FROM test_table_temp '
             'WHERE (id) IN ('
                 'SELECT DISTINCT id '
@@ -88,8 +90,8 @@ class TestHistoryTable(TestCase):
                     'FROM test_history_table '
                     'WHERE expiration_ts = \'9999-12-31 23:59:59.999999\''
                 ')'
-            ');\n'
-
+            ')',
+            # Copy temp table rows into source table
             'INSERT INTO test_history_table ('
                 'SELECT * FROM ('
                     'SELECT SYSDATE, '
@@ -98,8 +100,12 @@ class TestHistoryTable(TestCase):
                         'value '
                     'FROM test_table_temp'
                 ')'
-            ');\n'
+            ')',
+            # Drop temp table
+            'DROP TABLE IF EXISTS test_table_temp CASCADE']
 
-            'DROP TABLE IF EXISTS test_table_temp CASCADE;')
-        eq_(self.basic_history_table.update_history_script(
-            self.basic_table).sql(), sql)
+        actual_script = self.basic_history_table.update_history_script(
+            self.basic_table)
+        eq_(len(actual_script), len(expected_script))
+        for actual, expected in zip(actual_script, expected_script):
+            eq_(actual.sql(), expected)

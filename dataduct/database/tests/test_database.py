@@ -182,35 +182,42 @@ class TestDatabase(TestCase):
                                        self.second_table_dependent])
         database.sorted_relations()
 
-    def _test_database_scripts(self, function_name, expected_sql, **kwargs):
-        """Generate SQL scripts with a preset database
+    @staticmethod
+    def _compare_scripts(actual_script, expected_script):
+        """Validates a SqlScript chain
         """
-        func = getattr(self.script_database, function_name)
-        eq_(func(**kwargs).sql(), expected_sql)
+        assert(len(actual_script), len(expected_script))
+        for actual, expected in zip(actual_script, expected_script):
+            eq_(actual.sql(), expected)
 
     def test_database_create_relations_script(self):
         """Creating relations in the database
         """
-
-        result = ('CREATE TABLE test_table ( id INTEGER );\n'
-                  'CREATE VIEW test_view AS ( SELECT id FROM test_table );')
-        self._test_database_scripts('create_relations_script', result)
+        result = ['CREATE TABLE test_table ( id INTEGER )',
+                  'CREATE VIEW test_view AS ( SELECT id FROM test_table )']
+        self._compare_scripts(
+            self.script_database.create_relations_script(),
+            result)
 
     def test_database_drop_relations_script(self):
         """Dropping relations in the database
         """
-        result = ('DROP TABLE IF EXISTS test_table CASCADE;\n'
-                  'DROP VIEW IF EXISTS test_view CASCADE;')
-        self._test_database_scripts('drop_relations_script', result)
+        result = ['DROP TABLE IF EXISTS test_table CASCADE',
+                  'DROP VIEW IF EXISTS test_view CASCADE']
+        self._compare_scripts(
+            self.script_database.drop_relations_script(),
+            result)
 
     def test_database_recreate_relations_script(self):
         """Recreating relations in the database
         """
-        result = ('DROP TABLE IF EXISTS test_table CASCADE;\n'
-                  'CREATE TABLE test_table ( id INTEGER );\n'
-                  'DROP VIEW IF EXISTS test_view CASCADE;\n'
-                  'CREATE VIEW test_view AS ( SELECT id FROM test_table );')
-        self._test_database_scripts('recreate_relations_script', result)
+        result = ['DROP TABLE IF EXISTS test_table CASCADE',
+                  'CREATE TABLE test_table ( id INTEGER )',
+                  'DROP VIEW IF EXISTS test_view CASCADE',
+                  'CREATE VIEW test_view AS ( SELECT id FROM test_table )']
+        self._compare_scripts(
+            self.script_database.recreate_relations_script(),
+            result)
 
     def test_database_recreate_table_dependencies(self):
         """Recreating table dependencies
@@ -222,9 +229,11 @@ class TestDatabase(TestCase):
         database = Database(relations=[self.first_table_dependent,
                                        self.second_table, view])
 
-        result = ('ALTER TABLE first_table ADD FOREIGN KEY (id2) '
-                  'REFERENCES second_table (id2);\n'
-                  'DROP VIEW IF EXISTS view CASCADE;\n'
-                  'CREATE VIEW view AS ( SELECT id1 FROM second_table );')
-        eq_(database.recreate_table_dependencies('second_table').sql(), result)
+        result = ['ALTER TABLE first_table ADD FOREIGN KEY (id2) '
+                  'REFERENCES second_table (id2)',
+                  'DROP VIEW IF EXISTS view CASCADE',
+                  'CREATE VIEW view AS ( SELECT id1 FROM second_table )']
+        self._compare_scripts(
+            database.recreate_table_dependencies('second_table'),
+            result)
         eq_(database.recreate_table_dependencies('first_table').sql(), ';')
