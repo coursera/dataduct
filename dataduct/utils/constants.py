@@ -26,3 +26,5 @@ SCRIPT_RUNNER_PATH = os.path.join(SCRIPTS_DIRECTORY, 'script_runner.py')
 DEPENDENCY_SCRIPT_PATH = os.path.join(SCRIPTS_DIRECTORY,
                                       'pipeline_dependency_check.py')
 PK_CHECK_SCRIPT_PATH = os.path.join(SCRIPTS_DIRECTORY, 'primary_key_test.py')
+COLUMN_CHECK_SCRIPT_PATH = os.path.join(SCRIPTS_DIRECTORY,
+                                        'column_check_test.py')

@@ -1,0 +1,10 @@
+name : example_column_check
+frequency : one-time
+load_time: 01:00
+
+description : Example for the column-check step
+
+steps:
+-   step_type: column-check
+    source_table_definition: examples/tables/dev.test_table.sql
+    destination_table_definition: examples/tables/dev.test_table2.sql
