@@ -127,21 +127,15 @@ class Table(Relation):
         table_name = self.table_name + '_temp'
 
         # Create a list of column definitions
-        # We need to keep primary key constraints on the temp table
-        column_template = '{column_name} {column_type} {primary_text}'
-        columns = []
-        for column in self.columns():
-            primary_text = ''
-            if column.primary:
-                primary_text = 'PRIMARY KEY'
-            columns.append(
-                column_template.format(column_name=column.column_name,
-                                       column_type=column.column_type,
-                                       primary_text=primary_text))
+        columns = comma_seperated(
+            ['%s %s' % (c.column_name, c.column_type) for c in self.columns()])
 
-        columns = comma_seperated(columns)
-
-        sql = ['CREATE TEMPORARY TABLE %s ( %s )' % (table_name, columns)]
+        sql = """CREATE TEMPORARY TABLE {table_name} (
+                    {columns},
+                    PRIMARY KEY( {primary_keys} )
+              )""".format(table_name=table_name,
+                          columns=columns,
+                          primary_keys=comma_seperated(self.primary_key_names))
 
         return SqlScript(sql)
 

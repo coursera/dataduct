@@ -49,8 +49,9 @@ class TestHistoryTable(TestCase):
         """
         sql = (
             'CREATE TEMPORARY TABLE test_table_temp ( '
-                'id INTEGER PRIMARY KEY,'
-                'value VARCHAR(25) '
+                'id INTEGER,'
+                'value VARCHAR(25), '
+                'PRIMARY KEY( id ) '
             ');\n'
             'INSERT INTO test_table_temp (SELECT * FROM test_table);\n'
 

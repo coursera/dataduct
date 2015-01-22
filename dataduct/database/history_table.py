@@ -43,7 +43,7 @@ class HistoryTable(Table):
         return SelectStatement("""
             SELECT {selected_columns}
             FROM {history_name}
-            WHERE {expiration_column} = \'{expiration_max}\'
+            WHERE {expiration_column} = '{expiration_max}'
             """.format(selected_columns=', '.join(selected_columns),
                        history_name=self.full_name,
                        expiration_column=HIST_EXPIRATION_COLUMN,
@@ -189,7 +189,7 @@ class HistoryTable(Table):
 
         # Insert the remaining rows into destination
         select_statement = SelectStatement("""
-            SELECT SYSDATE, \'{expiration_max}\'::TIMESTAMP, {columns}
+            SELECT SYSDATE, '{expiration_max}'::TIMESTAMP, {columns}
             FROM {temp_table_name}
             """.format(expiration_max=HIST_EXPIRATION_MAX,
                        columns=', '.join(
