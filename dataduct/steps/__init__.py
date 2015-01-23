@@ -11,3 +11,4 @@ from .sql_command import SqlCommandStep
 from .transform import TransformStep
 from .qa_transform import QATransformStep
 from .primary_key_check import PrimaryKeyCheckStep
+from .count_check import CountCheckStep

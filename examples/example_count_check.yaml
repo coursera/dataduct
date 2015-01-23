@@ -1,0 +1,10 @@
+name : example_count_check
+frequency : one-time
+load_time : 01:00
+
+description : Example for the count-check step
+
+steps:
+-   step_type: count-check
+    source_script: "SELECT * FROM dev.test_table;"
+    destination_table_definition: examples/tables/dev.test_table2.sql
