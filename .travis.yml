@@ -40,5 +40,3 @@ before_script:
 script: nosetests --with-coverage --cover-package=. --cover-erase
 after_success:
   coveralls
-
-# TODO: Setup config file so that we can actually run this
