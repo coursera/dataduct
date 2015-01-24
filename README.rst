@@ -28,6 +28,7 @@ limitations under the License.
 .. |build-status|
    image:: https://travis-ci.org/coursera/dataduct.svg?branch=develop
     :target: https://travis-ci.org/coursera/dataduct
+
 .. |coverage-status|
    image:: https://coveralls.io/repos/coursera/dataduct/badge.svg?branch=develop
     :target: https://coveralls.io/r/coursera/dataduct?branch=develop
