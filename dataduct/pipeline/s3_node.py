@@ -53,7 +53,8 @@ class S3Node(PipelineObject):
             raise ETLInputError('Mismatched type for S3 path')
 
         additional_args = {}
-        if isinstance(s3_object, S3Path) and s3_object.is_directory:
+        if (isinstance(s3_object, S3Path) and s3_object.is_directory) or \
+            (isinstance(s3_object, S3Directory)):
             additional_args['directoryPath'] = s3_object
         else:
             additional_args['filePath'] = s3_object
