@@ -15,6 +15,11 @@ class Relation(object):
         """
         return self.sql_statement
 
+    def sql(self):
+        """SqlStatement for the table object
+        """
+        return self.sql_statement
+
     def copy(self):
         """Create a copy of the relation object
         """
