@@ -3,21 +3,32 @@ ETL step wrapper for creating an S3 node for input
 """
 from .etl_step import ETLStep
 from ..s3 import S3Path
+from ..utils.helpers import exactly_one
+from ..utils.exceptions import ETLInputError
 
 
 class ExtractS3Step(ETLStep):
     """ExtractS3 Step class that helps get data from S3
     """
 
-    def __init__(self, uri, **kwargs):
+    def __init__(self, directory_uri=None, file_uri=None, **kwargs):
         """Constructor for the ExtractS3Step class
 
         Args:
-            uri(str): s3 path for s3 data
+            directory_uri(str): s3 path for s3 data directory
+            file_uri(str): s3 path for s3 data file
             **kwargs(optional): Keyword arguments directly passed to base class
         """
+        if not exactly_one(directory_uri, file_uri):
+            raise ETLInputError('One of file_uri or directory_uri needed')
+
         super(ExtractS3Step, self).__init__(**kwargs)
-        self._output = self.create_s3_data_node(S3Path(uri=uri))
+
+        if directory_uri:
+            s3_path = S3Path(uri=directory_uri, is_directory=True)
+        else:
+            s3_path = S3Path(uri=file_uri)
+        self._output = self.create_s3_data_node(s3_path)
 
     @classmethod
     def arguments_processor(cls, etl, input_args):

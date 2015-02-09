@@ -26,7 +26,7 @@ class PrimaryKeyCheckStep(QATransformStep):
         with open(parse_path(table_definition)) as f:
             table_def_string = f.read()
 
-        # We initisialize the table object to check valid strings
+        # We initialize the table object to check valid strings
         script_arguments = ['--table=%s' % Table(table_def_string).sql()]
 
         steps_path = os.path.abspath(os.path.dirname(__file__))

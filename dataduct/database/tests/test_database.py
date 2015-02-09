@@ -194,7 +194,8 @@ class TestDatabase(TestCase):
 
         result = ('CREATE TABLE test_table ( id INTEGER );\n'
                   'CREATE VIEW test_view AS ( SELECT id FROM test_table );')
-        self._test_database_scripts('create_relations_script', result)
+        self._test_database_scripts('create_relations_script', result,
+                                    grant_permissions=False)
 
     def test_database_drop_relations_script(self):
         """Dropping relations in the database
@@ -210,7 +211,8 @@ class TestDatabase(TestCase):
                   'CREATE TABLE test_table ( id INTEGER );\n'
                   'DROP VIEW IF EXISTS test_view CASCADE;\n'
                   'CREATE VIEW test_view AS ( SELECT id FROM test_table );')
-        self._test_database_scripts('recreate_relations_script', result)
+        self._test_database_scripts('recreate_relations_script', result,
+                                    grant_permissions=False)
 
     def test_database_recreate_table_dependencies(self):
         """Recreating table dependencies
@@ -226,5 +228,7 @@ class TestDatabase(TestCase):
                   'REFERENCES second_table (id2);\n'
                   'DROP VIEW IF EXISTS view CASCADE;\n'
                   'CREATE VIEW view AS ( SELECT id1 FROM second_table );')
-        eq_(database.recreate_table_dependencies('second_table').sql(), result)
-        eq_(database.recreate_table_dependencies('first_table').sql(), ';')
+        eq_(database.recreate_table_dependencies('second_table', False).sql(),
+            result)
+        eq_(database.recreate_table_dependencies('first_table', False).sql(),
+            ';')
