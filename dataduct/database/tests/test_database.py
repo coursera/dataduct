@@ -186,7 +186,7 @@ class TestDatabase(TestCase):
     def _compare_scripts(actual_script, expected_script):
         """Validates a SqlScript chain
         """
-        assert(len(actual_script), len(expected_script))
+        assert len(actual_script) == len(expected_script)
         for actual, expected in zip(actual_script, expected_script):
             eq_(actual.sql(), expected)
 
@@ -196,7 +196,7 @@ class TestDatabase(TestCase):
         result = ['CREATE TABLE test_table ( id INTEGER )',
                   'CREATE VIEW test_view AS ( SELECT id FROM test_table )']
         self._compare_scripts(
-            self.script_database.create_relations_script(),
+            self.script_database.create_relations_script(False),
             result)
 
     def test_database_drop_relations_script(self):
@@ -216,7 +216,7 @@ class TestDatabase(TestCase):
                   'DROP VIEW IF EXISTS test_view CASCADE',
                   'CREATE VIEW test_view AS ( SELECT id FROM test_table )']
         self._compare_scripts(
-            self.script_database.recreate_relations_script(),
+            self.script_database.recreate_relations_script(False),
             result)
 
     def test_database_recreate_table_dependencies(self):
@@ -234,6 +234,7 @@ class TestDatabase(TestCase):
                   'DROP VIEW IF EXISTS view CASCADE',
                   'CREATE VIEW view AS ( SELECT id1 FROM second_table )']
         self._compare_scripts(
-            database.recreate_table_dependencies('second_table'),
+            database.recreate_table_dependencies('second_table', False),
             result)
-        eq_(database.recreate_table_dependencies('first_table').sql(), ';')
+        eq_(database.recreate_table_dependencies('first_table', False).sql(),
+            ';')

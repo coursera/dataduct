@@ -15,6 +15,11 @@ class Relation(object):
         """
         return self.sql_statement.sql()
 
+    def sql(self):
+        """SqlStatement for the table object
+        """
+        return self.sql_statement
+
     def copy(self):
         """Create a copy of the relation object
         """
@@ -47,6 +52,7 @@ class Relation(object):
 
         if group is not None:
             result.append(base + 'GROUP %s' % group)
+        return result
 
     def grant_script(self):
         """Grant the permissions based on the config

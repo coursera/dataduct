@@ -174,7 +174,7 @@ class HistoryTable(Table):
 
         # Create a temporary copy of the source relation as another table
         temp_table = Table(source.temporary_clone_script())
-        result = temp_table.create_script()
+        result = temp_table.create_script(grant_permissions=False)
 
         # Insert the values of the original table into the temp table
         result.append(temp_table.insert_script(source))
