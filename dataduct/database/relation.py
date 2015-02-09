@@ -52,6 +52,7 @@ class Relation(object):
 
         if group is not None:
             result.append(base + 'GROUP %s' % group)
+        return result
 
     def grant_script(self):
         """Grant the permissions based on the config

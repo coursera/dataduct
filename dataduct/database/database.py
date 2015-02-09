@@ -167,7 +167,7 @@ class Database(object):
         return self.relations_script(
             'recreate_script', grant_permissions=grant_permissions)
 
-    def recreate_table_dependencies(self, table_name):
+    def recreate_table_dependencies(self, table_name, grant_permissions=True):
         """Recreate the dependencies for a particular table from the database
         """
         result = SqlScript()
@@ -190,7 +190,8 @@ class Database(object):
             if isinstance(relation, View):
                 # Recreate view if pointing to table
                 if table_name in relation.dependencies:
-                    result.append(relation.recreate_script())
+                    result.append(relation.recreate_script(
+                        grant_permissions=grant_permissions))
         return result
 
     @staticmethod
