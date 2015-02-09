@@ -200,7 +200,7 @@ class Database(object):
         """
         columns = list()
         row = '<TR><TD ALIGN="left" PORT="{col_name}">{col_name}{pk}</TD></TR>'
-        for column in sorted(relation.columns, key=lambda x: x.position):
+        for column in sorted(relation.columns(), key=lambda x: x.position):
             columns.append(row.format(col_name=column.name,
                                       pk=' (PK)' if column.primary else ''))
 
