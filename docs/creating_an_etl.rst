@@ -162,7 +162,7 @@ S3 node.
 .. code:: yaml
 
     -   step_type: extract-s3
-        uri: s3://elasticmapreduce/samples/wordcount/wordSplitter.py
+        file_uri: s3://elasticmapreduce/samples/wordcount/wordSplitter.py
 
 load-redshift
 ^^^^^^^^^^^^^

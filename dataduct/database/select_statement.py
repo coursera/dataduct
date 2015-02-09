@@ -27,7 +27,6 @@ class SelectStatement(SqlStatement):
         """
         return self._dependencies
 
-    @property
     def columns(self):
         """Table columns of the select statement
         """
