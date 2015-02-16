@@ -18,11 +18,11 @@ class Check(object):
         """
         self.name = name
         self.tolerance = tolerance
-        self.alert_func = self.get_sns_alert_function()
         if sns_topic_arn is None:
             config = Config()
-            sns_topic_arn = config.etl['SNS_TOPIC_ARN_WARNING']
+            sns_topic_arn = config.etl.get('SNS_TOPIC_ARN_WARNING', None)
         self.sns_topic_arn = sns_topic_arn
+        self.alert_func = self.get_sns_alert_function()
 
     def get_sns_alert_function(self):
         """Get a lamdda function for SNS alert publishing

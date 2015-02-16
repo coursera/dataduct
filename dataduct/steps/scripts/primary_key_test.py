@@ -18,7 +18,8 @@ def main():
 
     parser.add_argument('--table', dest='table', required=True)
     parser.add_argument('--sns_topic_arn', dest='sns_topic_arn', default=None)
-    parser.add_argument('--test_name', dest='test_name', default="Check Column")
+    parser.add_argument('--test_name', dest='test_name',
+                        default="Check Primary Key")
 
     args = parser.parse_args()
 
