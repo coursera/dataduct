@@ -24,7 +24,7 @@ class ColumnCheckStep(QATransformStep):
     def __init__(self, id, source_sql, source_host,
                  destination_table_definition=None,
                  destination_sql=None, sql_tail_for_source=None,
-                 sample_size=100, tolerance=0.01, script_arguments=None,
+                 sample_size=100, tolerance=1.0, script_arguments=None,
                  **kwargs):
         """Constructor for the ColumnCheckStep class
 

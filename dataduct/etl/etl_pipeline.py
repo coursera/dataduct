@@ -30,7 +30,9 @@ from ..steps import SqlCommandStep
 from ..steps import TransformStep
 from ..steps import QATransformStep
 from ..steps import PrimaryKeyCheckStep
+from ..steps import CountCheckStep
 from ..steps import ColumnCheckStep
+
 
 from ..s3 import S3File
 from ..s3 import S3Path
@@ -436,6 +438,9 @@ class ETLPipeline(object):
 
         elif step_type == 'primary-key-check':
             step_class = PrimaryKeyCheckStep
+
+        elif step_type == 'count-check':
+            step_class = CountCheckStep
 
         elif step_type == 'column-check':
             step_class = ColumnCheckStep
