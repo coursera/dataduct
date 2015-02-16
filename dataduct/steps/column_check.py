@@ -4,10 +4,16 @@ import os
 
 from .qa_transform import QATransformStep
 from ..config import Config
+from ..database import SqlScript
+from ..database import Table
+from ..database import SelectStatement
 from ..utils import constants as const
 from ..utils.helpers import parse_path
+from ..utils.helpers import exactly_one
+from ..utils.exceptions import ETLInputError
 
 config = Config()
+COLUMN_TEMPLATE = "COALESCE(CONCAT({column_name}, ''), '')"
 
 
 class ColumnCheckStep(QATransformStep):
@@ -15,28 +21,115 @@ class ColumnCheckStep(QATransformStep):
     populated with the correct values
     """
 
-    def __init__(self, id, source_table_definition,
-                 destination_table_definition, **kwargs):
+    def __init__(self, id, source_sql, source_host,
+                 destination_table_definition=None,
+                 destination_sql=None, sql_tail_for_source=None,
+                 sample_size=100, tolerance=0.01, script_arguments=None,
+                 **kwargs):
         """Constructor for the ColumnCheckStep class
 
         Args:
-            source_table_definition(file):
-                table definition for the source table
             destination_table_definition(file):
                 table definition for the destination table
             **kwargs(optional): Keyword arguments directly passed to base class
         """
-        with open(parse_path(source_table_definition)) as f:
-            source_table_string = f.read()
-        with open(parse_path(destination_table_definition)) as f:
-            destination_table_string = f.read()
 
-        script_arguments = ['--source_table=%s' % source_table_string,
-                            '--destination_table=%s'
-                            % destination_table_string]
+        if not exactly_one(destination_table_definition, destination_sql):
+            raise ETLInputError('One of dest table or dest sql needed')
+
+        if script_arguments is None:
+            script_arguments = list()
+
+        if sql_tail_for_source is None:
+            sql_tail_for_source = ''
+
+        # Get the EDW column SQL
+        dest_sql, primary_key_index = self.convert_destination_to_column_sql(
+            destination_table_definition, destination_sql)
+
+        src_sql = self.convert_source_to_column_sql(source_sql,
+                                                    primary_key_index,
+                                                    sql_tail_for_source)
+
+        script_arguments.extend([
+            '--sample_size=%s' % str(sample_size),
+            '--tolerance=%s' % str(tolerance),
+            '--destination_sql=%s' % dest_sql,
+            '--source_sql=%s' % src_sql,
+            '--source_host=%s' % source_host
+        ])
 
         steps_path = os.path.abspath(os.path.dirname(__file__))
         script = os.path.join(steps_path, const.COLUMN_CHECK_SCRIPT_PATH)
 
         super(ColumnCheckStep, self).__init__(
             id=id, script=script, script_arguments=script_arguments, **kwargs)
+
+    @staticmethod
+    def convert_destination_to_column_sql(destination_table_definition=None,
+                                          destination_sql=None):
+        """Convert the destination query into generic structure to compare
+        """
+        if destination_table_definition is not None:
+            with open(parse_path(destination_table_definition)) as f:
+                destination_table_string = f.read()
+
+            destination_table = Table(SqlScript(destination_table_string))
+            destination_columns = destination_table.columns()
+            primary_key_index, primary_keys = zip(*[
+                (idx, col.name)
+                for idx, col in enumerate(destination_columns.columns())
+                if col.primary])
+
+            if len(destination_columns) == len(primary_key_index):
+                raise ValueError('Cannot check table without non-pk columns')
+
+            column_string = '||'.join(
+                [COLUMN_TEMPLATE.format(column_name=c.name)
+                 for c in destination_columns if not c.primary])
+            concatenated_column = '( {columns} )'.format(columns=column_string)
+
+            destination_sql = '''SELECT {primary_keys}, {concat_column}
+                                 FROM {table_name}
+                                 WHERE ({primary_keys}) IN PRIMARY_KEY_SET
+                              '''.format(primary_keys=','.join(primary_keys),
+                                         concat_column=concatenated_column,
+                                         table_name=destination_table.full_name)
+
+        elif destination_sql is not None:
+            select_stmnt = SelectStatement(destination_sql)
+            primary_key_index = range(len(select_stmnt.columns()))[:-1]
+
+        return SqlScript(destination_sql).sql(), primary_key_index
+
+    @staticmethod
+    def convert_source_to_column_sql(source_sql, primary_key_index,
+                                     sql_tail_for_source):
+        """Convert the source query into generic structure to compare
+        """
+        origin_sql = SelectStatement(SqlScript(source_sql).statements[0].sql())
+        column_names = [x.name for x in origin_sql.columns()]
+
+        non_primary_key_index = [idx for idx in range(len(column_names))
+                                 if idx not in primary_key_index]
+
+        primary_key_str = ','.join(
+            [column_names[idx] for idx in primary_key_index])
+
+        if len(column_names) == len(primary_key_index):
+            raise ValueError('Cannot check column on table with no pk columns')
+
+        column_string = ','.join(
+            [COLUMN_TEMPLATE.format(column_name=column_names[idx])
+             for idx in non_primary_key_index])
+        concatenated_column = ('CONCAT(%s)' % column_string)
+
+        template = '''SELECT {primary_keys}, {concat_column}
+                      FROM ({origin_sql}) AS origin {sql_tail}'''
+
+        query = template.format(primary_keys=primary_key_str,
+                                concat_column=concatenated_column,
+                                origin_sql=origin_sql.sql(),
+                                sql_tail=sql_tail_for_source)
+
+        return SqlScript(query).sql()

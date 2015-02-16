@@ -15,10 +15,12 @@ class TestHistoryTable(TestCase):
 
     @staticmethod
     def _create_history_table(sql):
+        """Helper function"""
         return HistoryTable(SqlScript(sql))
 
     @staticmethod
     def _create_table(sql):
+        """Helper function"""
         return Table(SqlScript(sql))
 
     def setUp(self):
