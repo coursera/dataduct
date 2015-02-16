@@ -10,7 +10,6 @@ import re
 import pandas.io.sql as pdsql
 from dataduct.data_access import redshift_connection
 from dataduct.data_access import rds_connection
-from dataduct.database import SqlScript
 from dataduct.qa import ColumnCheck
 
 
@@ -97,7 +96,7 @@ def main():
                         required=True)
     parser.add_argument('--sample_size', dest='sample_size', required=True)
     parser.add_argument('--tolerance', type=float, dest='tolerance',
-                        default=0.1)
+                        default=1.0)
     parser.add_argument('--sns_topic_arn', dest='sns_topic_arn', default=None)
     parser.add_argument('--test_name', dest='test_name',
                         default='Check Column')

@@ -6,7 +6,7 @@ description : Example for the column-check step
 
 steps:
 -   step_type: column-check
-    source_sql: "SELECT id, name FROM networks_network"
+    source_sql: "SELECT id, NAME FROM networks_network;"
     source_host: maestro
     destination_sql: "SELECT network_id, network_name FROM prod.networks"
     sql_tail_for_source: "ORDER BY RAND() LIMIT LIMIT_PLACEHOLDER"
