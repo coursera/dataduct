@@ -7,11 +7,11 @@ description : Example for the transform step with multiple outputs
 steps:
 -   step_type: extract-local
     name: step1_a
-    path: examples/resources/test_table1.tsv
+    path: data/test_table1.tsv
 
 -   step_type: extract-local
     name: step1_b
-    path: examples/resources/test_table2.tsv
+    path: data/test_table2.tsv
 
 -   step_type: transform
     command: cp -r $INPUT1_STAGING_DIR/* $OUTPUT1_STAGING_DIR
@@ -24,7 +24,7 @@ steps:
 
 -   step_type: transform
     name: profiler_1
-    script: examples/scripts/s3_profiler.py
+    script: scripts/s3_profiler.py
     input_node: step2_a
     script_arguments:
     -   --input=INPUT1_STAGING_DIR
@@ -33,7 +33,7 @@ steps:
 
 -   step_type: transform
     name: profiler_2
-    script: examples/scripts/s3_profiler.py
+    script: scripts/s3_profiler.py
     input_node: step2_b
     script_arguments:
     -   --input=INPUT1_STAGING_DIR

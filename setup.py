@@ -1,12 +1,12 @@
 """
-Setup file for installation of the etllib code
+Setup file for installation of the dataduct code
 """
 from setuptools import setup
 from setuptools import find_packages
 
 setup(
     name='dataduct',
-    version='0.1.0',
+    version='0.2.0',
     author='Coursera Inc.',
     packages=find_packages(
         exclude=["*.tests", "*.tests.*", "tests.*", "tests"]),
@@ -23,6 +23,9 @@ setup(
         'pandas',
         'psycopg2',
         'MySQL-python',
+        'pyparsing',
+        'testfixtures',
+        'sphinx_rtd_theme'
     ],
     scripts=['bin/dataduct'],
     classifiers=[

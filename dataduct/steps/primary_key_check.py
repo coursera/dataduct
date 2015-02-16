@@ -5,6 +5,7 @@ import os
 
 from .qa_transform import QATransformStep
 from ..database import Table
+from ..database import SqlStatement
 from ..config import Config
 from ..utils import constants as const
 from ..utils.helpers import parse_path
@@ -27,7 +28,8 @@ class PrimaryKeyCheckStep(QATransformStep):
             table_def_string = f.read()
 
         # We initialize the table object to check valid strings
-        script_arguments = ['--table=%s' % Table(table_def_string).sql()]
+        script_arguments = [
+            '--table=%s' % Table(SqlStatement(table_def_string)).sql()]
 
         steps_path = os.path.abspath(os.path.dirname(__file__))
         script = os.path.join(steps_path, const.PK_CHECK_SCRIPT_PATH)

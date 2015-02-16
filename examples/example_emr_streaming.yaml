@@ -10,14 +10,14 @@ description : Example for the emr_streaming step
 
 steps:
 -   step_type: extract-local
-    path: examples/resources/word_data.txt
+    path: data/word_data.txt
 
 -   step_type: emr-streaming
-    mapper: examples/scripts/word_mapper.py
-    reducer: examples/scripts/word_reducer.py
+    mapper: scripts/word_mapper.py
+    reducer: scripts/word_reducer.py
 
 -   step_type: transform
-    script: examples/scripts/s3_profiler.py
+    script: scripts/s3_profiler.py
     script_arguments:
     -   --input=INPUT1_STAGING_DIR
     -   --output=OUTPUT1_STAGING_DIR

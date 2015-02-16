@@ -225,12 +225,21 @@ class ETLStep(object):
         # create s3 node for output
         output_node = self.create_s3_data_node(dest_uri)
 
+        # Create new input node if file and not directory
+        if input_node.path().is_directory:
+            new_input_node = input_node
+        else:
+            uri = "/".join(input_node.path().uri.split("/")[:-1])
+            new_input_node = self.create_s3_data_node(
+                S3Path(uri=uri, is_directory=True))
+            new_input_node.add_dependency_node(input_node)
+
         # create copy activity
         activity = self.create_pipeline_object(
             CopyActivity,
             schedule=self.schedule,
             resource=self.resource,
-            input_node=input_node,
+            input_node=new_input_node,
             output_node=output_node,
             max_retries=self.max_retries
         )
