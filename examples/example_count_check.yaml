@@ -6,7 +6,7 @@ description : Example for the count-check step
 
 steps:
 -   step_type: count-check
-    source_sql: "SELECT id, NAME FROM networks_network;"
+    source_sql: "SELECT id, name FROM networks_network;"
     source_host: maestro
     destination_sql: "SELECT network_id, network_name FROM prod.networks"
     tolerance: 2.0
