@@ -28,3 +28,5 @@ DEPENDENCY_SCRIPT_PATH = os.path.join(SCRIPTS_DIRECTORY,
 PK_CHECK_SCRIPT_PATH = os.path.join(SCRIPTS_DIRECTORY, 'primary_key_test.py')
 COUNT_CHECK_SCRIPT_PATH = os.path.join(SCRIPTS_DIRECTORY,
                                        'count_check_test.py')
+COLUMN_CHECK_SCRIPT_PATH = os.path.join(SCRIPTS_DIRECTORY,
+                                        'column_check_test.py')

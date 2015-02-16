@@ -5,14 +5,10 @@ from ..config import Config
 from .utils import render_output
 
 
-config = Config()
-SNS_TOPIC_ARN_WARNING = config.etl['SNS_TOPIC_ARN_WARNING']
-
-
 class Check(object):
     """Base class for QA steps that provides template function for publishing
     """
-    def __init__(self, name, tolerance=0, sns_topic_arn=SNS_TOPIC_ARN_WARNING):
+    def __init__(self, name, tolerance=0, sns_topic_arn=None):
         """Constructor for Check class
 
         Args:
@@ -21,8 +17,11 @@ class Check(object):
             sns_topic_arn(str): sns topic arn for QA test
         """
         self.name = name
-        self.sns_topic_arn = sns_topic_arn
         self.tolerance = tolerance
+        if sns_topic_arn is None:
+            config = Config()
+            sns_topic_arn = config.etl.get('SNS_TOPIC_ARN_WARNING', None)
+        self.sns_topic_arn = sns_topic_arn
         self.alert_func = self.get_sns_alert_function()
 
     def get_sns_alert_function(self):
