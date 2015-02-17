@@ -1,9 +1,13 @@
 """
 Shared utility functions
 """
+from boto.datapipeline import regions
 from boto.datapipeline.layer1 import DataPipelineConnection
 from time import sleep
+from dataduct.config import Config
 
+config = Config()
+REGION = config.etl.get('REGION')
 
 def _update_sleep_time(last_time=None):
     """Expotentially decay sleep times between calls incase of failures
@@ -102,7 +106,8 @@ def list_pipeline_instances(pipeline_id, conn=None, increment=25):
         instances(list): list of pipeline instances
     """
     if conn is None:
-        conn = DataPipelineConnection()
+        region = next((x for x in regions() if x.name == str(REGION).lower()), None)
+        conn = DataPipelineConnection(region=region)
 
     # Get all instances
     instance_ids = sorted(get_list_from_boto(conn.query_objects,
@@ -146,7 +151,8 @@ def list_pipelines(conn=None):
         pipelines(list): list of pipelines fetched with boto
     """
     if conn is None:
-        conn = DataPipelineConnection()
+        region = next((x for x in regions() if x.name == str(REGION).lower()), None)
+        conn = DataPipelineConnection(region=region)
 
     return get_list_from_boto(
         conn.list_pipelines,
