@@ -252,7 +252,7 @@ class Table(Relation):
         # Create a temporary clone from the script
         temp_table = self.__class__(script)
         script.append(temp_table.insert_script(self))
-        script.append(self.delete_script)
+        script.append(self.delete_script())
 
         # Pick a random value on multiple primary keys
         sql = """
@@ -267,7 +267,7 @@ class Table(Relation):
                 WHERE rnk = 1)
         """.format(table_name=self.full_name,
                    column_names=comma_seperated(column_names),
-                   pk_names=self.primary_key_names,
+                   pk_names=comma_seperated(self.primary_key_names),
                    temp_table=temp_table.full_name)
 
         script.append(SqlScript(sql))
