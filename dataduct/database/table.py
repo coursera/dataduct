@@ -1,6 +1,7 @@
 """Script containing the table class object
 """
 from .parsers import parse_create_table
+from .parsers import create_exits_clone
 from .sql import SqlScript
 from .select_statement import SelectStatement
 from .column import Column
@@ -138,6 +139,11 @@ class Table(Relation):
                           primary_keys=comma_seperated(self.primary_key_names))
 
         return SqlScript(sql)
+
+    def exists_clone_script(self):
+        """Sql script to create a exists clone table
+        """
+        return SqlScript(create_exits_clone(self.sql_statement.sql()))
 
     def drop_script(self):
         """Sql script to drop the table
