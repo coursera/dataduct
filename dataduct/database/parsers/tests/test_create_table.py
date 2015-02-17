@@ -17,9 +17,9 @@ class TestCreateTableStatement(TestCase):
     def test_basic():
         """Basic test for create table
         """
-        query = 'CREATE TABLE orders (' +\
-                'customer_id INTEGER DISTKEY PRIMARY KEY,' +\
-                'customer_name VARCHAR(200))'
+        query = ('CREATE TABLE orders ('
+                 'customer_id INTEGER DISTKEY PRIMARY KEY,'
+                 'customer_name VARCHAR(200))')
 
         output = parse_create_table(query)
 
@@ -33,9 +33,9 @@ class TestCreateTableStatement(TestCase):
     def test_exists_clone():
         """Basic test for create table clone with exists condition
         """
-        query = 'CREATE TABLE orders (' +\
-                'customer_id INTEGER DISTKEY PRIMARY KEY,' +\
-                'customer_name VARCHAR(200))'
+        query = ('CREATE TABLE orders ('
+                 'customer_id INTEGER DISTKEY PRIMARY KEY,'
+                 'customer_name VARCHAR(200))')
 
         exists_clone = create_exits_clone(query)
         output = parse_create_table(exists_clone)

@@ -1,5 +1,4 @@
-"""
-ETL step wrapper for QA step can be executed on Ec2 resource
+"""ETL step wrapper for QA step can be executed on Ec2 resource
 """
 import os
 
