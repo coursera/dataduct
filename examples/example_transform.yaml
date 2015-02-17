@@ -7,18 +7,18 @@ description : Example for the transform step
 steps:
 -   step_type: extract-local
     name: extract-node
-    path: examples/resources/test_table1.tsv
+    path: data/test_table1.tsv
 
 -   step_type: transform
     input_node: extract-node
-    script: examples/scripts/s3_profiler.py
+    script: scripts/s3_profiler.py
     script_arguments:
     -   --input=INPUT1_STAGING_DIR
     -   --output=OUTPUT1_STAGING_DIR
 
 -   step_type: transform
     input_node: extract-node
-    script_directory: examples/scripts/
+    script_directory: scripts/
     script_name: s3_profiler.py
     script_arguments:
     -   --input=INPUT1_STAGING_DIR

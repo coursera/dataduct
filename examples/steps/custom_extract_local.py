@@ -2,6 +2,8 @@
 ETL step wrapper for creating an S3 node for input from local files
 """
 from dataduct.steps import ExtractLocalStep
+import logging
+logger = logging.getLogger(__name__)
 
 
 class CustomExtractLocalStep(ExtractLocalStep):
@@ -14,5 +16,5 @@ class CustomExtractLocalStep(ExtractLocalStep):
         Args:
             **kwargs(optional): Keyword arguments directly passed to base class
         """
-        print 'Using the Custom Extract Local Step'
+        logger.info('Using the Custom Extract Local Step')
         super(CustomExtractLocalStep, self).__init__(**kwargs)

@@ -6,4 +6,4 @@ description : Example for the primary-key-check step
 
 steps:
 -   step_type: primary-key-check
-    table_definition: examples/tables/dev.test_table.sql
+    table_definition: tables/dev.test_table.sql

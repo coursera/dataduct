@@ -6,4 +6,4 @@ description : Example for the sql_command step
 
 steps:
 -   step_type: sql-command
-    command: INSERT INTO dev.test_table VALUES (1, 'hello_etl');
+    command: SELECT * FROM dev.test_table;
