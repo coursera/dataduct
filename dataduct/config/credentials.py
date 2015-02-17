@@ -67,11 +67,10 @@ def get_aws_credentials_from_file(filename=None):
 def get_aws_credentials(filename=None):
     """Get the aws credentials from IAM or files
     """
-    # try:
-    #     aws_key, aws_secret, token = get_aws_credentials_from_iam()
-    # except Exception, error:
-    #     sys.stderr.write("Failed to get creds from IAM: %s \n" % error.message)
-    #     aws_key, aws_secret, token = get_aws_credentials_from_file(filename)
-    aws_key, aws_secret, token = get_aws_credentials_from_file(filename)
+    try:
+        aws_key, aws_secret, token = get_aws_credentials_from_iam()
+    except Exception, error:
+        sys.stderr.write("Failed to get creds from IAM: %s \n" % error.message)
+        aws_key, aws_secret, token = get_aws_credentials_from_file(filename)
 
     return aws_key, aws_secret, token
