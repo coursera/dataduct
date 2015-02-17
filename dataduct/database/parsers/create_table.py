@@ -166,9 +166,9 @@ def parse_create_table(string):
 def create_exits_clone(string):
     """Create a clone of the table statement which has the exists check
     """
-    parser = get_definition_start() + restOfLine.setResultsName("definition")
+    parser = get_definition_start() + restOfLine.setResultsName('definition')
     result = to_dict(parser.parseString(string))
-    template = "CREATE {temp} TABLE IF NOT EXISTS {table_name} {definition}"
+    template = 'CREATE {temp} TABLE IF NOT EXISTS {table_name} {definition}'
     return template.format(temp='TEMP' if result['temporary'] else '',
                            table_name=result['full_name'],
                            definition=result['definition'])

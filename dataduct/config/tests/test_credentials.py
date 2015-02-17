@@ -6,7 +6,7 @@ import json
 
 from ..credentials import get_aws_credentials_from_iam
 
-@patch("requests.get")
+@patch('requests.get')
 def test_get_aws_credentials_from_iam(patched_requests_get):
     """Test for get credentials from IAM
     """
@@ -25,9 +25,9 @@ def test_get_aws_credentials_from_iam(patched_requests_get):
     def server_response(url):
         """Mocked server responses
         """
-        if url == "http://169.254.169.254/latest/meta-data/iam/security-credentials/":  # NOQA
+        if url == 'http://169.254.169.254/latest/meta-data/iam/security-credentials/':  # NOQA
             return MockedReturn("role")
-        if url == "http://169.254.169.254/latest/meta-data/iam/security-credentials/role":  # NOQA
+        if url == 'http://169.254.169.254/latest/meta-data/iam/security-credentials/role':  # NOQA
             return MockedReturn("""
             {
                 "Code" : "Success",
@@ -42,6 +42,6 @@ def test_get_aws_credentials_from_iam(patched_requests_get):
 
     patched_requests_get.side_effect = server_response
     access_id, secret_key, token = get_aws_credentials_from_iam()
-    eq_(access_id, "access_id")
-    eq_(secret_key, "secret_key")
-    eq_(token, "token")
+    eq_(access_id, 'access_id')
+    eq_(secret_key, 'secret_key')
+    eq_(token, 'token')

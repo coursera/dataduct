@@ -18,13 +18,13 @@ def get_aws_credentials_from_iam():
         secret_key(str): AWS secret key
         token(str): Connection token
     """
-    url = "http://169.254.169.254/latest/meta-data/iam/security-credentials/"
+    url = 'http://169.254.169.254/latest/meta-data/iam/security-credentials/'
 
     # Get role name
     r = requests.get(url)
 
     if not r.ok:
-        raise Exception("Request failed for url %s." % url)
+        raise Exception('Request failed for url %s.' % url)
 
     # Add role name to url
     url += r.content
@@ -32,12 +32,12 @@ def get_aws_credentials_from_iam():
     # Get access keys
     r = requests.get(url)
     if not r.ok:
-        raise Exception("Request failed for url %s." % url)
+        raise Exception('Request failed for url %s.' % url)
 
     json_result = r.json()
-    return (json_result["AccessKeyId"],
-            json_result["SecretAccessKey"],
-            json_result["Token"])
+    return (json_result['AccessKeyId'],
+            json_result['SecretAccessKey'],
+            json_result['Token'])
 
 
 def get_aws_credentials_from_file(filename=None):
@@ -70,7 +70,7 @@ def get_aws_credentials(filename=None):
     try:
         aws_key, aws_secret, token = get_aws_credentials_from_iam()
     except Exception, error:
-        sys.stderr.write("Failed to get creds from IAM: %s \n" % error.message)
+        sys.stderr.write('Failed to get creds from IAM: %s \n' % error.message)
         aws_key, aws_secret, token = get_aws_credentials_from_file(filename)
 
     return aws_key, aws_secret, token

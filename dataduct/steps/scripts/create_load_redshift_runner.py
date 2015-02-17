@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
+"""Replacement for the load step to use the redshift COPY command instead
 """
-Replacement for the load step to use the redshift COPY activity instead
-"""
+
 import argparse
 from dataduct.config import get_aws_credentials
 from dataduct.data_access import redshift_connection
@@ -18,10 +18,10 @@ def load_redshift(table_definition, input_paths, max_error=0,
 
     # Credentials string
     aws_key, aws_secret, token = get_aws_credentials()
-    creds = "aws_access_key_id=%s;aws_secret_access_key=%s" % (
+    creds = 'aws_access_key_id=%s;aws_secret_access_key=%s' % (
         aws_key, aws_secret)
     if token:
-        creds += ";token=%s" % token
+        creds += ';token=%s' % token
 
     delete_statement = 'DELETE FROM %s;' % table_name
     error_string = 'MAXERROR %d' % max_error if max_error > 0 else ''

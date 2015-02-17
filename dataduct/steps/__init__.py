@@ -14,3 +14,5 @@ from .primary_key_check import PrimaryKeyCheckStep
 from .count_check import CountCheckStep
 from .column_check import ColumnCheckStep
 from .create_load_redshift import CreateAndLoadStep
+from .upsert import UpsertStep
+from .reload import ReloadStep
