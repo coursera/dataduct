@@ -24,7 +24,7 @@ def load_redshift(table_definition, input_paths, max_error=0,
         creds += ";token=%s" % token
 
     delete_statement = 'DELETE FROM %s;' % table_name
-    error_string = 'MAX ERROR %d' % max_error if max_error > 0 else ''
+    error_string = 'MAXERROR %d' % max_error if max_error > 0 else ''
     if replace_invalid_char is not None:
         invalid_char_str = 'ACCEPTINVCHARS AS %s' % replace_invalid_char
     else:
@@ -35,7 +35,7 @@ def load_redshift(table_definition, input_paths, max_error=0,
     for input_path in input_paths:
         statement = (
             "COPY {table} FROM '{path}' WITH CREDENTIALS AS '{creds}' "
-            "DELIMETER '\t' {escape} {gzip} NULL AS 'NULL' TRUNCATECOLUMNS "
+            "DELIMITER '\t' {escape} {gzip} NULL AS 'NULL' TRUNCATECOLUMNS "
             "{max_error} {invalid_char_str};"
         ).format(table=table_name,
                  path=input_path,
