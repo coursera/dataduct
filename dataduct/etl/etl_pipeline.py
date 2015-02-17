@@ -32,6 +32,7 @@ from ..steps import QATransformStep
 from ..steps import PrimaryKeyCheckStep
 from ..steps import CountCheckStep
 from ..steps import ColumnCheckStep
+from ..steps import CreateAndLoadStep
 
 
 from ..s3 import S3File
@@ -468,6 +469,9 @@ class ETLPipeline(object):
 
         elif step_type == 'load-redshift':
             step_class = LoadRedshiftStep
+
+        elif step_type == 'create-load-redshift':
+            step_class = CreateAndLoadStep
 
         elif step_type in self.custom_steps:
             step_class = self.custom_steps[step_type]

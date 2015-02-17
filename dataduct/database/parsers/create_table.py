@@ -1,6 +1,6 @@
 """Create SQL parser
 """
-from pyparsing import OneOrMore
+from pyparsing import restOfLine
 from pyparsing import ParseException
 from pyparsing import ZeroOrMore
 
@@ -40,22 +40,30 @@ def fk_reference():
     return _references + fk_table + fk_reference_columns
 
 
-def get_base_parser():
-    """Get a pyparsing parser for a create table statement
+def get_definition_start():
+    """Get a pyparsing parse for start of the create table statement
 
     Returns:
         table_definition(pyparsing): Parser for create table statements
     """
-
     temp_check = temporary_check.setResultsName('temporary')
     exists_check = existance_check.setResultsName('exists_checks')
 
     table_name = _db_name.setResultsName('full_name')
 
     # Initial portions of the table definition
-    def_start = _create + temp_check + _table + table_name + exists_check
+    def_start = _create + temp_check + _table + exists_check + table_name
+    return def_start
 
-    table_def = def_start + paranthesis_list('raw_fields', def_field) + \
+
+def get_base_parser():
+    """Get a pyparsing parser for a create table statement
+
+    Returns:
+        table_definition(pyparsing): Parser for create table statements
+    """
+    table_def = get_definition_start() + \
+                paranthesis_list('raw_fields', def_field) + \
                 get_attributes_parser()
 
     return table_def
@@ -153,3 +161,15 @@ def parse_create_table(string):
                 raise
 
     return table_data
+
+
+def create_exits_clone(string):
+    """Create a clone of the table statement which has the exists check
+    """
+    parser = get_definition_start() + restOfLine.setResultsName("definition")
+    result = to_dict(parser.parseString(string))
+    template = "CREATE {temp} TABLE IF NOT EXISTS {table_name} {definition}"
+    return template.format(temp='TEMP' if result['temporary'] else '',
+                           table_name=result['full_name'],
+                           definition=result['definition'])
+
