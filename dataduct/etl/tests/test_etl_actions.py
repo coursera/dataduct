@@ -78,10 +78,7 @@ class EtlActionsTests(unittest.TestCase):
         eq_(result.load_hour, int(self.load_hour))
         eq_(result.load_min, int(self.load_min))
         eq_(result.max_retries, self.test_definition['max_retries'])
-        # Check that steps are created
+        # Check that vital steps are created
         steps = result.steps
-        eq_(len(steps), 4)
-        assert 'bootstrap_ec2' in steps
         assert 'ExtractLocalStep0' in steps
-        assert 'ExtractS3Step0' in steps
         assert 'LoadRedshiftStep0' in steps
