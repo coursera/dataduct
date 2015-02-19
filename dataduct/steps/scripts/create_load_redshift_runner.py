@@ -10,11 +10,11 @@ from dataduct.database import SqlStatement
 from dataduct.database import Table
 
 
-def load_redshift(table_definition, input_paths, max_error=0,
+def load_redshift(table, input_paths, max_error=0,
                   replace_invalid_char=None, no_escape=False, gzip=False):
     """Load redshift table with the data in the input s3 paths
     """
-    table_name = Table(SqlStatement(table_definition)).full_name
+    table_name = table.full_name
 
     # Credentials string
     aws_key, aws_secret, token = get_aws_credentials()
@@ -26,7 +26,7 @@ def load_redshift(table_definition, input_paths, max_error=0,
     delete_statement = 'DELETE FROM %s;' % table_name
     error_string = 'MAXERROR %d' % max_error if max_error > 0 else ''
     if replace_invalid_char is not None:
-        invalid_char_str = 'ACCEPTINVCHARS AS %s' % replace_invalid_char
+        invalid_char_str = "ACCEPTINVCHARS AS '%s'" % replace_invalid_char
     else:
         invalid_char_str = ''
 
@@ -66,13 +66,15 @@ def main():
     connection = redshift_connection()
     cursor = connection.cursor()
 
+    table = Table(SqlStatement(args.table_definition))
+
     # Create table in redshift, this is safe due to the if exists condition
-    cursor.execute(args.table_definition)
+    cursor.execute(table.create_script().sql())
 
     # Load data into redshift
-    load_query = load_redshift(args.table_definition, args.input_paths,
-                               args.max_error, args.replace_invalid_char,
-                               args.no_escape, args.gzip)
+    load_query = load_redshift(table, args.input_paths, args.max_error,
+                               args.replace_invalid_char, args.no_escape,
+                               args.gzip)
 
     cursor.execute(load_query)
     cursor.execute('COMMIT')
