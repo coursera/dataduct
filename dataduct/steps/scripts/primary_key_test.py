@@ -30,7 +30,8 @@ def main():
     result = pdsql.read_sql(table.select_duplicates_script().sql(), connection)
     check = PrimaryKeyCheck(len(result), name=args.test_name,
                             sns_topic_arn=args.sns_topic_arn)
-    check.publish(args.log_to_s3, table=table, path_suffix=args.path_suffix)
+    check.publish(args.log_to_s3, table=table.full_name,
+                  path_suffix=args.path_suffix)
     connection.close()
 
 

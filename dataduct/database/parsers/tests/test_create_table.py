@@ -7,7 +7,7 @@ from nose.tools import raises
 from pyparsing import ParseException
 
 from ..create_table import parse_create_table
-from ..create_table import create_exits_clone
+from ..create_table import create_exists_clone
 
 
 class TestCreateTableStatement(TestCase):
@@ -37,7 +37,7 @@ class TestCreateTableStatement(TestCase):
                  'customer_id INTEGER DISTKEY PRIMARY KEY,'
                  'customer_name VARCHAR(200))')
 
-        exists_clone = create_exits_clone(query)
+        exists_clone = create_exists_clone(query)
         output = parse_create_table(exists_clone)
         eq_(output['full_name'], 'orders')
         eq_(output['temporary'], False)

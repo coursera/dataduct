@@ -1,7 +1,8 @@
 """Base class for QA steps that provides template function for publishing
 """
 from boto.sns import SNSConnection
-import datetime
+from datetime import datetime
+import os
 
 from .utils import render_output
 from ..config import Config
@@ -141,9 +142,14 @@ class Check(object):
         string = '\t'.join(map(str, row))
 
         # S3 Path computation
-        qa_test_dir_uri = config.etl.get('S3_BASE_PATH', '') + \
-            config.elt.get('QA_LOG_PATH', 'qa')
-        qa_test_dir_uri += path_suffix if path_suffix else ''
+        qa_test_dir_uri = os.path.join(
+            's3://',
+            config.etl.get('S3_ETL_BUCKET', ''),
+            config.etl.get('S3_BASE_PATH', ''),
+            config.etl.get('QA_LOG_PATH', 'qa'),
+            path_suffix if path_suffix else '')
+        print qa_test_dir_uri
+
         parent_dir = S3Path(uri=qa_test_dir_uri, is_directory=True)
 
         key = '_'.join(map(str, row)).replace('.', '_').replace(' ', '_')

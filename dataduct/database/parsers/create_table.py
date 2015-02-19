@@ -163,7 +163,7 @@ def parse_create_table(string):
     return table_data
 
 
-def create_exits_clone(string):
+def create_exists_clone(string):
     """Create a clone of the table statement which has the exists check
     """
     parser = get_definition_start() + restOfLine.setResultsName('definition')
