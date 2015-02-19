@@ -50,6 +50,7 @@ S3_ETL_BUCKET = config.etl['S3_ETL_BUCKET']
 MAX_RETRIES = config.etl.get('MAX_RETRIES', const.ZERO)
 S3_BASE_PATH = config.etl.get('S3_BASE_PATH', const.EMPTY_STR)
 SNS_TOPIC_ARN_FAILURE = config.etl.get('SNS_TOPIC_ARN_FAILURE', const.NONE)
+INSTANCE_TYPE = config.ec2.get('INSTANCE_TYPE', const.M1_LARGE)
 
 
 class ETLPipeline(object):
@@ -61,6 +62,7 @@ class ETLPipeline(object):
     """
     def __init__(self, name, frequency='one-time',
                  ec2_resource_terminate_after='6 Hours',
+                 ec2_resource_instance_type=INSTANCE_TYPE,
                  delay=0, emr_cluster_config=None, load_time=None,
                  topic_arn=None, max_retries=MAX_RETRIES,
                  bootstrap=None):
@@ -70,6 +72,7 @@ class ETLPipeline(object):
             name (str): Name of the pipeline should be globally unique.
             frequency (enum): Frequency of the pipeline. Can be
             ec2_resource_terminate_after (str): Timeout for ec2 resource
+            ec2_resource_instance_type (str): Instance type for ec2 resource
             delay(int): Number of days to delay the pipeline by
             emr_cluster_config(dict): Dictionary for emr config
             topic_arn(str): sns alert to be used by the pipeline
@@ -86,6 +89,7 @@ class ETLPipeline(object):
         self._name = name
         self.frequency = frequency
         self.ec2_resource_terminate_after = ec2_resource_terminate_after
+        self.ec2_resource_instance_type = ec2_resource_instance_type
         self.load_hour = load_hour
         self.load_min = load_min
         self.delay = delay
@@ -283,6 +287,7 @@ class ETLPipeline(object):
                 s3_log_dir=self.s3_log_dir,
                 schedule=self.schedule,
                 terminate_after=self.ec2_resource_terminate_after,
+                instance_type=self.ec2_resource_instance_type,
             )
 
             self.create_bootstrap_steps(const.EC2_RESOURCE_STR)
