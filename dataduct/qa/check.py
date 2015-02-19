@@ -148,7 +148,6 @@ class Check(object):
             config.etl.get('S3_BASE_PATH', ''),
             config.etl.get('QA_LOG_PATH', 'qa'),
             path_suffix if path_suffix else '')
-        print qa_test_dir_uri
 
         parent_dir = S3Path(uri=qa_test_dir_uri, is_directory=True)
 

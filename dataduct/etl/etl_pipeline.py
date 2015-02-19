@@ -2,6 +2,9 @@
 Class definition for DataPipeline
 """
 from datetime import datetime
+import csv
+import os
+from StringIO import StringIO
 import yaml
 
 from .utils import process_steps
@@ -16,6 +19,7 @@ from ..pipeline import S3Node
 from ..pipeline import Schedule
 from ..pipeline import SNSAlarm
 from ..pipeline.utils import list_pipelines
+from ..pipeline.utils import list_formatted_instance_details
 
 from ..s3 import S3File
 from ..s3 import S3Path
@@ -30,6 +34,7 @@ MAX_RETRIES = config.etl.get('MAX_RETRIES', const.ZERO)
 S3_BASE_PATH = config.etl.get('S3_BASE_PATH', const.EMPTY_STR)
 SNS_TOPIC_ARN_FAILURE = config.etl.get('SNS_TOPIC_ARN_FAILURE', const.NONE)
 NAME_PREFIX = config.etl.get('NAME_PREFIX', const.EMPTY_STR)
+DP_INSTANCE_LOG_PATH = config.etl.get('DP_INSTANCE_LOG_PATH', const.None)
 
 
 class ETLPipeline(object):
@@ -461,6 +466,37 @@ class ETLPipeline(object):
             result.extend(step.pipeline_objects)
         return result
 
+    @staticmethod
+    def log_s3_dp_instance_data(pipeline):
+        """Uploads instance info for dp_instances to S3
+        """
+        dp_instance_entries = list_formatted_instance_details(pipeline)
+        if len(dp_instance_entries) > 0:
+
+            output_string = StringIO()
+            writer = csv.writer(output_string, delimiter='\t')
+            writer.writerows(dp_instance_entries)
+
+            # S3 Path computation
+            uri = os.path.join(
+                's3://',
+                config.etl.get('S3_ETL_BUCKET', ''),
+                config.etl.get('S3_BASE_PATH', ''),
+                config.etl.get('DP_INSTANCE_LOG_PATH'),
+                datetime.utcnow().strftime('%Y%m%d'))
+
+            dp_instances_dir = S3Path(uri=uri, is_directory=True)
+            dp_instances_path = S3Path(
+                key=pipeline.id + '.tsv',
+                parent_dir=dp_instances_dir,
+            )
+            dp_instances_file = S3File(
+                text=output_string.getvalue(),
+                s3_path=dp_instances_path,
+            )
+            dp_instances_file.upload_to_s3()
+            output_string.close()
+
     def delete_if_exists(self):
         """Delete the pipelines with the same name as current pipeline
         """
@@ -469,6 +505,9 @@ class ETLPipeline(object):
         for p_iter in list_pipelines():
             if p_iter['name'] == self.name:
                 pipeline_instance = DataPipeline(pipeline_id=p_iter['id'])
+
+                if DP_INSTANCE_LOG_PATH:
+                    self.log_s3_dp_instance_data(pipeline_instance)
                 pipeline_instance.delete()
 
     def s3_files(self):
