@@ -100,14 +100,43 @@ def visualize_database_actions(table_definitions, filename):
     database.visualize(filename)
 
 
+class _HelpAction(argparse._HelpAction):
+    """HelpAction class used to render a custom help message
+    """
+    def __call__(self, parser, namespace, values, option_string=None):
+        parser.print_help()
+        print ''
+
+        # retrieve subparsers from parser
+        subparsers_actions = [
+            action for action in parser._actions
+            if isinstance(action, argparse._SubParsersAction)]
+
+        for subparsers_action in subparsers_actions:
+            # get all subparsers and print help
+            for choice, subparser in subparsers_action.choices.items():
+                print "Command '{}'".format(choice)
+                print subparser.format_usage()
+
+        parser.exit()
+
+
 def main():
     """Main function"""
-    parser = argparse.ArgumentParser(description='Run Dataduct commands')
+    parser = argparse.ArgumentParser(description='Run Dataduct commands',
+                                     add_help=False)
     parser.add_argument(
         '-m',
         '--mode',
         default=None,
         help='Mode to run the pipeline and config overrides to use',
+    )
+    # Overwrite default help
+    parser.add_argument(
+        '-h',
+        '--help',
+        action=_HelpAction,
+        help='Show this help message and exit',
     )
     subparsers = parser.add_subparsers(help='Commands', dest='command')
 
