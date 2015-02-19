@@ -17,7 +17,8 @@ class PrimaryKeyCheckStep(QATransformStep):
     """PrimaryKeyCheckStep class that checks a table for PK violations
     """
 
-    def __init__(self, id, table_definition, **kwargs):
+    def __init__(self, id, table_definition, script_arguments=None,
+                 log_to_s3=False, **kwargs):
         """Constructor for the PrimaryKeyCheckStep class
 
         Args:
@@ -27,9 +28,15 @@ class PrimaryKeyCheckStep(QATransformStep):
         with open(parse_path(table_definition)) as f:
             table_def_string = f.read()
 
+        if script_arguments is None:
+            script_arguments = list()
+
         # We initialize the table object to check valid strings
-        script_arguments = [
-            '--table=%s' % Table(SqlStatement(table_def_string)).sql()]
+        script_arguments.append(
+            '--table=%s' % Table(SqlStatement(table_def_string)).sql())
+
+        if log_to_s3:
+            script_arguments.append('--log_to_s3')
 
         steps_path = os.path.abspath(os.path.dirname(__file__))
         script = os.path.join(steps_path, const.PK_CHECK_SCRIPT_PATH)

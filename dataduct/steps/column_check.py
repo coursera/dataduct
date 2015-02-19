@@ -25,7 +25,7 @@ class ColumnCheckStep(QATransformStep):
                  destination_table_definition=None,
                  destination_sql=None, sql_tail_for_source=None,
                  sample_size=100, tolerance=1.0, script_arguments=None,
-                 **kwargs):
+                 log_to_s3=False, **kwargs):
         """Constructor for the ColumnCheckStep class
 
         Args:
@@ -58,6 +58,9 @@ class ColumnCheckStep(QATransformStep):
             '--source_sql=%s' % src_sql,
             '--source_host=%s' % source_host
         ])
+
+        if log_to_s3:
+            script_arguments.append('--log_to_s3')
 
         steps_path = os.path.abspath(os.path.dirname(__file__))
         script = os.path.join(steps_path, const.COLUMN_CHECK_SCRIPT_PATH)
