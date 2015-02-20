@@ -143,6 +143,11 @@ def list_pipeline_instances(pipeline_id, conn=None, increment=25):
 
 
 def get_datapipeline_connection():
+    """Get boto connection of AWS data pipeline
+
+    Returns:
+        DataPipelineConnection: boto connection
+    """
     region = next((x for x in regions() if x.name == str(REGION).lower()), None)
     conn = DataPipelineConnection(region=region)
     return conn
