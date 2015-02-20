@@ -7,7 +7,8 @@ from time import sleep
 from dataduct.config import Config
 
 config = Config()
-REGION = config.etl.get('REGION')
+REGION = config.etl.get('REGION', None)
+
 
 def _update_sleep_time(last_time=None):
     """Expotentially decay sleep times between calls incase of failures
@@ -106,8 +107,7 @@ def list_pipeline_instances(pipeline_id, conn=None, increment=25):
         instances(list): list of pipeline instances
     """
     if conn is None:
-        region = next((x for x in regions() if x.name == str(REGION).lower()), None)
-        conn = DataPipelineConnection(region=region)
+        get_datapipeline_connection()
 
     # Get all instances
     instance_ids = sorted(get_list_from_boto(conn.query_objects,
@@ -141,6 +141,13 @@ def list_pipeline_instances(pipeline_id, conn=None, increment=25):
 
     return instances
 
+
+def get_datapipeline_connection():
+    region = next((x for x in regions() if x.name == str(REGION).lower()), None)
+    conn = DataPipelineConnection(region=region)
+    return conn
+
+
 def list_pipelines(conn=None):
     """Fetch a list of all pipelines with boto
 
@@ -151,8 +158,7 @@ def list_pipelines(conn=None):
         pipelines(list): list of pipelines fetched with boto
     """
     if conn is None:
-        region = next((x for x in regions() if x.name == str(REGION).lower()), None)
-        conn = DataPipelineConnection(region=region)
+        conn = get_datapipeline_connection()
 
     return get_list_from_boto(
         conn.list_pipelines,

@@ -2,16 +2,11 @@
 Base class for data pipeline instance
 """
 from collections import defaultdict
-from boto.datapipeline import regions
-from boto.datapipeline.layer1 import DataPipelineConnection
-from dataduct.config import Config
 
 from .pipeline_object import PipelineObject
-from .utils import list_pipeline_instances
+from .utils import list_pipeline_instances, get_datapipeline_connection
 from ..utils.exceptions import ETLInputError
 
-config = Config()
-REGION = config.etl.get('REGION')
 
 class DataPipeline(object):
     """DataPipeline classes with objects and metadata.
@@ -32,8 +27,7 @@ class DataPipeline(object):
         Note:
             If pipelineId is provided we don't need name or unique_id
         """
-        region = next((x for x in regions() if x.name == str(REGION).lower()), None)
-        self.conn = DataPipelineConnection(region=region)
+        self.conn = get_datapipeline_connection()
         self.objects = []
 
         if pipeline_id:
