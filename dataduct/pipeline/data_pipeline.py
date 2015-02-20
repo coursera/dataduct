@@ -4,7 +4,8 @@ Base class for data pipeline instance
 from collections import defaultdict
 
 from .pipeline_object import PipelineObject
-from .utils import list_pipeline_instances, get_datapipeline_connection
+from .utils import list_pipeline_instances
+from .utils import get_datapipeline_connection
 from ..utils.exceptions import ETLInputError
 
 
