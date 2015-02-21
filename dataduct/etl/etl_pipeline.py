@@ -28,6 +28,9 @@ from ..s3 import S3LogPath
 from ..utils.exceptions import ETLInputError
 from ..utils import constants as const
 
+import logging
+logger = logging.getLogger(__name__)
+
 config = Config()
 S3_ETL_BUCKET = config.etl['S3_ETL_BUCKET']
 MAX_RETRIES = config.etl.get('MAX_RETRIES', const.ZERO)
@@ -168,6 +171,7 @@ class ETLPipeline(object):
         self.default = self.create_pipeline_object(
             object_class=DefaultObject,
             sns=self.sns,
+            pipeline_log_uri=self.s3_log_dir,
         )
 
     @property
@@ -423,16 +427,14 @@ class ETLPipeline(object):
                 step_class = step_param.pop('step_class')
                 step_args = step_class.arguments_processor(self, step_param)
             except Exception:
-                print 'Error creating step with params : ', step_param
+                logger.error('Error creating step with params : %s', step_param)
                 raise
 
             try:
                 step = step_class(**step_args)
             except Exception:
-                print "Error creating step of class %s, step_param %s." % (
-                    str(step_class.__name__),
-                    str(step_args)
-                )
+                logger.error("Error creating step of class %s, step_param %s.",
+                             str(step_class.__name__), str(step_args))
                 raise
 
             # Add the step to the pipeline
@@ -521,11 +523,11 @@ class ETLPipeline(object):
             result.extend(pipeline_object.s3_files)
         return result
 
-    def validate(self):
-        """Validate the given pipeline definition by creating a pipeline
+    def create_pipeline(self):
+        """Create the datapipeline object
 
         Returns:
-            errors(list): list of errors in the pipeline, empty if no errors
+            definition(string): Return the yaml pipeline definition
         """
 
         # Create AwsPipeline and add objects to it
@@ -533,10 +535,20 @@ class ETLPipeline(object):
         for pipeline_object in self.pipeline_objects():
             self.pipeline.add_object(pipeline_object)
 
+        return self.pipeline
+
+    def validate(self):
+        """Validate the given pipeline definition by creating a pipeline
+
+        Returns:
+            errors(list): list of errors in the pipeline, empty if no errors
+        """
+
         # Check for errors
         self.errors = self.pipeline.validate_pipeline_definition()
         if len(self.errors) > 0:
-            print '\nThere are errors with your pipeline:\n', self.errors
+            logger.error('There are errors with your pipeline:\n %s',
+                         self.errors)
 
         # Update pipeline definition
         self.pipeline.update_pipeline_definition()

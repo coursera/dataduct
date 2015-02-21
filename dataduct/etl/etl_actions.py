@@ -56,7 +56,9 @@ def create_pipeline(definition):
 
     # Add the steps to the pipeline object
     etl.create_steps(steps)
-    print 'Created pipeline. Name: %s' % etl.name
+    logger.info('Created pipeline. Name: %s', etl.name)
+    pipeline = etl.create_pipeline()
+    logger.debug(yaml.dump(pipeline.aws_format))
 
     return etl
 
@@ -71,7 +73,7 @@ def validate_pipeline(etl, force_overwrite=False):
     if force_overwrite:
         etl.delete_if_exists()
     etl.validate()
-    print 'Validated pipeline. Id: %s' % etl.pipeline.id
+    logger.info('Validated pipeline. Id: %s', etl.pipeline.id)
 
 
 def activate_pipeline(etl):
@@ -81,9 +83,9 @@ def activate_pipeline(etl):
         etl(EtlPipeline): pipeline object that needs to be activated
     """
     etl.activate()
-    print 'Activated pipeline. Id: %s' % etl.pipeline.id
-    print 'Monitor pipeline here: %s' % \
-        URL_TEMPLATE.format(ID=etl.pipeline.id)
+    logger.info('Activated pipeline. Id: %s', etl.pipeline.id)
+    logger.info('Monitor pipeline here: %s',
+                URL_TEMPLATE.format(ID=etl.pipeline.id))
 
 
 def visualize_pipeline(etl, activities_only=False, filename=None):

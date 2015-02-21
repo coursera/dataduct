@@ -15,6 +15,7 @@ from ..utils.exceptions import DatabaseInputError
 import logging
 logger = logging.getLogger(__name__)
 
+
 class Database(object):
     """Class representing a database
     """
@@ -115,7 +116,7 @@ class Database(object):
         """Topological sort of the relations for dependency management
         """
         if self.has_cycles():
-            print 'Warning: database has cycles'
+            logger.warning('Database has cycles')
 
         sorted_relations = []
         graph = dict((x.full_name, x.dependencies) for x in self.relations())

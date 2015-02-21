@@ -22,6 +22,9 @@ PIG_VERSION = config.emr.get('PIG_VERSION', const.NONE)
 CLUSTER_AMI = config.emr.get('CLUSTER_AMI', '2.4.7')
 KEY_PAIR = config.etl.get('KEY_PAIR', const.NONE)
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 class EmrResource(PipelineObject):
     """EMR Resource class
@@ -100,7 +103,8 @@ class EmrResource(PipelineObject):
 
             if self['taskInstanceType'].find('xlarge') >= 0:
                 if num_task_instances > 10:
-                    print 'Using taskInstanceType: (%s)' % \
-                        self['taskInstanceType']
-                    print 'WARNING!!! Are you sure you need', \
-                        '%s task instances?' % num_task_instances
+                    logger.info('Using taskInstanceType: (%s)',
+                                self['taskInstanceType'])
+                    logger.warning(
+                        'Are you sure you need %s task instances?',
+                        num_task_instances)

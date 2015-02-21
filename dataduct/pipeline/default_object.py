@@ -14,12 +14,8 @@ class DefaultObject(PipelineObject):
     """Default object added to all pipelines
     """
 
-    def __init__(self,
-                 id,
-                 sns=None,
-                 scheduleType='cron',
-                 failureAndRerunMode='CASCADE',
-                 **kwargs):
+    def __init__(self, id, pipeline_log_uri, sns=None, scheduleType='cron',
+                 failureAndRerunMode='CASCADE', **kwargs):
         """Constructor for the DefaultObject class
 
         Args:
@@ -39,5 +35,6 @@ class DefaultObject(PipelineObject):
             failureAndRerunMode=failureAndRerunMode,
             role=ROLE,
             resourceRole=RESOURCE_ROLE,
+            pipelineLogUri=pipeline_log_uri,
             onFail=sns
         )
