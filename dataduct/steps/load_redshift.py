@@ -17,6 +17,9 @@ class LoadRedshiftStep(ETLStep):
                  insert_mode="TRUNCATE",
                  max_errors=None,
                  replace_invalid_char=None,
+                 primary_keys=None,
+                 create_table_sql=None,
+                 command_options=None,
                  **kwargs):
         """Constructor for the LoadRedshiftStep class
 
@@ -27,6 +30,8 @@ class LoadRedshiftStep(ETLStep):
             redshift_database(RedshiftDatabase): database to excute the query
             max_errors(int): Maximum number of errors to be ignored during load
             replace_invalid_char(char): char to replace not utf-8 with
+            primary_keys(str): primary keys for redshift node
+            create_table_sql(str): Default value of table schema for redshift node
             **kwargs(optional): Keyword arguments directly passed to base class
         """
         super(LoadRedshiftStep, self).__init__(**kwargs)
@@ -38,10 +43,13 @@ class LoadRedshiftStep(ETLStep):
             redshift_database=redshift_database,
             schema_name=schema,
             table_name=table,
+            create_table_sql=create_table_sql,
+            primary_keys=primary_keys,
         )
 
-        command_options = ["DELIMITER '\t' ESCAPE TRUNCATECOLUMNS"]
-        command_options.append("NULL AS 'NULL' ")
+        if command_options is None:
+            command_options = ["DELIMITER '\t' ESCAPE TRUNCATECOLUMNS", "NULL AS 'NULL' "]
+
         if max_errors:
             command_options.append('MAXERROR %d' % int(max_errors))
         if replace_invalid_char:
