@@ -7,6 +7,6 @@ description : Example for the primary-key-check step
 steps:
 -   step_type: primary-key-check
     table_definition: tables/dev.test_table.sql
+    log_to_s3: true
     script_arguments:
-    -   --log_to_s3
     -   --path_suffix=dba_table_qa_tests

@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-"""
-Walk over files in S3 output node and provide basic information about them
+"""Walk over files in S3 output node and provide basic information about them
 """
 
 import argparse

@@ -59,7 +59,11 @@ class Config(object):
 
                 # Override the select fields specified based on mode
                 for key in cls._root_config[mode]:
-                    cls._root_config[key].update(cls._root_config[mode][key])
+                    if isinstance(cls._root_config[key], dict):
+                        cls._root_config[key].update(
+                            cls._root_config[mode][key])
+                    else:
+                        cls._root_config[key] = cls._root_config[mode][key]
 
             cls._isInstantiated = True
             cls._root_mode = mode
@@ -75,7 +79,7 @@ class Config(object):
     def __str__(self):
         """String output for the config object
         """
-        return yaml.dump(self._root_config, default_flow_style=False)
+        return yaml.dump(self._root_config, default_flow_style=False, indent=4)
 
     def raw_config(self):
         """String formatted config file

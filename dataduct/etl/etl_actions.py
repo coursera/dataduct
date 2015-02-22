@@ -57,9 +57,6 @@ def create_pipeline(definition):
     # Add the steps to the pipeline object
     etl.create_steps(steps)
     logger.info('Created pipeline. Name: %s', etl.name)
-    pipeline = etl.create_pipeline()
-    logger.debug(yaml.dump(pipeline.aws_format))
-
     return etl
 
 
@@ -73,6 +70,7 @@ def validate_pipeline(etl, force_overwrite=False):
     if force_overwrite:
         etl.delete_if_exists()
     etl.validate()
+    logger.debug(yaml.dump(etl.pipeline.aws_format))
     logger.info('Validated pipeline. Id: %s', etl.pipeline.id)
 
 

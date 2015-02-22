@@ -10,6 +10,7 @@ from ..database import SelectStatement
 from ..s3 import S3Path
 from ..s3 import S3File
 from ..utils.helpers import exactly_one
+from ..utils.helpers import get_s3_base_path
 
 QA_TEST_ROW_LENGTH = 8
 
@@ -142,12 +143,9 @@ class Check(object):
         string = '\t'.join(map(str, row))
 
         # S3 Path computation
-        qa_test_dir_uri = os.path.join(
-            's3://',
-            config.etl.get('S3_ETL_BUCKET', ''),
-            config.etl.get('S3_BASE_PATH', ''),
-            config.etl.get('QA_LOG_PATH', 'qa'),
-            path_suffix if path_suffix else '')
+        qa_test_dir_uri = os.path.join(get_s3_base_path(),
+                                       config.etl.get('QA_LOG_PATH', 'qa'),
+                                       path_suffix if path_suffix else '')
 
         parent_dir = S3Path(uri=qa_test_dir_uri, is_directory=True)
 

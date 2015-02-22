@@ -22,7 +22,10 @@ def logger_configuration():
         log_directory = config.logging.get(
             'LOG_DIR', os.path.join(os.path.expanduser(CONFIG_DIR)))
         file_name = config.logging.get('LOG_FILE', LOG_FILE)
-        console_level = config.logging.get('DEBUG_LEVEL', logging.WARNING)
+        console_level = config.logging.get('CONSOLE_DEBUG_LEVEL',
+                                           logging.INFO)
+        file_level = config.logging.get('FILE_DEBUG_LEVEL',
+                                        logging.DEBUG)
 
     if not os.path.exists(log_directory):
         os.mkdir(log_directory)
@@ -33,7 +36,7 @@ def logger_configuration():
     file_handler = RotatingFileHandler(os.path.join(log_directory, file_name),
                                        maxBytes=200000,
                                        backupCount=10)
-    file_handler.setLevel(logging.INFO)
+    file_handler.setLevel(file_level)
     file_handler.setFormatter(logging.Formatter(FILE_FORMAT_STR,
                                                 datefmt='%Y-%m-%d %H:%M'))
 

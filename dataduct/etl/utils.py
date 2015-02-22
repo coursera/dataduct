@@ -6,7 +6,6 @@ from ..steps import *  # noqa
 from ..utils.helpers import parse_path
 from ..utils.exceptions import ETLInputError
 
-
 STEP_CLASSES = {
     'column-check': ColumnCheckStep,
     'count-check': CountCheckStep,
@@ -52,17 +51,17 @@ def get_custom_steps():
     return custom_steps
 
 
+STEP_CONFIG = STEP_CLASSES.copy()
+STEP_CONFIG.update(get_custom_steps())
+
+
 def process_steps(steps_params):
     """Format the step parameters by changing step type to step class
     """
-    step_config = STEP_CLASSES.copy()
-    step_config.update(get_custom_steps())
     steps = []
-
     for step_param in steps_params:
         params = step_param.copy()
         step_type = params.pop('step_type')
-        params['step_class'] = step_config[step_type]
+        params['step_class'] = STEP_CONFIG[step_type]
         steps.append(params)
-
     return steps

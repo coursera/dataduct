@@ -26,6 +26,7 @@ from ..s3 import S3Path
 from ..s3 import S3LogPath
 
 from ..utils.exceptions import ETLInputError
+from ..utils.helpers import get_s3_base_path
 from ..utils import constants as const
 
 import logging
@@ -480,12 +481,9 @@ class ETLPipeline(object):
             writer.writerows(dp_instance_entries)
 
             # S3 Path computation
-            uri = os.path.join(
-                's3://',
-                config.etl.get('S3_ETL_BUCKET', ''),
-                config.etl.get('S3_BASE_PATH', ''),
-                config.etl.get('DP_INSTANCE_LOG_PATH'),
-                datetime.utcnow().strftime('%Y%m%d'))
+            uri = os.path.join(get_s3_base_path(),
+                               config.etl.get('DP_INSTANCE_LOG_PATH'),
+                               datetime.utcnow().strftime('%Y%m%d'))
 
             dp_instances_dir = S3Path(uri=uri, is_directory=True)
             dp_instances_path = S3Path(
@@ -523,26 +521,16 @@ class ETLPipeline(object):
             result.extend(pipeline_object.s3_files)
         return result
 
-    def create_pipeline(self):
-        """Create the datapipeline object
-
-        Returns:
-            definition(string): Return the yaml pipeline definition
-        """
-
-        # Create AwsPipeline and add objects to it
-        self.pipeline = DataPipeline(self.name)
-        for pipeline_object in self.pipeline_objects():
-            self.pipeline.add_object(pipeline_object)
-
-        return self.pipeline
-
     def validate(self):
         """Validate the given pipeline definition by creating a pipeline
 
         Returns:
             errors(list): list of errors in the pipeline, empty if no errors
         """
+        # Create AwsPipeline and add objects to it
+        self.pipeline = DataPipeline(self.name)
+        for pipeline_object in self.pipeline_objects():
+            self.pipeline.add_object(pipeline_object)
 
         # Check for errors
         self.errors = self.pipeline.validate_pipeline_definition()
