@@ -3,10 +3,9 @@ Base class for data pipeline instance
 """
 from collections import defaultdict
 
-from boto.datapipeline.layer1 import DataPipelineConnection
-
 from .pipeline_object import PipelineObject
 from .utils import list_pipeline_instances
+from .utils import get_datapipeline_connection
 from ..utils.exceptions import ETLInputError
 
 
@@ -29,7 +28,7 @@ class DataPipeline(object):
         Note:
             If pipelineId is provided we don't need name or unique_id
         """
-        self.conn = DataPipelineConnection()
+        self.conn = get_datapipeline_connection()
         self.objects = []
 
         if pipeline_id:
