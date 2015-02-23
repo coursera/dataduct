@@ -99,7 +99,7 @@ class TransformStep(ETLStep):
         self.create_pipeline_object(
             object_class=ShellCommandActivity,
             input_node=input_nodes,
-            output_node=self._output,
+            output_node=base_output_node,
             resource=self.resource,
             schedule=self.schedule,
             script_uri=script,
