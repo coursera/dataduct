@@ -196,15 +196,15 @@ def list_formatted_instance_details(pipeline):
         # Look through instances
         for instance in sorted(
                 etl_runs[etl_run_dt],
-                key=lambda x: x.get('@actualEndTime', None)):
+                key=lambda x: x.get(DP_ACTUAL_END_TIME, None)):
             entries.append(
                 [
-                    instance['id'],
+                    instance[DP_INSTANCE_ID_KEY],
                     pipeline.id,
                     date_string(etl_run_dt),
-                    date_string(instance.get('@actualEndTime')),
-                    instance['@status'],
-                    instance.get('@attemptCount', 'NULL'),
+                    date_string(instance.get(DP_ACTUAL_END_TIME)),
+                    instance[DP_INSTANCE_STATUS_KEY],
+                    instance.get(DP_ATTEMPT_COUNT_KEY, 'NULL'),
                 ]
             )
     return entries

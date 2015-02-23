@@ -121,7 +121,8 @@ class Check(object):
                          path_suffix=None):
         """Log the results of the QA test in S3
         """
-        assert exactly_one(destination_sql, table), "Needs table or dest_sql"
+        if not exactly_one(destination_sql, table):
+            raise Exception('Needs table or destination_sql')
 
         if destination_sql is not None:
             full_table_name = SelectStatement(destination_sql).dependencies[0]

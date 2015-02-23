@@ -21,11 +21,13 @@ def logger_configuration():
     if hasattr(config, 'logging'):
         log_directory = config.logging.get(
             'LOG_DIR', os.path.join(os.path.expanduser(CONFIG_DIR)))
-        file_name = config.logging.get('LOG_FILE', LOG_FILE)
-        console_level = config.logging.get('CONSOLE_DEBUG_LEVEL',
-                                           logging.INFO)
-        file_level = config.logging.get('FILE_DEBUG_LEVEL',
-                                        logging.DEBUG)
+        file_name = config.logging.get(
+            'LOG_FILE', LOG_FILE)
+
+        console_level = config.logging.get(
+            'CONSOLE_DEBUG_LEVEL', logging.INFO)
+        file_level = config.logging.get(
+            'FILE_DEBUG_LEVEL', logging.DEBUG)
 
     if not os.path.exists(log_directory):
         os.mkdir(log_directory)

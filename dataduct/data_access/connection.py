@@ -48,7 +48,7 @@ def get_sql_config(database_name):
 
     if database_name not in config.mysql:
         raise ETLConfigError(
-            'Config for hostname: %s not found' %database_name)
+            'Config for hostname: %s not found' % database_name)
 
     sql_creds = config.mysql[database_name]
     sql_creds['DATABASE'] = database_name

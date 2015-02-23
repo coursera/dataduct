@@ -439,7 +439,7 @@ class ETLPipeline(object):
             try:
                 step = step_class(**step_args)
             except Exception:
-                logger.error("Error creating step of class %s, step_param %s.",
+                logger.error('Error creating step of class %s, step_param %s',
                              str(step_class.__name__), str(step_args))
                 raise
 
