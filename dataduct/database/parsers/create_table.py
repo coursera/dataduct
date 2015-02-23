@@ -28,6 +28,8 @@ from .helpers import paranthesis_list
 from .helpers import temporary_check
 from .helpers import to_dict
 
+import logging
+logger = logging.getLogger(__name__)
 
 FK_REFERENCE = 'fk_reference'
 
@@ -157,13 +159,13 @@ def parse_create_table(string):
                     get_constraints_parser().parseString(field))
                 table_data['constraints'].append(constraint)
             except ParseException:
-                print '[Error] : ', field
+                logger.error(field)
                 raise
 
     return table_data
 
 
-def create_exits_clone(string):
+def create_exists_clone(string):
     """Create a clone of the table statement which has the exists check
     """
     parser = get_definition_start() + restOfLine.setResultsName('definition')

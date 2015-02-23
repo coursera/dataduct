@@ -20,6 +20,8 @@ def main():
     parser.add_argument('--sns_topic_arn', dest='sns_topic_arn', default=None)
     parser.add_argument('--test_name', dest='test_name',
                         default="Check Primary Key")
+    parser.add_argument('--log_to_s3', action='store_true', default=False)
+    parser.add_argument('--path_suffix', dest='path_suffix', default=None)
 
     args = parser.parse_args()
 
@@ -28,7 +30,8 @@ def main():
     result = pdsql.read_sql(table.select_duplicates_script().sql(), connection)
     check = PrimaryKeyCheck(len(result), name=args.test_name,
                             sns_topic_arn=args.sns_topic_arn)
-    check.publish()
+    check.publish(args.log_to_s3, table=table.full_name,
+                  path_suffix=args.path_suffix)
     connection.close()
 
 

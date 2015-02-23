@@ -45,13 +45,14 @@ class Relation(object):
             raise ValueError('Atleast one of user / group needed')
 
         result = list()
-        base = 'GRANT %s ON %s TO ' % (permission, self.full_name)
+        base = 'GRANT %s ON %s TO {user} WITH GRANT OPTION' % (
+            permission, self.full_name)
 
         if user is not None:
-            result.append(base + user)
+            result.append(base.format(user=user))
 
         if group is not None:
-            result.append(base + 'GROUP %s' % group)
+            result.append(base.format(user='GROUP %s' % group))
         return result
 
     def grant_script(self):

@@ -2,6 +2,7 @@
 """
 from unittest import TestCase
 
+
 class TestImports(TestCase):
     """Tests for dependencies
     """

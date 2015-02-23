@@ -137,3 +137,11 @@ def parse_path(path, path_type=RESOURCE_BASE_PATH):
 
     # Return the path as is.
     return path
+
+
+def get_s3_base_path():
+    """Get the root S3 path from config
+    """
+    config = Config()
+    return os.path.join('s3://', config.etl.get('S3_ETL_BUCKET', ''),
+                        config.etl.get('S3_BASE_PATH', ''))

@@ -20,7 +20,7 @@ class CountCheckStep(QATransformStep):
 
     def __init__(self, id, source_host, source_sql=None, source_table_name=None,
                  destination_table_name=None, destination_sql=None,
-                 tolerance=1.0, script_arguments=None,
+                 tolerance=1.0, script_arguments=None, log_to_s3=False,
                  **kwargs):
         """Constructor for the CountCheckStep class
 
@@ -52,6 +52,9 @@ class CountCheckStep(QATransformStep):
             '--source_sql=%s' % src_sql,
             '--source_host=%s' % source_host
         ])
+
+        if log_to_s3:
+            script_arguments.append('--log_to_s3')
 
         steps_path = os.path.abspath(os.path.dirname(__file__))
         script = os.path.join(steps_path, const.COUNT_CHECK_SCRIPT_PATH)

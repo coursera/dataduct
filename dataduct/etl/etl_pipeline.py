@@ -2,9 +2,12 @@
 Class definition for DataPipeline
 """
 from datetime import datetime
+import csv
+import os
+from StringIO import StringIO
 import yaml
-import imp
 
+from .utils import process_steps
 from ..config import Config
 
 from ..pipeline import DefaultObject
@@ -16,40 +19,26 @@ from ..pipeline import S3Node
 from ..pipeline import Schedule
 from ..pipeline import SNSAlarm
 from ..pipeline.utils import list_pipelines
-
-from ..steps import ETLStep
-from ..steps import EMRJobStep
-from ..steps import EMRStreamingStep
-from ..steps import ExtractLocalStep
-from ..steps import ExtractRdsStep
-from ..steps import ExtractRedshiftStep
-from ..steps import ExtractS3Step
-from ..steps import LoadRedshiftStep
-from ..steps import PipelineDependenciesStep
-from ..steps import SqlCommandStep
-from ..steps import TransformStep
-from ..steps import QATransformStep
-from ..steps import PrimaryKeyCheckStep
-from ..steps import CountCheckStep
-from ..steps import ColumnCheckStep
-from ..steps import CreateAndLoadStep
-from ..steps import UpsertStep
-from ..steps import ReloadStep
-
+from ..pipeline.utils import list_formatted_instance_details
 
 from ..s3 import S3File
 from ..s3 import S3Path
 from ..s3 import S3LogPath
 
 from ..utils.exceptions import ETLInputError
-from ..utils.helpers import parse_path
+from ..utils.helpers import get_s3_base_path
 from ..utils import constants as const
+
+import logging
+logger = logging.getLogger(__name__)
 
 config = Config()
 S3_ETL_BUCKET = config.etl['S3_ETL_BUCKET']
 MAX_RETRIES = config.etl.get('MAX_RETRIES', const.ZERO)
 S3_BASE_PATH = config.etl.get('S3_BASE_PATH', const.EMPTY_STR)
 SNS_TOPIC_ARN_FAILURE = config.etl.get('SNS_TOPIC_ARN_FAILURE', const.NONE)
+NAME_PREFIX = config.etl.get('NAME_PREFIX', const.EMPTY_STR)
+DP_INSTANCE_LOG_PATH = config.etl.get('DP_INSTANCE_LOG_PATH', const.NONE)
 INSTANCE_TYPE = config.ec2.get('INSTANCE_TYPE', const.M1_LARGE)
 
 
@@ -86,7 +75,7 @@ class ETLPipeline(object):
             load_hour, load_min = [None, None]
 
         # Input variables
-        self._name = name
+        self._name = name if not NAME_PREFIX else NAME_PREFIX + '_' + name
         self.frequency = frequency
         self.ec2_resource_terminate_after = ec2_resource_terminate_after
         self.ec2_resource_instance_type = ec2_resource_instance_type
@@ -107,8 +96,6 @@ class ETLPipeline(object):
             self.emr_cluster_config = emr_cluster_config
         else:
             self.emr_cluster_config = dict()
-
-        self.custom_steps = self.get_custom_steps()
 
         # Pipeline versions
         self.version_ts = datetime.utcnow()
@@ -189,6 +176,7 @@ class ETLPipeline(object):
         self.default = self.create_pipeline_object(
             object_class=DefaultObject,
             sns=self.sns,
+            pipeline_log_uri=self.s3_log_dir,
         )
 
     @property
@@ -396,106 +384,6 @@ class ETLPipeline(object):
             output[value] = self.intermediate_nodes[key]
         return output
 
-    @staticmethod
-    def get_custom_steps():
-        """Fetch the custom steps specified in config
-        """
-        custom_steps = dict()
-
-        for step_def in getattr(config, 'custom_steps', list()):
-            step_type = step_def['step_type']
-            path = parse_path(step_def['file_path'], 'CUSTOM_STEPS_PATH')
-
-            # Load source from the file path provided
-            step_mod = imp.load_source(step_type, path)
-
-            # Get the step class based on class_name provided
-            step_class = getattr(step_mod, step_def['class_name'])
-
-            # Check if step_class is of type ETLStep
-            if not issubclass(step_class, ETLStep):
-                raise ETLInputError('Step type %s is not of type ETLStep')
-
-            custom_steps[step_type] = step_class
-
-        return custom_steps
-
-    def parse_step_args(self, step_type, **kwargs):
-        """Parse step arguments from input to correct ETL step types
-
-        Args:
-            step_type(str): string specifing step_type of the objects
-            **kwargs: Keyword arguments read from YAML
-
-        Returns:
-            step_class(ETLStep): Class object for the specific type
-            step_args(dict): dictionary of step arguments
-        """
-
-        if not isinstance(step_type, str):
-            raise ETLInputError('Step type must be a string')
-
-        if step_type == 'transform':
-            step_class = TransformStep
-
-        elif step_type == 'qa-transform':
-            step_class = QATransformStep
-
-        elif step_type == 'extract-s3':
-            step_class = ExtractS3Step
-
-        elif step_type == 'primary-key-check':
-            step_class = PrimaryKeyCheckStep
-
-        elif step_type == 'count-check':
-            step_class = CountCheckStep
-
-        elif step_type == 'column-check':
-            step_class = ColumnCheckStep
-
-        elif step_type == 'extract-local':
-            step_class = ExtractLocalStep
-
-        elif step_type == 'extract-rds':
-            step_class = ExtractRdsStep
-
-        elif step_type == 'extract-redshift':
-            step_class = ExtractRedshiftStep
-
-        elif step_type == 'sql-command':
-            step_class = SqlCommandStep
-
-        elif step_type == 'emr-streaming':
-            step_class = EMRStreamingStep
-
-        elif step_type == 'emr-step':
-            step_class = EMRJobStep
-
-        elif step_type == 'pipeline-dependencies':
-            step_class = PipelineDependenciesStep
-
-        elif step_type == 'load-redshift':
-            step_class = LoadRedshiftStep
-
-        elif step_type == 'create-load-redshift':
-            step_class = CreateAndLoadStep
-
-        elif step_type == 'upsert':
-            step_class = UpsertStep
-
-        elif step_type == 'reload':
-            step_class = ReloadStep
-
-        elif step_type in self.custom_steps:
-            step_class = self.custom_steps[step_type]
-
-        else:
-            raise ETLInputError('Step type %s not recogonized' % step_type)
-
-        step_args = step_class.arguments_processor(self, kwargs)
-
-        return step_class, step_args
-
     def add_step(self, step, is_bootstrap=False):
         """Add a step to the pipeline
 
@@ -532,6 +420,7 @@ class ETLPipeline(object):
         """
         input_node = None
         steps = []
+        steps_params = process_steps(steps_params)
         for step_param in steps_params:
 
             # Assume that the preceding step is the input if not specified
@@ -541,18 +430,17 @@ class ETLPipeline(object):
                 step_param['input_node'] = input_node
 
             try:
-                step_class, step_args = self.parse_step_args(**step_param)
+                step_class = step_param.pop('step_class')
+                step_args = step_class.arguments_processor(self, step_param)
             except Exception:
-                print 'Error creating step with params : ', step_param
+                logger.error('Error creating step with params : %s', step_param)
                 raise
 
             try:
                 step = step_class(**step_args)
             except Exception:
-                print "Error creating step of class %s, step_param %s." % (
-                    str(step_class.__name__),
-                    str(step_args)
-                )
+                logger.error('Error creating step of class %s, step_param %s',
+                             str(step_class.__name__), str(step_args))
                 raise
 
             # Add the step to the pipeline
@@ -586,6 +474,34 @@ class ETLPipeline(object):
             result.extend(step.pipeline_objects)
         return result
 
+    @staticmethod
+    def log_s3_dp_instance_data(pipeline):
+        """Uploads instance info for dp_instances to S3
+        """
+        dp_instance_entries = list_formatted_instance_details(pipeline)
+        if len(dp_instance_entries) > 0:
+
+            output_string = StringIO()
+            writer = csv.writer(output_string, delimiter='\t')
+            writer.writerows(dp_instance_entries)
+
+            # S3 Path computation
+            uri = os.path.join(get_s3_base_path(),
+                               config.etl.get('DP_INSTANCE_LOG_PATH'),
+                               datetime.utcnow().strftime('%Y%m%d'))
+
+            dp_instances_dir = S3Path(uri=uri, is_directory=True)
+            dp_instances_path = S3Path(
+                key=pipeline.id + '.tsv',
+                parent_dir=dp_instances_dir,
+            )
+            dp_instances_file = S3File(
+                text=output_string.getvalue(),
+                s3_path=dp_instances_path,
+            )
+            dp_instances_file.upload_to_s3()
+            output_string.close()
+
     def delete_if_exists(self):
         """Delete the pipelines with the same name as current pipeline
         """
@@ -594,6 +510,9 @@ class ETLPipeline(object):
         for p_iter in list_pipelines():
             if p_iter['name'] == self.name:
                 pipeline_instance = DataPipeline(pipeline_id=p_iter['id'])
+
+                if DP_INSTANCE_LOG_PATH:
+                    self.log_s3_dp_instance_data(pipeline_instance)
                 pipeline_instance.delete()
 
     def s3_files(self):
@@ -613,7 +532,6 @@ class ETLPipeline(object):
         Returns:
             errors(list): list of errors in the pipeline, empty if no errors
         """
-
         # Create AwsPipeline and add objects to it
         self.pipeline = DataPipeline(self.name)
         for pipeline_object in self.pipeline_objects():
@@ -622,7 +540,8 @@ class ETLPipeline(object):
         # Check for errors
         self.errors = self.pipeline.validate_pipeline_definition()
         if len(self.errors) > 0:
-            print '\nThere are errors with your pipeline:\n', self.errors
+            logger.error('There are errors with your pipeline:\n %s',
+                         self.errors)
 
         # Update pipeline definition
         self.pipeline.update_pipeline_definition()

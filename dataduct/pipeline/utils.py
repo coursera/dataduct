@@ -4,10 +4,17 @@ Shared utility functions
 from boto.datapipeline import regions
 from boto.datapipeline.layer1 import DataPipelineConnection
 from time import sleep
+import dateutil.parser
+
 from dataduct.config import Config
 
 config = Config()
 REGION = config.etl.get('REGION', None)
+
+DP_ACTUAL_END_TIME = '@actualEndTime'
+DP_ATTEMPT_COUNT_KEY = '@attemptCount'
+DP_INSTANCE_ID_KEY = 'id'
+DP_INSTANCE_STATUS_KEY = '@status'
 
 
 def _update_sleep_time(last_time=None):
@@ -169,3 +176,35 @@ def list_pipelines(conn=None):
         conn.list_pipelines,
         'pipelineIdList',
     )
+
+
+def date_string(date):
+    """Normalizes a date string to YYYY-mm-dd HH:MM:SS
+    """
+    if date is None:
+        return 'NULL'
+    return str(dateutil.parser.parse(date))
+
+
+def list_formatted_instance_details(pipeline):
+    """List of instance rows formatted to match
+    """
+    etl_runs = pipeline.instance_details()
+    entries = []
+    for etl_run_dt in sorted(etl_runs.keys()):
+
+        # Look through instances
+        for instance in sorted(
+                etl_runs[etl_run_dt],
+                key=lambda x: x.get(DP_ACTUAL_END_TIME, None)):
+            entries.append(
+                [
+                    instance[DP_INSTANCE_ID_KEY],
+                    pipeline.id,
+                    date_string(etl_run_dt),
+                    date_string(instance.get(DP_ACTUAL_END_TIME)),
+                    instance[DP_INSTANCE_STATUS_KEY],
+                    instance.get(DP_ATTEMPT_COUNT_KEY, 'NULL'),
+                ]
+            )
+    return entries

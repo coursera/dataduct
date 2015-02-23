@@ -64,6 +64,8 @@ def main():
     parser.add_argument('--sns_topic_arn', dest='sns_topic_arn', default=None)
     parser.add_argument('--test_name', dest='test_name',
                         default='Check Count')
+    parser.add_argument('--log_to_s3', action='store_true', default=False)
+    parser.add_argument('--path_suffix', dest='path_suffix', default=None)
 
     args = parser.parse_args()
 
@@ -74,7 +76,9 @@ def main():
                        name=args.test_name,
                        sns_topic_arn=args.sns_topic_arn,
                        tolerance=args.tolerance)
-    check.publish()
+
+    check.publish(args.log_to_s3, dest_sql=args.destination_sql,
+                  path_suffix=args.path_suffix)
 
 
 if __name__ == '__main__':

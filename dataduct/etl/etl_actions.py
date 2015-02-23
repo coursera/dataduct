@@ -2,17 +2,18 @@
 """
 import yaml
 
+from .etl_pipeline import ETLPipeline
 from ..pipeline import Activity
 from ..pipeline import MysqlNode
 from ..pipeline import RedshiftNode
 from ..pipeline import S3Node
-from .etl_pipeline import ETLPipeline
 from ..utils.exceptions import ETLInputError
-
-URL_TEMPLATE = 'https://console.aws.amazon.com/datapipeline/?#ExecutionDetailsPlace:pipelineId={ID}&show=latest'  # noqa
 
 import logging
 logger = logging.getLogger(__name__)
+
+
+URL_TEMPLATE = 'https://console.aws.amazon.com/datapipeline/?#ExecutionDetailsPlace:pipelineId={ID}&show=latest'  # noqa
 
 
 def read_pipeline_definition(file_path):
@@ -55,8 +56,7 @@ def create_pipeline(definition):
 
     # Add the steps to the pipeline object
     etl.create_steps(steps)
-    print 'Created pipeline. Name: %s' % etl.name
-
+    logger.info('Created pipeline. Name: %s', etl.name)
     return etl
 
 
@@ -70,7 +70,8 @@ def validate_pipeline(etl, force_overwrite=False):
     if force_overwrite:
         etl.delete_if_exists()
     etl.validate()
-    print 'Validated pipeline. Id: %s' % etl.pipeline.id
+    logger.debug(yaml.dump(etl.pipeline.aws_format))
+    logger.info('Validated pipeline. Id: %s', etl.pipeline.id)
 
 
 def activate_pipeline(etl):
@@ -80,9 +81,9 @@ def activate_pipeline(etl):
         etl(EtlPipeline): pipeline object that needs to be activated
     """
     etl.activate()
-    print 'Activated pipeline. Id: %s' % etl.pipeline.id
-    print 'Monitor pipeline here: %s' % \
-        URL_TEMPLATE.format(ID=etl.pipeline.id)
+    logger.info('Activated pipeline. Id: %s', etl.pipeline.id)
+    logger.info('Monitor pipeline here: %s',
+                URL_TEMPLATE.format(ID=etl.pipeline.id))
 
 
 def visualize_pipeline(etl, activities_only=False, filename=None):
@@ -109,14 +110,14 @@ def visualize_pipeline(etl, activities_only=False, filename=None):
     # Add nodes for all activities
     for p_object in pipeline_objects:
         if isinstance(p_object, Activity):
-            graph.add_node(p_object.id, shape='diamond', color='turquoise',
+            graph.add_node(p_object.id, shape='rect', color='turquoise',
                            style='filled')
         if not activities_only:
             if isinstance(p_object, MysqlNode):
-                graph.add_node(p_object.id, shape='egg', color='beige',
+                graph.add_node(p_object.id, shape='oval', color='beige',
                                style='filled')
             if isinstance(p_object, RedshiftNode):
-                graph.add_node(p_object.id, shape='egg', color='goldenrod',
+                graph.add_node(p_object.id, shape='oval', color='goldenrod',
                                style='filled')
             if isinstance(p_object, S3Node):
                 graph.add_node(p_object.id, shape='folder', color='grey',
@@ -153,5 +154,6 @@ def visualize_pipeline(etl, activities_only=False, filename=None):
                 graph.add_edge(dependency.id, p_object.id, color='grey')
 
     # Plotting the graph with dot layout
+    graph.tred()
     graph.layout(prog='dot')
     graph.draw(filename)
