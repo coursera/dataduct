@@ -50,7 +50,7 @@ class TransformStep(ETLStep):
 
         # Create output_node based on output_path
         base_output_node = self.create_s3_data_node(
-            self.get_output_s3_path(output_path, True))
+            self.get_output_s3_path(output_path))
 
         script_arguments = self.translate_arguments(script_arguments)
 

@@ -452,7 +452,7 @@ class ETLStep(object):
         return input_args
 
     @staticmethod
-    def get_output_s3_path(output_path, is_directory=False):
+    def get_output_s3_path(output_path, is_directory=True):
         """Create an S3 Path variable based on the output path
         """
         if output_path:
