@@ -50,7 +50,7 @@ class TransformStep(ETLStep):
 
         # Create output_node based on output_path
         base_output_node = self.create_s3_data_node(
-            self.get_output_s3_path(output_path))
+            self.get_output_s3_path(output_path, True))
 
         script_arguments = self.translate_arguments(script_arguments)
 
@@ -99,7 +99,7 @@ class TransformStep(ETLStep):
         self.create_pipeline_object(
             object_class=ShellCommandActivity,
             input_node=input_nodes,
-            output_node=base_output_node,
+            output_node=self._output,
             resource=self.resource,
             schedule=self.schedule,
             script_uri=script,
