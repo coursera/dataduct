@@ -45,7 +45,7 @@ def get_custom_steps():
 
         # Check if step_class is of type ETLStep
         if not issubclass(step_class, ETLStep):
-            raise ETLInputError('Step type %s is not of type ETLStep',
+            raise ETLInputError('Step type %s is not of type ETLStep' %
                                 step_class.__name__)
 
         custom_steps[step_type] = step_class
