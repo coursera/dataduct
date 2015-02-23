@@ -189,6 +189,7 @@ class ETLPipeline(object):
         self.default = self.create_pipeline_object(
             object_class=DefaultObject,
             sns=self.sns,
+            pipelineLogUri=self.s3_log_dir
         )
 
     @property

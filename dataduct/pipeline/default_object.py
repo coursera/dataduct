@@ -19,6 +19,7 @@ class DefaultObject(PipelineObject):
                  sns=None,
                  scheduleType='cron',
                  failureAndRerunMode='CASCADE',
+                 pipelineLogUri=None,
                  **kwargs):
         """Constructor for the DefaultObject class
 
@@ -39,5 +40,6 @@ class DefaultObject(PipelineObject):
             failureAndRerunMode=failureAndRerunMode,
             role=ROLE,
             resourceRole=RESOURCE_ROLE,
+            pipelineLogUri=pipelineLogUri,
             onFail=sns
         )
