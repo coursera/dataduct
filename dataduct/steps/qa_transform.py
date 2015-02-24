@@ -26,17 +26,14 @@ class QATransformStep(TransformStep):
         """
 
         if sns_topic_arn is None:
-            sns_topic_arn = config.etl['SNS_TOPIC_ARN_WARNING']
+            sns_topic_arn = config.etl.get('SNS_TOPIC_ARN_WARNING', None)
 
         if script_arguments is None:
             script_arguments = list()
 
-        script_arguments.extend(
-            [
-                '--sns_topic_arn=%s' % sns_topic_arn,
-                '--test_name=%s' % (pipeline_name + "." + id)
-            ]
-        )
+        script_arguments.append('--test_name=%s' % (pipeline_name + "." + id))
+        if sns_topic_arn:
+            script_arguments.append('--sns_topic_arn=%s' % sns_topic_arn)
 
         super(QATransformStep, self).__init__(
             id=id,
