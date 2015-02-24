@@ -26,10 +26,17 @@ class CountCheck(Check):
         If there are no values in the source but some in the destination,
         the error is None
         """
-        if self.source_count > 0:
-            error_difference = float(self.source_count - self.destination_count)
-            return abs(error_difference * 100) / self.source_count
-        elif self.destination_count == 0:
+        return self.calculate_error_rate(self.source_count,
+                                         self.destination_count)
+
+    @staticmethod
+    def calculate_error_rate(source_count, destination_count):
+        """Calculate the error rate based on the source and destination counts
+        """
+        if source_count > 0:
+            error_difference = float(source_count - destination_count)
+            return abs(error_difference * 100) / source_count
+        elif destination_count == 0:
             return 0
         else:
             return None
