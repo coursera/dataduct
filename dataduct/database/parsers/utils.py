@@ -20,7 +20,7 @@ _real = (CaselessKeyword('REAL') | CaselessKeyword('FLOAT'))
 _double = CaselessKeyword('DOUBLE')
 _boolean = CaselessKeyword('BOOLEAN')
 _char = CaselessKeyword('CHAR')
-_varchar = Combine(CaselessKeyword('VARCHAR') + '(' + Word(nums) + ')')
+_varchar = Combine(CaselessKeyword('VARCHAR') + '(' + Word(alphanums) + ')')
 _date = CaselessKeyword('DATE')
 _timestamp = CaselessKeyword('TIMESTAMP')
 
