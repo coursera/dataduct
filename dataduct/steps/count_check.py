@@ -34,10 +34,12 @@ class CountCheckStep(QATransformStep):
 
         if not exactly_one(destination_table_name, destination_sql,
                            destination_table_definition):
-            raise ETLInputError('One of dest table or dest sql needed')
+            raise ETLInputError(
+                'One of dest table name/schema or dest sql needed')
 
         if not exactly_one(source_sql, source_table_name):
-            raise ETLInputError('One of dest table or dest sql needed')
+            raise ETLInputError(
+                'One of source table name or source sql needed')
 
         if script_arguments is None:
             script_arguments = list()
