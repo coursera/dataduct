@@ -75,7 +75,7 @@ class Table(Relation):
     def columns(self):
         """Unsorted list of columns in the table
         """
-        return self._columns.values()
+        return sorted(self._columns.values(), key=lambda x: x.position)
 
     def column(self, column_name):
         """Get the column with the given name

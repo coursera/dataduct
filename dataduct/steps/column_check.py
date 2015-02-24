@@ -82,7 +82,7 @@ class ColumnCheckStep(QATransformStep):
             destination_columns = destination_table.columns()
             primary_key_index, primary_keys = zip(*[
                 (idx, col.name)
-                for idx, col in enumerate(destination_columns.columns())
+                for idx, col in enumerate(destination_columns)
                 if col.primary])
 
             if len(destination_columns) == len(primary_key_index):
