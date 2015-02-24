@@ -22,7 +22,7 @@ class ColumnCheckStep(QATransformStep):
     """
 
     def __init__(self, id, source_sql, source_host,
-                 destination_table_definition=None,
+                 destination_table_definition=None, script=None,
                  destination_sql=None, sql_tail_for_source=None,
                  sample_size=100, tolerance=1.0, script_arguments=None,
                  log_to_s3=False, **kwargs):
@@ -62,8 +62,9 @@ class ColumnCheckStep(QATransformStep):
         if log_to_s3:
             script_arguments.append('--log_to_s3')
 
-        steps_path = os.path.abspath(os.path.dirname(__file__))
-        script = os.path.join(steps_path, const.COLUMN_CHECK_SCRIPT_PATH)
+        if script is None:
+            steps_path = os.path.abspath(os.path.dirname(__file__))
+            script = os.path.join(steps_path, const.COLUMN_CHECK_SCRIPT_PATH)
 
         super(ColumnCheckStep, self).__init__(
             id=id, script=script, script_arguments=script_arguments, **kwargs)
