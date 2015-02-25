@@ -85,8 +85,8 @@ def activate_pipeline(etl):
     logger.info('Activated pipeline. Id: %s', etl.pipeline.id)
     logger.info('Monitor pipeline here: %s',
                 URL_TEMPLATE.format(ID=etl.pipeline.id))
-    # Post a slack message
-    post_message('Pipeline started: %s' % etl.name)
+    # Post a slack message if slack is setup
+    post_message('{user} started pipeline: `%s`' % etl.name)
 
 
 def visualize_pipeline(etl, activities_only=False, filename=None):
