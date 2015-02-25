@@ -8,6 +8,7 @@ from ..pipeline import MysqlNode
 from ..pipeline import RedshiftNode
 from ..pipeline import S3Node
 from ..utils.exceptions import ETLInputError
+from ..utils.slack_hook import post_message
 
 import logging
 logger = logging.getLogger(__name__)
@@ -84,6 +85,8 @@ def activate_pipeline(etl):
     logger.info('Activated pipeline. Id: %s', etl.pipeline.id)
     logger.info('Monitor pipeline here: %s',
                 URL_TEMPLATE.format(ID=etl.pipeline.id))
+    # Post a slack message
+    post_message('Pipeline started: %s' % etl.name)
 
 
 def visualize_pipeline(etl, activities_only=False, filename=None):
