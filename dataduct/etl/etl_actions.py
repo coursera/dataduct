@@ -41,8 +41,6 @@ def read_pipeline_definition(file_path):
         # remove the variables key from the pipeline definition
         # http://stackoverflow.com/questions/4150782/using-yaml-with-variables
         definition.pop('variables', None)
-        definition.pop('description', None)
-
     return definition
 
 

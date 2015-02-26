@@ -1,6 +1,7 @@
 """
 Base class for data pipeline instance
 """
+import json
 from collections import defaultdict
 
 from .pipeline_object import PipelineObject
@@ -17,7 +18,8 @@ class DataPipeline(object):
     executing it.
     """
 
-    def __init__(self, unique_id=None, name=None, pipeline_id=None):
+    def __init__(self, unique_id=None, name=None, pipeline_id=None,
+                 tags=None, description=None):
         """Constructor for the datapipeline object
 
         Args:
@@ -43,7 +45,8 @@ class DataPipeline(object):
             if not name:
                 name = unique_id
 
-            response = self.conn.create_pipeline(name, unique_id)
+            response = self.custom_create_pipeline(
+                name, unique_id, description, tags)
             self.pipeline_id = response['pipelineId']
 
     @property
@@ -113,3 +116,21 @@ class DataPipeline(object):
         for instance in instances:
             result[instance['@scheduledStartTime']].append(instance)
         return result
+
+    def custom_create_pipeline(self, name, unique_id, description=None,
+                               tags=None):
+        """
+        Creates a new empty pipeline. Adds tags feature not yet available in
+        boto
+
+        Args:
+            tags(list(dict)): a list of tags in the format
+                              [{key: foo, value: bar}]
+        """
+        params = {'name': name, 'uniqueId': unique_id, }
+        if description is not None:
+            params['description'] = description
+        if tags is not None:
+            params['tags'] = tags
+        return self.conn.make_request(action='CreatePipeline',
+                                      body=json.dumps(params))

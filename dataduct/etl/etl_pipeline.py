@@ -54,7 +54,7 @@ class ETLPipeline(object):
                  ec2_resource_instance_type=INSTANCE_TYPE,
                  delay=0, emr_cluster_config=None, load_time=None,
                  topic_arn=None, max_retries=MAX_RETRIES,
-                 bootstrap=None):
+                 bootstrap=None, description=None):
         """Constructor for the pipeline class
 
         Args:
@@ -82,6 +82,7 @@ class ETLPipeline(object):
         self.load_hour = load_hour
         self.load_min = load_min
         self.delay = delay
+        self.description = description
         self.max_retries = max_retries
         self.topic_arn = topic_arn
 
@@ -526,6 +527,25 @@ class ETLPipeline(object):
             result.extend(pipeline_object.s3_files)
         return result
 
+    def get_tags(self):
+        """Get all the pipeline tags that are specified in the config
+        """
+        tag_config = config.etl.get('TAGS', None)
+        if tag_config is None:
+            return None
+
+        tags = []
+        for key, value in tag_config.iteritems():
+            if 'string' in value and 'variable' in value:
+                raise ETLInputError(
+                    'Tag config can not have both string and variable')
+            elif 'string' in value:
+                tags.append({'key': key, 'value': value['string']})
+            elif 'variable' in value:
+                variable = getattr(self, value['variable'])
+                tags.append({'key': key, 'value': variable})
+        return tags
+
     def validate(self):
         """Validate the given pipeline definition by creating a pipeline
 
@@ -533,7 +553,10 @@ class ETLPipeline(object):
             errors(list): list of errors in the pipeline, empty if no errors
         """
         # Create AwsPipeline and add objects to it
-        self.pipeline = DataPipeline(self.name)
+        self.pipeline = DataPipeline(unique_id=self.name,
+                                     description=self.description,
+                                     tags=self.get_tags())
+
         for pipeline_object in self.pipeline_objects():
             self.pipeline.add_object(pipeline_object)
 
