@@ -39,6 +39,7 @@ class EtlActionsTests(unittest.TestCase):
         self.test_definition = {
             'name': 'example_load_redshift',
             'frequency': 'one-time',
+            'description': 'Example for the load_redshift step',
             'load_time': load_time,
             'max_retries': 5,
             'steps': [{
