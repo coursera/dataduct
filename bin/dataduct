@@ -23,6 +23,7 @@ DATABASE_COMMAND = 'database'
 PIPELINE_COMMAND = 'pipeline'
 VISUALIZE_COMMAND = 'visualize'
 
+DEV = 'dev'
 
 def config_actions(action, filename):
     """Config related actions are executed in this block
@@ -249,7 +250,7 @@ def main():
     mode = args.mode
     if mode is not None:
         # We assume mode:dev = mode:None
-        if mode == 'dev':
+        if mode == DEV:
             mode = None
 
         # To instantiate the singleton object with the correct state
