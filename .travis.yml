@@ -2,9 +2,14 @@ language: python
 python:
   - 2.7
 
+cache: pip
+sudo: false
+
+addons:
+    apt_packages:
+        - graphviz
 # command to install dependencies
 install:
-  - sudo apt-get install graphviz
   - pip install coveralls
   - pip install -r requirements.txt
 
