@@ -33,7 +33,7 @@ class EtlPipelineTests(unittest.TestCase):
             max_retries=5,
             bootstrap={'cfg1': 'value'},
         )
-        eq_(result.name, 'test_pipeline')
+        assert result.name.endswith('test_pipeline')
         eq_(result.frequency, 'one-time')
         eq_(result.ec2_resource_terminate_after, '2 Hours')
         eq_(result.ec2_resource_instance_type, 'm1.small')

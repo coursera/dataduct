@@ -7,10 +7,14 @@ with the correct values
 import argparse
 import collections
 import re
+import pandas
 import pandas.io.sql as pdsql
 from dataduct.data_access import redshift_connection
 from dataduct.data_access import rds_connection
 from dataduct.qa import ColumnCheck
+
+pandas.options.display.max_colwidth = 100000
+pandas.options.display.max_rows = 10000
 
 
 def _get_source_data(sql, hostname, sample_size):
@@ -75,6 +79,8 @@ def _get_destination_data(sql, primary_keys):
         sql,
     )
 
+    print query
+
     data = pdsql.read_sql(query, connection)
     connection.close()
     # All columns apart from last are PK columns
@@ -108,8 +114,10 @@ def main():
     # Open up a connection and read the source and destination tables
     source_data = _get_source_data(args.source_sql, args.source_host,
                                    args.sample_size)
+    print source_data
     destination_data = _get_destination_data(args.destination_sql,
                                              list(source_data.index))
+    print destination_data
 
     check = ColumnCheck(source_data, destination_data,
                         name=args.test_name,

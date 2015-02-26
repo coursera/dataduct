@@ -60,5 +60,5 @@ column_types = _smallint | _integer | _bigint | _decimal | _real | _double
 column_types |= _boolean | _char | _varchar | _date | _timestamp
 
 subquery = Combine('(' + ZeroOrMore(CharsNotIn(')')) + ')')
-_word = Word(alphanums+"_-. *")
+_word = Word(alphanums+"_-. *`")
 def_field = Combine(OneOrMore(_word | subquery))
