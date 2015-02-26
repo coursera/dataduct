@@ -222,11 +222,9 @@ class ETLPipeline(object):
         # Versioning prevents using data from older versions
         key = [S3_BASE_PATH, data_type, self.name, self.version_name]
 
-        if self.frequency == 'daily' and \
-                data_type in [const.LOG_STR, const.DATA_STR]:
-
+        if self.frequency == 'daily' and data_type == const.DATA_STR:
             # For repeated loads, include load date
-            key.append("#{format(@scheduledStartTime, 'YYYYMMdd')}")
+            key.append("#{format(@scheduledStartTime, 'YYYYMMdd-hh-mm-ss')}")
 
         if data_type == const.LOG_STR:
             return S3LogPath(key, bucket=S3_ETL_BUCKET, is_directory=True)
