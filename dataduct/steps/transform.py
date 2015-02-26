@@ -12,6 +12,9 @@ from ..utils.helpers import exactly_one
 from ..utils.exceptions import ETLInputError
 from ..utils import constants as const
 
+import logging
+logger = logging.getLogger(__name__)
+
 SCRIPT_ARGUMENT_TYPE_STRING = 'string'
 SCRIPT_ARGUMENT_TYPE_SQL = 'sql'
 
@@ -95,6 +98,8 @@ class TransformStep(ETLStep):
                 base_output_node, output_node)
         else:
             self._output = base_output_node
+
+        logger.debug(script_arguments)
 
         self.create_pipeline_object(
             object_class=ShellCommandActivity,

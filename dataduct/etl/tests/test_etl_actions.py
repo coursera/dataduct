@@ -73,7 +73,7 @@ class EtlActionsTests(unittest.TestCase):
         """
         result = create_pipeline(self.test_definition)
         # Check that pipeline properties are accurate
-        eq_(result.name, self.test_definition['name'])
+        assert result.name.endswith(self.test_definition['name'])
         eq_(result.frequency, self.test_definition['frequency'])
         eq_(result.load_hour, int(self.load_hour))
         eq_(result.load_min, int(self.load_min))

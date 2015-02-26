@@ -15,6 +15,7 @@ def load_redshift(table, input_paths, max_error=0,
     """Load redshift table with the data in the input s3 paths
     """
     table_name = table.full_name
+    print 'Loading data into %s' % table_name
 
     # Credentials string
     aws_key, aws_secret, token = get_aws_credentials()
