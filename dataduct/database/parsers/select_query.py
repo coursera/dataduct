@@ -6,12 +6,21 @@ from pyparsing import printables
 from pyparsing import restOfLine
 from pyparsing import Word
 from pyparsing import WordStart
+from pyparsing import ParseException
 
 from .utils import _db_name
 from .utils import _from
 from .utils import _join
 from .utils import _select
 from .utils import def_field
+
+
+def deduplicate_with_order(seq):
+    """Deduplicate a sequence while preserving the order
+    """
+    seen = set()
+    seen_add = seen.add
+    return [x for x in seq if not (x in seen or seen_add(x))]
 
 
 def parse_select_base(string):
@@ -54,7 +63,11 @@ def parse_select_dependencies(string):
     flattened_output = [item for sublist in output for item in sublist]
 
     # Deduplicated the list
-    return list(set(flattened_output))
+    unique_output = deduplicate_with_order(flattened_output)
+
+    if len(unique_output) == 0:
+        raise ParseException('No dependent table in select query')
+    return unique_output
 
 
 def parse_select_columns(string):
@@ -97,5 +110,6 @@ def parse_column_name(string):
     words = Word(printables.replace('\n\r', '')).searchString(string)
 
     # Get the last word matched
+    # TODO: Make it more complicated
     name = words.pop().asList().pop()
     return name
