@@ -7,6 +7,7 @@ from ..pipeline import Activity
 from ..pipeline import MysqlNode
 from ..pipeline import RedshiftNode
 from ..pipeline import S3Node
+from ..config import Config
 from ..utils.exceptions import ETLInputError
 from ..utils.slack_hook import post_message
 
@@ -14,7 +15,11 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+config = Config()
+REGION = config.etl.get('REGION', None)
 URL_TEMPLATE = 'https://console.aws.amazon.com/datapipeline/?#ExecutionDetailsPlace:pipelineId={ID}&show=latest'  # noqa
+if REGION:
+    URL_TEMPLATE = "https://console.aws.amazon.com/datapipeline/?&region=%s#ExecutionDetailsPlace:pipelineId={ID}&show=latest" % REGION
 
 
 def read_pipeline_definition(file_path):
