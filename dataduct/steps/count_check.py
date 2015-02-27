@@ -23,7 +23,7 @@ class CountCheckStep(QATransformStep):
     def __init__(self, id, source_host, source_sql=None, source_table_name=None,
                  destination_table_name=None, destination_table_definition=None,
                  destination_sql=None, tolerance=1.0, script_arguments=None,
-                 log_to_s3=False, script=None, **kwargs):
+                 log_to_s3=False, script=None, source_count_sql=None, **kwargs):
         """Constructor for the CountCheckStep class
 
         Args:
@@ -37,9 +37,9 @@ class CountCheckStep(QATransformStep):
             raise ETLInputError(
                 'One of dest table name/schema or dest sql needed')
 
-        if not exactly_one(source_sql, source_table_name):
+        if not exactly_one(source_sql, source_table_name, source_count_sql):
             raise ETLInputError(
-                'One of source table name or source sql needed')
+                'One of source table name or source sql or source count needed')
 
         if script_arguments is None:
             script_arguments = list()
@@ -55,7 +55,7 @@ class CountCheckStep(QATransformStep):
             destination_table_name, destination_sql)
 
         src_sql = self.convert_source_to_count_sql(
-            source_table_name, source_sql)
+            source_table_name, source_sql, source_count_sql)
 
         script_arguments.extend([
             '--tolerance=%s' % str(tolerance),
@@ -89,11 +89,14 @@ class CountCheckStep(QATransformStep):
 
     @staticmethod
     def convert_source_to_count_sql(source_table_name=None,
-                                    source_sql=None):
+                                    source_sql=None,
+                                    source_count_sql=None):
         """Convert the source query into generic structure to compare
         """
         if source_table_name is not None:
             source_sql = "SELECT COUNT(1) FROM %s" % source_table_name
+        elif source_count_sql is not None:
+            source_sql = source_count_sql
         else:
             origin_sql = SqlStatement(source_sql)
             source_sql = "SELECT COUNT(1) FROM (%s)a" % origin_sql.sql()

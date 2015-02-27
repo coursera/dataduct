@@ -99,6 +99,7 @@ class TransformStep(ETLStep):
         else:
             self._output = base_output_node
 
+        logger.debug('Script Arguments:')
         logger.debug(script_arguments)
 
         self.create_pipeline_object(
