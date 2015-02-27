@@ -294,17 +294,11 @@ class ETLPipeline(object):
             # Process the boostrap input
             bootstrap = self.emr_cluster_config.get('bootstrap', None)
             if bootstrap:
-                if isinstance(bootstrap, dict):
-                    # If bootstrap script is not a path to local file
-                    param_type = bootstrap['type']
-                    bootstrap = bootstrap['value']
-                else:
-                    # Default the type to path of a local file
-                    param_type = 'path'
-
-                if param_type == 'path':
-                    bootstrap = S3File(path=bootstrap)
+                if 'string' in bootstrap:
+                    bootstrap = bootstrap['string']
+                elif 'script' in bootstrap:
                     # Set the S3 Path for the bootstrap script
+                    bootstrap = S3File(path=bootstrap)
                     bootstrap.s3_path = self.s3_source_dir
                 self.emr_cluster_config['bootstrap'] = bootstrap
 
