@@ -131,7 +131,7 @@ class ColumnCheckStep(QATransformStep):
              for idx in non_primary_key_index])
         concatenated_column = ('CONCAT(%s)' % column_string)
 
-        template = '''SELECT {primary_keys}, {concat_column}
+        template = '''SELECT {primary_keys}, {concat_column} AS merged_string
                       FROM ({origin_sql}) AS origin {sql_tail}'''
 
         query = template.format(primary_keys=primary_key_str,
