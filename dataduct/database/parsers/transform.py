@@ -5,14 +5,10 @@ import re
 
 from pyparsing import CaselessKeyword
 from pyparsing import CharsNotIn
-from pyparsing import delimitedList
 from pyparsing import Literal
 from pyparsing import nestedExpr
 from pyparsing import OneOrMore
-from pyparsing import originalTextFor
-from pyparsing import printables
 from pyparsing import replaceWith
-from pyparsing import Word
 from pyparsing import WordStart
 from pyparsing import ZeroOrMore
 
@@ -76,7 +72,7 @@ def remove_transactional(string):
     return transaction.suppress().transformString(string)
 
 
-def split_statements(string, seperator=';'):
+def split_statements(string, seperator=';', quote_char="'"):
     """Seperate the string based on the seperator
 
     Args:
@@ -89,16 +85,22 @@ def split_statements(string, seperator=';'):
     if string == '':
         return []
 
-    # words can contain anything but the seperator
-    printables_less_seperator = printables.replace(seperator, '')
-
-    # capture content between seperators, and preserve original text
-    content = originalTextFor(OneOrMore(Word(printables_less_seperator)))
-
-    # process the string
-    tokens = delimitedList(content, seperator).parseString(string)
-
-    return tokens.asList()
+    # We can not directly split a sql statement as we want to skip on
+    # semicolons inside a string in the sql query.
+    stack = 0
+    result = []
+    statement = ''
+    for char in string:
+        if char == seperator and not stack % 2:
+            result.append(statement.strip())
+            statement = ''
+        else:
+            statement += char
+            if char == quote_char:
+                stack += 1
+    if statement.strip():
+        result.append(statement.strip())
+    return result
 
 
 def remove_newlines(string):

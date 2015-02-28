@@ -112,7 +112,10 @@ class ColumnCheckStep(QATransformStep):
         """Convert the source query into generic structure to compare
         """
         origin_sql = SelectStatement(SqlScript(source_sql).statements[0].sql())
-        column_names = [x.name for x in origin_sql.columns()]
+
+        # Remove column name references to tables as t.session_id should be
+        # session_id as we wrap the whole query.
+        column_names = [x.name.split('.')[-1] for x in origin_sql.columns()]
 
         non_primary_key_index = [idx for idx in range(len(column_names))
                                  if idx not in primary_key_index]
