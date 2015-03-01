@@ -8,8 +8,6 @@ from .table import Table
 from .sql import SqlScript
 
 from ..utils.helpers import atmost_one
-from ..utils.helpers import parse_path
-
 from ..utils.exceptions import DatabaseInputError
 
 import logging
@@ -46,7 +44,7 @@ class Database(object):
         """
         relations = []
         for filename in files:
-            with open(parse_path(filename)) as f:
+            with open(filename) as f:
                 script = SqlScript(f.read())
                 if script.creates_table():
                     relations.append(Table(script))
