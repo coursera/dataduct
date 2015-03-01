@@ -4,7 +4,9 @@ load_time: 01:00  # Hour:Min in UTC
 ec2_resource_config:
     instance_type: m1.small
 
-description: Example for the transform step, uses an m1.small instance instead of the default
+description: |
+    Example for the transform step, uses an m1.small instance instead of
+    the default
 
 steps:
 -   step_type: extract-local

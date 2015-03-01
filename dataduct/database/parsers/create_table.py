@@ -19,7 +19,7 @@ from .utils import _references
 from .utils import _sortkey
 from .utils import _table
 from .utils import column_types
-from .utils import def_field
+from .utils import field_parser
 from .utils import pk_check
 
 from .helpers import existance_check
@@ -65,7 +65,7 @@ def get_base_parser():
         table_definition(pyparsing): Parser for create table statements
     """
     table_def = get_definition_start() + \
-                paranthesis_list('raw_fields', def_field) + \
+                paranthesis_list('raw_fields', field_parser) + \
                 get_attributes_parser()
 
     return table_def

@@ -12,7 +12,7 @@ from .utils import _db_name
 from .utils import _from
 from .utils import _join
 from .utils import _select
-from .utils import def_field
+from .utils import field_parser
 
 
 def deduplicate_with_order(seq):
@@ -87,7 +87,7 @@ def parse_select_columns(string):
     suppressor = MatchFirst(_from) + restOfLine
     string = suppressor.suppress().transformString(string)
 
-    parser = _select + delimitedList(def_field).setResultsName('columns')
+    parser = _select + delimitedList(field_parser).setResultsName('columns')
     output = parser.parseString(string).columns.asList()
 
     # Strip extra whitespace from the string
