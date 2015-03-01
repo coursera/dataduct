@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# PYTHON_ARGCOMPLETE_OK
 
 """Script that helps create and validate pipelines from command line
 """
@@ -253,6 +254,11 @@ def main():
         help='Enter the paths of the table definitions',
     )
 
+    try:
+        import argcomplete
+        argcomplete.autocomplete(parser)
+    except ImportError:
+        pass
     args = parser.parse_args()
 
     mode = args.mode
