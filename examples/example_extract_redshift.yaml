@@ -1,9 +1,8 @@
-name : example_extract_redshift
-frequency : one-time
+name: example_extract_redshift
+frequency: one-time
 load_time: 01:00  # Hour:Min in UTC
 
-description : |
-    This example extracts data out of redshift
+description: This example extracts data out of redshift
 
 steps:
 -   step_type: extract-redshift

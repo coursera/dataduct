@@ -1,8 +1,8 @@
-name : example_bootstrap
-frequency : one-time
+name: example_bootstrap
+frequency: one-time
 load_time: 01:00  # Hour:Min in UTC
 
-description : Example for the transform step
+description: Example for the transform step
 
 bootstrap:
     ec2:

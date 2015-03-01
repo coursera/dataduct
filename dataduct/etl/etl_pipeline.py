@@ -69,8 +69,10 @@ class ETLPipeline(object):
             bootstrap(list of steps): bootstrap step definitions for resources
         """
 
-        if load_time:
+        if load_time and isinstance(load_time, str):
             load_hour, load_min = [int(x) for x in load_time.split(':')]
+        elif load_time and isinstance(load_time, int):
+            load_hour, load_min = (load_time / 60, load_time % 60)
         else:
             load_hour, load_min = [None, None]
 

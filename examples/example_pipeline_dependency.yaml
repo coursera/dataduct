@@ -1,5 +1,5 @@
-name : example_pipeline_dependency
-frequency : one-time
+name: example_pipeline_dependency
+frequency: one-time
 load_time: 01:00  # Hour:Min in UTC
 
 steps:

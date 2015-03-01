@@ -276,6 +276,8 @@ def main():
     # Certain modes in the config can override frequency of a pipeline
     frequency_override = config.etl.get('FREQUENCY_OVERRIDE', None)
 
+
+    # Action parse
     if args.command == CONFIG_COMMAND:
         config_actions(args.action, args.filename)
     elif args.command == PIPELINE_COMMAND:

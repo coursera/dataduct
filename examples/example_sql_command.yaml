@@ -1,8 +1,8 @@
-name : example_sql_command
-frequency : one-time
+name: example_sql_command
+frequency: one-time
 load_time: 01:00  # Hour:Min in UTC
 
-description : Example for the sql_command step
+description: Example for the sql_command step
 
 steps:
 -   step_type: sql-command

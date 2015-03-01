@@ -1,8 +1,8 @@
-name : example_extract_rds
-frequency : one-time
+name: example_extract_rds
+frequency: one-time
 load_time: 01:00  # Hour:Min in UTC
 
-description : |
+description: |
     This example extracts data from mysql to S3 with the extract-rds step.
 
 steps:
