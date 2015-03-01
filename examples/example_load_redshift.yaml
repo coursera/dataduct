@@ -1,8 +1,8 @@
-name : example_load_redshift
-frequency : one-time
+name: example_load_redshift
+frequency: one-time
 load_time: 01:00  # Hour:Min in UTC
 
-description : Example for the load_redshift step
+description: Example for the load_redshift step
 
 steps:
 -   step_type: extract-local

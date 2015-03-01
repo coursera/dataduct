@@ -8,6 +8,9 @@ import argparse
 from dataduct.config import Config
 from dataduct.config import logger_configuration
 
+import logging
+logger = logging.getLogger(__name__)
+
 CREATE_STR = 'create'
 VALIDATE_STR = 'validate'
 ACTIVATE_STR = 'activate'
@@ -36,7 +39,8 @@ def config_actions(action, filename):
     return sync_from_s3(filename)
 
 
-def initialize_etl_objects(load_definitions, delay=None):
+def initialize_etl_objects(load_definitions, delay=None,
+                           frequency_override=None):
     """Generate etl objects from yaml files
     """
     from dataduct.etl import create_pipeline
@@ -47,17 +51,21 @@ def initialize_etl_objects(load_definitions, delay=None):
         definition = read_pipeline_definition(load_definition)
         if delay is not None:
             definition.update({'delay': delay})
+        if frequency_override is not None:
+            definition.update({'frequency': frequency_override})
         etls.append(create_pipeline(definition))
     return etls
 
 
-def pipeline_actions(action, load_definitions, force_overwrite, delay):
+def pipeline_actions(action, load_definitions, force_overwrite, delay,
+                     frequency_override=None):
     """Pipeline related actions are executed in this block
     """
     from dataduct.etl import activate_pipeline
     from dataduct.etl import validate_pipeline
 
-    for etl in initialize_etl_objects(load_definitions, delay):
+    for etl in initialize_etl_objects(load_definitions, delay,
+                                      frequency_override):
         if action in [VALIDATE_STR, ACTIVATE_STR]:
             validate_pipeline(etl, force_overwrite)
         if action == ACTIVATE_STR:
@@ -253,20 +261,28 @@ def main():
         if mode == DEV:
             mode = None
 
-        # To instantiate the singleton object with the correct state
-        # As this is the single entry point to the library
-        # We can use the __new__ function to set the debug_level
-        config = Config(mode=mode)
-        print '[WARNING] Running the pipeline in %s mode.' % config.mode
+    # To instantiate the singleton object with the correct state
+    # As this is the single entry point to the library
+    # We can use the __new__ function to set the debug_level
+    config = Config(mode=mode)
 
     # Setup up logging for package
     logger_configuration()
 
+    if mode is not None:
+        logger.warning('Running the pipeline in %s mode.' % config.mode)
+
+    # Frequency override
+    # Certain modes in the config can override frequency of a pipeline
+    frequency_override = config.etl.get('FREQUENCY_OVERRIDE', None)
+
+
+    # Action parse
     if args.command == CONFIG_COMMAND:
         config_actions(args.action, args.filename)
     elif args.command == PIPELINE_COMMAND:
         pipeline_actions(args.action, args.load_definitions,
-                         args.force_overwrite, args.delay)
+                         args.force_overwrite, args.delay, frequency_override)
     elif args.command == DATABASE_COMMAND:
         database_actions(args.action, args.table_definitions)
     else:

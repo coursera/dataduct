@@ -210,3 +210,11 @@ class TestSplitOmitQuoted(TestCase):
 
         eq_(split_statements(remove_empty_statements(
             remove_comments(data))), result)
+
+    @staticmethod
+    def test_split_escaped_sql():
+        """Split SQL statement with strings that have semicolon
+        """
+        data = "a; xyz='0;0'; c;"
+        result = ['a', "xyz='0;0'", 'c']
+        eq_(split_statements(data), result)

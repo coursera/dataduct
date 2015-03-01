@@ -1,8 +1,8 @@
-name : example_count_check
-frequency : one-time
-load_time : 01:00
+name: example_count_check
+frequency: one-time
+load_time: 01:00
 
-description : Example for the count-check step
+description: Example for the count-check step
 
 steps:
 -   step_type: count-check

@@ -3,8 +3,10 @@ ETL step wrapper for SqlActivity can be executed on Ec2
 """
 from .etl_step import ETLStep
 from ..pipeline import SqlActivity
+from ..database import SqlScript
 from ..s3 import S3File
 from ..utils.helpers import exactly_one
+from ..utils.helpers import parse_path
 from ..utils.exceptions import ETLInputError
 
 
@@ -18,6 +20,7 @@ class SqlCommandStep(ETLStep):
                  script_arguments=None,
                  queue=None,
                  command=None,
+                 wrap_transaction=True,
                  **kwargs):
         """Constructor for the SqlCommandStep class
 
@@ -36,9 +39,14 @@ class SqlCommandStep(ETLStep):
 
         # Create S3File with script / command provided
         if script:
-            script = self.create_script(S3File(path=script))
+            sql_script = SqlScript(filename=parse_path(script))
         else:
-            script = self.create_script(S3File(text=command))
+            sql_script = SqlScript(command)
+
+        if wrap_transaction:
+            sql_script = sql_script.wrap_transaction()
+
+        script = self.create_script(S3File(text=sql_script.sql()))
 
         self.create_pipeline_object(
             object_class=SqlActivity,

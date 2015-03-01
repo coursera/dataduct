@@ -13,8 +13,8 @@ from dataduct.data_access import redshift_connection
 from dataduct.data_access import rds_connection
 from dataduct.qa import ColumnCheck
 
-pandas.options.display.max_colwidth = 100000
-pandas.options.display.max_rows = 10000
+pandas.options.display.max_colwidth = 1000
+pandas.options.display.max_rows = 1000
 
 
 def _get_source_data(sql, hostname, sample_size):
@@ -114,10 +114,11 @@ def main():
     # Open up a connection and read the source and destination tables
     source_data = _get_source_data(args.source_sql, args.source_host,
                                    args.sample_size)
-    print source_data
+    print source_data.to_string()
+
     destination_data = _get_destination_data(args.destination_sql,
                                              list(source_data.index))
-    print destination_data
+    print destination_data.to_string()
 
     check = ColumnCheck(source_data, destination_data,
                         name=args.test_name,

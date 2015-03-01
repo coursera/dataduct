@@ -1,8 +1,8 @@
-name : example_reload
-frequency : one-time
+name: example_reload
+frequency: one-time
 load_time: 01:00  # Hour:Min in UTC
 
-description : Example for the reload step
+description: Example for the reload step
 
 steps:
 -   step_type: extract-local

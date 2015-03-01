@@ -1,8 +1,8 @@
-name : example_column_check
-frequency : one-time
+name: example_column_check
+frequency: one-time
 load_time: 01:00
 
-description : Example for the column-check step
+description: Example for the column-check step
 
 steps:
 -   step_type: column-check

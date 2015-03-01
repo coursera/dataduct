@@ -1,8 +1,8 @@
-name : example_double_input
-frequency : one-time
+name: example_double_input
+frequency: one-time
 load_time: 01:00  # Hour:Min in UTC
 
-description : Example for the transform step with multiple inputs
+description: Example for the transform step with multiple inputs
 
 steps:
 -   step_type: extract-local
