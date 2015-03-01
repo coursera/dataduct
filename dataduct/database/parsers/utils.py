@@ -58,8 +58,10 @@ pk_check = (_primary_key | _unique)
 column_types = _smallint | _integer | _bigint | _decimal | _real | _double
 column_types |= _boolean | _char | _varchar | _date | _timestamp
 
-subquery = Forward()
-_word = Word(alphanums+"_-. *`><!+/=%'")
 def_field = Forward()
-def_field << Combine(OneOrMore(_word | subquery))  # noqa
-subquery << Combine('(' + Combine(OneOrMore(Word(alphanums+",_-. *`=%'") | subquery)) + ')')  # noqa
+subquery = Forward()
+special_character = "_-. *`><!+/=%':{}"
+_word = Word(alphanums + special_character)
+_word_subquery = Word(alphanums + "," + special_character)
+def_field << Combine(OneOrMore(_word | subquery))
+subquery << Combine('(' + Combine(OneOrMore(_word_subquery | subquery)) + ')')
