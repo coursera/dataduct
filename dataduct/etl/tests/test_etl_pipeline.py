@@ -24,8 +24,7 @@ class EtlPipelineTests(unittest.TestCase):
         result = ETLPipeline(
             'test_pipeline',
             frequency='one-time',
-            ec2_resource_terminate_after='2 Hours',
-            ec2_resource_instance_type='m1.small',
+            ec2_resource_config={'terminate_after':'2 Hours'},
             delay=13,
             emr_cluster_config={'cfg1': 'value'},
             load_time='12:34',
@@ -35,8 +34,7 @@ class EtlPipelineTests(unittest.TestCase):
         )
         assert result.name.endswith('test_pipeline')
         eq_(result.frequency, 'one-time')
-        eq_(result.ec2_resource_terminate_after, '2 Hours')
-        eq_(result.ec2_resource_instance_type, 'm1.small')
+        eq_(result.ec2_resource_config, {'terminate_after':'2 Hours'})
         eq_(result.load_hour, 12)
         eq_(result.load_min, 34)
         eq_(result.delay, 13)
