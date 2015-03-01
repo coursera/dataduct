@@ -2,10 +2,9 @@
 """
 from unittest import TestCase
 from nose.tools import eq_
-from nose.tools import assert_not_equal
 
 from ..utils import balanced_parenthesis
-from ..utils import sanatize_sql
+from ..utils import sanitize_sql
 
 
 class TestSqlUtils(TestCase):
@@ -26,8 +25,8 @@ class TestSqlUtils(TestCase):
         eq_(balanced_parenthesis('SELECT 1(a(ab)b);'), True)
 
     @staticmethod
-    def test_sanatize_sql():
-        """Test for sanatize_sql
+    def test_sanitize_sql():
+        """Test for sanitize_sql
         """
         sql = "SELECT 1 if x='x;y'; SELECT 1 ;"
-        eq_(sanatize_sql(sql), ["SELECT 1 if x='x;y'", 'SELECT 1'])
+        eq_(sanitize_sql(sql), ["SELECT 1 if x='x;y'", 'SELECT 1'])

@@ -5,7 +5,7 @@ from copy import deepcopy
 from .sql_statement import SqlStatement
 from .transaction import BeginStatement
 from .transaction import CommitStatement
-from .utils import sanatize_sql
+from .utils import sanitize_sql
 
 from ...utils.helpers import atmost_one
 
@@ -26,7 +26,7 @@ class SqlScript(object):
                 sql = f.read()
 
         self._raw_sql = sql
-        self._raw_statements = self._sanatize_sql()
+        self._raw_statements = self._sanitize_sql()
         self._statements = self._initialize_statements()
 
         # Add the statements that the script was initialized from
@@ -59,10 +59,10 @@ class SqlScript(object):
         """
         return ';\n'.join([x.sql() for x in self._statements]) + ';'
 
-    def _sanatize_sql(self):
+    def _sanitize_sql(self):
         """Clean the SQL, remove comments and empty statements
         """
-        return sanatize_sql(self._raw_sql)
+        return sanitize_sql(self._raw_sql)
 
     def _initialize_statements(self):
         """Initialize SQL Statements based on the inputscipt

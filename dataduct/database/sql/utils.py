@@ -22,7 +22,7 @@ def balanced_parenthesis(statement):
     return counter == 0
 
 
-def sanatize_sql(sql, keep_transaction=False):
+def sanitize_sql(sql, keep_transaction=False):
     """Sanatize the sql string
     """
     # remove comments

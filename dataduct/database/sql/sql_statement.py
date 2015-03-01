@@ -1,7 +1,7 @@
 """Script that contains the sql statement class
 """
 from copy import deepcopy
-from .utils import sanatize_sql
+from .utils import sanitize_sql
 from ..parsers import parse_create_table
 from ..parsers import parse_create_view
 
@@ -16,7 +16,7 @@ class SqlStatement(object):
             sql = ''
         self._raw_sql = sql
         self.transactional = transactional
-        self._raw_statement = self._sanatize_sql()
+        self._raw_statement = self._sanitize_sql()
 
     def __str__(self):
         """Print a SqlStatement object
@@ -33,13 +33,13 @@ class SqlStatement(object):
         """
         return self._raw_statement
 
-    def _sanatize_sql(self):
+    def _sanitize_sql(self):
         """Clean the SQL, remove comments and empty statements
         """
         if self._raw_sql is None:
             return ''
 
-        raw_statements = sanatize_sql(self._raw_sql, self.transactional)
+        raw_statements = sanitize_sql(self._raw_sql, self.transactional)
 
         if len(raw_statements) > 1:
             raise ValueError('SQL Statement can not contain more than 1 query')
