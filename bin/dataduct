@@ -3,8 +3,8 @@
 
 """Script that helps create and validate pipelines from command line
 """
-
 import argparse
+from argparse import ArgumentParser
 from argparse import RawTextHelpFormatter
 
 from dataduct.config import Config
@@ -13,26 +13,43 @@ from dataduct.config import logger_configuration
 import logging
 logger = logging.getLogger(__name__)
 
-CREATE_STR = 'create'
-VALIDATE_STR = 'validate'
-ACTIVATE_STR = 'activate'
-VISUALIZE_STR = 'visualize'
-DROP_STR = 'drop'
-GRANT_STR = 'grant'
-RECREATE_STR = 'recreate'
+PIPELINE = 'pipeline'
+CREATE = 'create'
+VALIDATE = 'validate'
+ACTIVATE = 'activate'
+VISUALIZE = 'visualize'
 
+CONFIG = 'config'
 CONFIG_TO_S3 = 'sync_to_s3'
 CONFIG_FROM_S3 = 'sync_from_s3'
 
-CONFIG_COMMAND = 'config'
-DATABASE_COMMAND = 'database'
-PIPELINE_COMMAND = 'pipeline'
+DATABASE = 'database'
+DROP = 'drop'
+GRANT = 'grant'
+RECREATE = 'recreate'
+
 DEV = 'dev'
 
-formatter_class = lambda prog: RawTextHelpFormatter(prog, max_help_position=50)
+
+def initialize_etl_objects(pipeline_definitions, delay=None,
+                           frequency_override=None):
+    """Generate etl objects from yaml files
+    """
+    from dataduct.etl import create_pipeline
+    from dataduct.etl import read_pipeline_definition
+
+    etls = []
+    for pipeline_definition in pipeline_definitions:
+        definition = read_pipeline_definition(pipeline_definition)
+        if delay is not None:
+            definition.update({'delay': delay})
+        if frequency_override is not None:
+            definition.update({'frequency': frequency_override})
+        etls.append(create_pipeline(definition))
+    return etls
 
 
-def config_actions(action, filename):
+def config_actions(action, filename=None, **kwargs):
     """Config related actions are executed in this block
     """
     from dataduct.config.config_actions import sync_to_s3
@@ -43,61 +60,46 @@ def config_actions(action, filename):
     return sync_from_s3(filename)
 
 
-def initialize_etl_objects(load_definitions, delay=None,
-                           frequency_override=None):
-    """Generate etl objects from yaml files
-    """
-    from dataduct.etl import create_pipeline
-    from dataduct.etl import read_pipeline_definition
-
-    etls = []
-    for load_definition in load_definitions:
-        definition = read_pipeline_definition(load_definition)
-        if delay is not None:
-            definition.update({'delay': delay})
-        if frequency_override is not None:
-            definition.update({'frequency': frequency_override})
-        etls.append(create_pipeline(definition))
-    return etls
-
-
-def pipeline_actions(action, load_definitions, force_overwrite=None,
-                     delay=None, frequency_override=None,
-                     activities_only=None, filename=None):
+def pipeline_actions(action, pipeline_definitions, force=None, delay=None,
+                     frequency_override=None, activities_only=None,
+                     filename=None, **kwargs):
     """Pipeline related actions are executed in this block
     """
     from dataduct.etl import activate_pipeline
     from dataduct.etl import validate_pipeline
     from dataduct.etl import visualize_pipeline
 
-    for etl in initialize_etl_objects(load_definitions, delay,
+    for etl in initialize_etl_objects(pipeline_definitions, delay,
                                       frequency_override):
-        if action in [VALIDATE_STR, ACTIVATE_STR]:
-            validate_pipeline(etl, force_overwrite)
-        if action == ACTIVATE_STR:
+        if action in [VALIDATE, ACTIVATE]:
+            validate_pipeline(etl, force)
+        if action == ACTIVATE:
             activate_pipeline(etl)
-        if action == VISUALIZE_STR:
+        if action == VISUALIZE:
             visualize_pipeline(etl, activities_only, filename)
 
 
-def database_actions(action, table_definitions, filename=None):
+def database_actions(action, table_definitions, filename=None, **kwargs):
     """Database related actions are executed in this block
     """
     from dataduct.database import Database
 
+    script = None
     database = Database(files=table_definitions)
-    if action == CREATE_STR:
+    if action == CREATE:
         script = database.create_relations_script()
-    elif action == DROP_STR:
+    elif action == DROP:
         script = database.drop_relations_script()
-    elif action == GRANT_STR:
+    elif action == GRANT:
         script = database.grant_relations_script()
-    elif action == RECREATE_STR:
+    elif action == RECREATE:
         script = database.recreate_relations_script()
-    elif action == VISUALIZE_STR:
+    elif action == VISUALIZE:
         database.visualize(filename)
-        script = ''
-    print script
+
+    # TODO: Build execution options
+    if script:
+        print script
 
 
 class _HelpAction(argparse._HelpAction):
@@ -119,23 +121,18 @@ class _HelpAction(argparse._HelpAction):
         parser.exit()
 
 
-def choice_help_formatter(choices):
-    """Create help format for a choice argument
-    """
-    result = []
-    for key, value in choices.iteritems():
-        result.append('%s: %s' % (key, value))
-    return '\n'.join(result)
-
-
 def main():
     """Main function
     """
+    formatter_class = lambda prog: RawTextHelpFormatter(
+        prog, max_help_position=50)
 
-    # Overwrite default help
-    help_parser = argparse.ArgumentParser(
-        description='Help message',
-        add_help=False)
+    # Help parser for parsing subparsers in help
+    help_parser = ArgumentParser(
+        description='Run Dataduct commands',
+        add_help=False,
+        formatter_class=formatter_class,
+    )
     help_parser.add_argument(
         '-h',
         '--help',
@@ -143,26 +140,76 @@ def main():
         help='Help message',
     )
 
-    # Base parser for all commands
-    base_parser = argparse.ArgumentParser(
-        description='Base Parser',
+    # Mode parser shared across all pipeline subparsers
+    mode_help = 'Mode to run the pipeline and config overrides to use'
+    mode_parser = ArgumentParser(
+        description=mode_help,
         add_help=False,
     )
-    base_parser.add_argument(
-        '-F',
-        '--filename',
-        default=None,
-        help='Filename to store output of commands',
-    )
-    base_parser.add_argument(
+    mode_parser.add_argument(
         '-m',
         '--mode',
         default=None,
-        help='Mode to run the pipeline and config overrides to use',
+        help=mode_help
+    )
+
+    # Options parser shared actions all pipeline run options
+    pipeline_run_options = ArgumentParser(
+        description='Specify actions related to running the pipelines',
+        add_help=False
+    )
+    pipeline_run_options.add_argument(
+        '-f',
+        '--force',
+        action='store_true',
+        default=False,
+        help='Indicates that if this pipeline exists, it will be destroyed',
+    )
+    pipeline_run_options.add_argument(
+        '-d',
+        '--delay',
+        default=0,
+        type=int,
+        help='Delay the pipeline by x days',
+    )
+
+    # Pipeline definitions parser
+    pipeline_definition_help = 'Paths of the pipeline definitions'
+    pipeline_definition_parser = ArgumentParser(
+        description=pipeline_definition_help,
+        add_help=False,
+    )
+    pipeline_definition_parser.add_argument(
+        'pipeline_definitions',
+        nargs='+',
+        help=pipeline_definition_help,
+    )
+
+    # Table definitions parser
+    table_definition_help = 'Paths of the table definitions'
+    table_definition_parser = ArgumentParser(
+        description=table_definition_help,
+        add_help=False,
+    )
+    table_definition_parser.add_argument(
+        'table_definitions',
+        nargs='+',
+        help=table_definition_help,
+    )
+
+    # Filepath input parser
+    filepath_help = 'filepath input for storing output of actions'
+    file_parser = ArgumentParser(
+        description=filepath_help,
+        add_help=False,
+    )
+    file_parser.add_argument(
+        dest='filename',
+        help='Filename to store output of commands',
     )
 
     # Main parser
-    parser = argparse.ArgumentParser(
+    parser = ArgumentParser(
         description='Run Dataduct commands',
         add_help=False,
         parents=[help_parser],
@@ -170,96 +217,152 @@ def main():
     )
     subparsers = parser.add_subparsers(
         dest='command',
-        help='Actions for various features')
-
-    # Config parser declaration
-    config_choices = {
-        CONFIG_TO_S3: 'sync config file from local to s3',
-        CONFIG_FROM_S3: 'sync config file from s3 to local file',
-    }
-    config_parser = subparsers.add_parser(
-        CONFIG_COMMAND,
-        parents=[base_parser],
-        formatter_class=formatter_class,
-        help='Command to sync config to and from S3'
-    )
-    config_parser.add_argument(
-        'action',
-        type=str,
-        choices=config_choices,
-        help=choice_help_formatter(config_choices),
-        default=CONFIG_FROM_S3,
+        help='Actions for various features',
     )
 
-    # Pipeline parser declaration
-    pipeline_choices = {
-        CREATE_STR: 'Create a pipeline locally',
-        VALIDATE_STR: 'Validate a pipeline with AWS without activating',
-        ACTIVATE_STR: 'Activate the pipeline on AWS',
-        VISUALIZE_STR: 'Visualize the pipeline',
-    }
+    # Pipeline parser
     pipeline_parser = subparsers.add_parser(
-        PIPELINE_COMMAND,
-        parents=[base_parser],
+        PIPELINE,
         formatter_class=formatter_class,
-        help='Command for various operations on pipeline definitions',
+        add_help=False,
+        parents=[help_parser]
     )
-    pipeline_parser.add_argument(
-        'action',
-        type=str,
-        choices=pipeline_choices,
-        help=choice_help_formatter(pipeline_choices),
-        default=CREATE_STR,
-    )
-    pipeline_parser.add_argument(
-        'load_definitions',
-        nargs='+',
-        help='Enter the paths of the load definitions',
-    )
-    pipeline_parser.add_argument(
-        '-f',
-        '--force_overwrite',
-        action='store_true',
-        default=False,
-        help='Indicates that if this pipeline exists, it will be destroyed',
-    )
-    pipeline_parser.add_argument(
-        '-d',
-        '--delay',
-        default=0,
-        type=int,
-        help='Delay the pipeline by x days',
-    )
-    pipeline_parser.add_argument(
-        '--activities_only',
-        action='store_true',
-        help='Visualize only activities',
+    pipeline_subparsers = pipeline_parser.add_subparsers(
+        dest='action',
+        help='Pipeline actions',
     )
 
-    # Database parser declaration
-    database_choices = {
-        CREATE_STR: 'Create tables',
-        DROP_STR: 'Drop views and tables',
-        GRANT_STR: 'Grant permissions to neccessary groups',
-        RECREATE_STR: 'Recreate tables, load new data, drop old tables',
-        VISUALIZE_STR: 'Visualize the database er-diagram',
-    }
-    database_parser = subparsers.add_parser(
-        DATABASE_COMMAND,
-        parents=[base_parser],
+    # Pipeline subparsers_action
+    pipeline_subparsers.add_parser(
+        CREATE,
         formatter_class=formatter_class,
-        help='Command for various operations on the database',
+        parents=[
+            mode_parser,
+            pipeline_run_options,
+            pipeline_definition_parser,
+        ],
+        help='Create a pipeline locally',
     )
-    database_parser.add_argument(
-        'action',
-        type=str,
-        choices=database_choices,
-        help=choice_help_formatter(database_choices),
+    pipeline_subparsers.add_parser(
+        VALIDATE,
+        formatter_class=formatter_class,
+        parents=[
+            mode_parser,
+            pipeline_run_options,
+            pipeline_definition_parser,
+        ],
+        help='Validate a pipeline with AWS without activating',
     )
-    database_parser.add_argument(
-        'table_definitions',
-        nargs='+',
-        help='Enter the paths of the table definitions',
+    pipeline_subparsers.add_parser(
+        ACTIVATE,
+        formatter_class=formatter_class,
+        parents=[
+            mode_parser,
+            pipeline_run_options,
+            pipeline_definition_parser,
+        ],
+        help='Activate the pipeline on AWS',
+    )
+    pipeline_subparsers.add_parser(
+        VISUALIZE,
+        formatter_class=formatter_class,
+        parents=[
+            mode_parser,
+            file_parser,
+            pipeline_definition_parser,
+        ],
+        help='Visualize the pipeline',
+    )
+
+    # Config parser
+    config_parser = subparsers.add_parser(
+        CONFIG,
+        formatter_class=formatter_class,
+        add_help=False,
+        parents=[help_parser]
+    )
+    config_subparsers = config_parser.add_subparsers(
+        dest='action',
+        help='config actions',
+    )
+
+    # config subparsers_action
+    config_subparsers.add_parser(
+        CONFIG_TO_S3,
+        formatter_class=formatter_class,
+        parents=[
+            mode_parser,
+        ],
+        help='sync config file from local to s3',
+    )
+    config_subparsers.add_parser(
+        CONFIG_FROM_S3,
+        formatter_class=formatter_class,
+        parents=[
+            mode_parser,
+            file_parser,
+        ],
+        help='sync config file from s3 to local file',
+    )
+
+    # Database parser
+    database_parser = subparsers.add_parser(
+        DATABASE,
+        formatter_class=formatter_class,
+        add_help=False,
+        parents=[help_parser]
+    )
+    database_subparsers = database_parser.add_subparsers(
+        dest='action',
+        help='database actions',
+    )
+
+    # database subparsers_action
+    database_subparsers.add_parser(
+        CREATE,
+        formatter_class=formatter_class,
+        parents=[
+            mode_parser,
+            table_definition_parser,
+        ],
+        help='Create tables',
+    )
+    database_subparsers.add_parser(
+        DROP,
+        formatter_class=formatter_class,
+        parents=[
+            mode_parser,
+            table_definition_parser,
+        ],
+        help='Drop views and tables',
+    )
+    database_subparsers.add_parser(
+        GRANT,
+        formatter_class=formatter_class,
+        parents=[
+            mode_parser,
+            table_definition_parser,
+        ],
+        help='Grant permissions to neccessary groups',
+    )
+    database_subparsers.add_parser(
+        RECREATE,
+        formatter_class=formatter_class,
+        parents=[
+            mode_parser,
+            table_definition_parser,
+        ],
+        help='Recreate tables, load new data, drop old tables',
+    )
+    database_subparsers.add_parser(
+        VISUALIZE,
+        formatter_class=formatter_class,
+        parents=[
+            mode_parser,
+            file_parser,
+            table_definition_parser,
+        ],
+        help='Visualize the database er-diagram',
     )
 
     # Check if autocomplete is possible
@@ -292,15 +395,15 @@ def main():
     # Certain modes in the config can override frequency of a pipeline
     frequency_override = config.etl.get('FREQUENCY_OVERRIDE', None)
 
+    arg_vars = vars(args)
+
     # Action parse
-    if args.command == CONFIG_COMMAND:
-        config_actions(args.action, args.filename)
-    elif args.command == PIPELINE_COMMAND:
-        pipeline_actions(args.action, args.load_definitions,
-                         args.force_overwrite, args.delay, frequency_override,
-                         args.activities_only, args.filename)
-    elif args.command == DATABASE_COMMAND:
-        database_actions(args.action, args.table_definitions, args.filename)
+    if args.command == CONFIG:
+        config_actions(**arg_vars)
+    elif args.command == PIPELINE:
+        pipeline_actions(frequency_override=frequency_override, **arg_vars)
+    elif args.command == DATABASE:
+        database_actions(**arg_vars)
     else:
         raise ValueError('Unknown argument provided, use dataduct')
 
