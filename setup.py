@@ -25,8 +25,7 @@ setup(
         'MySQL-python',
         'pyparsing',
         'testfixtures',
-        'sphinx_rtd_theme',
-        'argcomplete'
+        'sphinx_rtd_theme'
     ],
     scripts=['bin/dataduct'],
     classifiers=[
