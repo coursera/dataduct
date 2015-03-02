@@ -59,14 +59,14 @@ def create_pipeline(definition):
     return etl
 
 
-def validate_pipeline(etl, force_overwrite=False):
+def validate_pipeline(etl, force=False):
     """Validates the pipeline that was created
 
     Args:
         etl(EtlPipeline): pipeline object that needs to be validated
-        force_overwrite(bool): delete if a pipeline of same name exists
+        force(bool): delete if a pipeline of same name exists
     """
-    if force_overwrite:
+    if force:
         etl.delete_if_exists()
     etl.validate()
     logger.debug(yaml.dump(etl.pipeline.aws_format))
