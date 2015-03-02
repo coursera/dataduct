@@ -263,7 +263,7 @@ def main():
         ],
         help='Activate the pipeline on AWS',
     )
-    pipeline_subparsers.add_parser(
+    visualize_pipeline_parser = pipeline_subparsers.add_parser(
         VISUALIZE,
         formatter_class=formatter_class,
         parents=[
@@ -272,6 +272,12 @@ def main():
             pipeline_definition_parser,
         ],
         help='Visualize the pipeline',
+    )
+    visualize_pipeline_parser.add_argument(
+        '--activities_only',
+        action='store_true',
+        default=False,
+        help='Visualize only activities',
     )
 
     # Config parser
