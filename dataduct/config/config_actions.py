@@ -32,7 +32,7 @@ def sync_from_s3(filename):
     text = s3_file.text
 
     if filename is None:
-        print text
+        raise ValueError('Filename for config sync must be provided')
     else:
         with open(filename, 'w') as op_file:
             op_file.write(text)
