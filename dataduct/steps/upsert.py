@@ -32,7 +32,7 @@ class UpsertStep(ETLStep):
             source_relation = Table(SqlScript(filename=parse_path(source)))
         else:
             source_relation = SelectStatement(
-                SqlScript(sql=sql, filename=script).sql())
+                SqlScript(sql=sql, filename=parse_path(script)).sql())
 
         # Create the destination table if doesn't exist
         script = dest.exists_clone_script()
