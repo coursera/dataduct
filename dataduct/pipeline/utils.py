@@ -114,7 +114,7 @@ def list_pipeline_instances(pipeline_id, conn=None, increment=25):
         instances(list): list of pipeline instances
     """
     if conn is None:
-        get_datapipeline_connection()
+        conn = get_datapipeline_connection()
 
     # Get all instances
     instance_ids = sorted(get_list_from_boto(conn.query_objects,
