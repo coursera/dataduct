@@ -114,11 +114,11 @@ def main():
     # Open up a connection and read the source and destination tables
     source_data = _get_source_data(args.source_sql, args.source_host,
                                    args.sample_size)
-    print source_data.to_string()
+    print source_data.to_string().encode('utf-8')
 
     destination_data = _get_destination_data(args.destination_sql,
                                              list(source_data.index))
-    print destination_data.to_string()
+    print destination_data.to_string().encode('utf-8')
 
     check = ColumnCheck(source_data, destination_data,
                         name=args.test_name,
