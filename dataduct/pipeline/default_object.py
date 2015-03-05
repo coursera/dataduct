@@ -4,11 +4,12 @@ Pipeline object class for default metadata
 
 from .pipeline_object import PipelineObject
 from ..config import Config
+from ..utils import constants as const
 
 config = Config()
 ROLE = config.etl['ROLE']
 RESOURCE_ROLE = config.etl['RESOURCE_ROLE']
-MAX_ACTIVE_INSTANCES = config.etl.get('MAX_ACTIVE_INSTANCES', 1)
+MAX_ACTIVE_INSTANCES = config.etl.get('MAX_ACTIVE_INSTANCES', const.ONE)
 
 
 class DefaultObject(PipelineObject):
