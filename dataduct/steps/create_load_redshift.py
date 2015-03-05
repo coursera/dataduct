@@ -17,7 +17,7 @@ class CreateAndLoadStep(TransformStep):
     """
 
     def __init__(self, id, table_definition, input_node=None,
-                 script_arguments=None, **kwargs):
+                 replace_invalid_char=None, script_arguments=None, **kwargs):
         """Constructor for the CreateAndLoadStep class
 
         Args:
@@ -36,13 +36,16 @@ class CreateAndLoadStep(TransformStep):
         else:
             input_paths = [input_node.path().uri]
 
-
         if script_arguments is None:
             script_arguments = list()
 
         script_arguments.extend([
             '--table_definition=%s' % table_exists_script.sql(),
             '--s3_input_paths'] + input_paths)
+
+        if replace_invalid_char is not None:
+            script_arguments.append(
+                '--replace_invalid_char=%s' % replace_invalid_char)
 
         steps_path = os.path.abspath(os.path.dirname(__file__))
         script = os.path.join(steps_path, const.CREATE_LOAD_SCRIPT_PATH)
