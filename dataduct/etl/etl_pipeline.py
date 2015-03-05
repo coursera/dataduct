@@ -2,6 +2,7 @@
 Class definition for DataPipeline
 """
 from datetime import datetime
+from datetime import timedelta
 import csv
 import os
 from StringIO import StringIO
@@ -49,7 +50,7 @@ class ETLPipeline(object):
 
     """
     def __init__(self, name, frequency='one-time', ec2_resource_config=None,
-                 time_delta='0h', emr_cluster_config=None, load_time=None,
+                 time_delta=None, emr_cluster_config=None, load_time=None,
                  topic_arn=None, max_retries=MAX_RETRIES,
                  bootstrap=None, description=None):
         """Constructor for the pipeline class
@@ -70,6 +71,9 @@ class ETLPipeline(object):
             load_hour, load_min = (load_time / 60, load_time % 60)
         else:
             load_hour, load_min = [None, None]
+
+        if time_delta is None:
+            time_delta = timedelta(seconds=0)
 
         # Input variables
         self._name = name if not NAME_PREFIX else NAME_PREFIX + '_' + name
