@@ -14,8 +14,8 @@ class S3LogPath(S3Path):
     unless there is a backslash:
 
     ::
-        s3:://coursera-datapipeline/dev
-        s3:://coursera-datapipeline/dev_log_dir
+        s3:://coursera-bucket/dev
+        s3:://coursera-bucket/dev_log_dir
 
     However, if one adds a backslash to the log s3 URI, Data Pipeline
     will add another backslash before adding subdirectories. These
