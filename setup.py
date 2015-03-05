@@ -22,7 +22,7 @@ setup(
         'PyYAML',
         'pandas',
         'psycopg2',
-        'pytimeparse'
+        'pytimeparse',
         'MySQL-python',
         'pyparsing',
         'testfixtures',

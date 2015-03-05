@@ -47,6 +47,7 @@ _key = CaselessKeyword('KEY')
 
 # Select SQL Keywords
 _select = CaselessKeyword('SELECT')
+_with = CaselessKeyword('WITH')
 _from = CaselessKeyword('FROM')
 _as = CaselessKeyword('AS')
 _join = CaselessKeyword('JOIN')

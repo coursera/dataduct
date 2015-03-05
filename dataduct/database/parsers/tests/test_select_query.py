@@ -59,3 +59,12 @@ class TestCreateTableStatement(TestCase):
 
         columns = parse_select_columns(query)
         eq_(columns, result)
+
+    @staticmethod
+    def test_with_query():
+        """Basic test for select statement with the with query
+        """
+        query = ('WITH data AS (SELECT x, y FROM xy) SELECT x,y FROM data')
+
+        columns = parse_select_columns(query)
+        eq_(columns, ['x', 'y'])
