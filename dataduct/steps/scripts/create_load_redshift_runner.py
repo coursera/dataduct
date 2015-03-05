@@ -27,7 +27,7 @@ def load_redshift(table, input_paths, max_error=0,
     delete_statement = 'DELETE FROM %s;' % table_name
     error_string = 'MAXERROR %d' % max_error if max_error > 0 else ''
     if replace_invalid_char is not None:
-        invalid_char_str = "ACCEPTINVCHARS AS '%s'" % replace_invalid_char
+        invalid_char_str = "ACCEPTINVCHARS AS %s" % replace_invalid_char
     else:
         invalid_char_str = ''
 
