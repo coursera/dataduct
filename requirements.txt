@@ -11,3 +11,4 @@ pyparsing>=2
 pygraphviz
 testfixtures>=4.1.1
 mock
+pytimeparse

@@ -8,6 +8,7 @@ from ..config import Config
 config = Config()
 ROLE = config.etl['ROLE']
 RESOURCE_ROLE = config.etl['RESOURCE_ROLE']
+MAX_ACTIVE_INSTANCES = config.etl.get('MAX_ACTIVE_INSTANCES', 1)
 
 
 class DefaultObject(PipelineObject):
@@ -35,6 +36,7 @@ class DefaultObject(PipelineObject):
             failureAndRerunMode=failureAndRerunMode,
             role=ROLE,
             resourceRole=RESOURCE_ROLE,
+            maxActiveInstances=MAX_ACTIVE_INSTANCES,
             pipelineLogUri=pipeline_log_uri,
             onFail=sns
         )

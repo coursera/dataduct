@@ -49,7 +49,7 @@ class ETLPipeline(object):
 
     """
     def __init__(self, name, frequency='one-time', ec2_resource_config=None,
-                 delay=0, emr_cluster_config=None, load_time=None,
+                 time_delta='0h', emr_cluster_config=None, load_time=None,
                  topic_arn=None, max_retries=MAX_RETRIES,
                  bootstrap=None, description=None):
         """Constructor for the pipeline class
@@ -57,7 +57,7 @@ class ETLPipeline(object):
         Args:
             name (str): Name of the pipeline should be globally unique.
             frequency (enum): Frequency of the pipeline. Can be
-            delay(int): Number of days to delay the pipeline by
+            time_delta(timedelta): Duration to change the start time by
             emr_cluster_config(dict): Dictionary for emr config
             topic_arn(str): sns alert to be used by the pipeline
             max_retries(int): number of retries for pipeline activities
@@ -76,7 +76,7 @@ class ETLPipeline(object):
         self.frequency = frequency
         self.load_hour = load_hour
         self.load_min = load_min
-        self.delay = delay
+        self.time_delta = time_delta
         self.description = description
         self.max_retries = max_retries
         self.topic_arn = topic_arn
@@ -162,7 +162,7 @@ class ETLPipeline(object):
         self.schedule = self.create_pipeline_object(
             object_class=Schedule,
             frequency=self.frequency,
-            delay=self.delay,
+            time_delta=self.time_delta,
             load_hour=self.load_hour,
             load_min=self.load_min,
         )

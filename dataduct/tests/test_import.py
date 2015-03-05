@@ -76,3 +76,10 @@ class TestImports(TestCase):
         """
         print 'Trying to import testfixtures'
         import testfixtures
+
+    @staticmethod
+    def test_pytimeparse():
+        """Testing pytimeparse
+        """
+        print 'Trying to import pytimeparse'
+        import pytimeparse
