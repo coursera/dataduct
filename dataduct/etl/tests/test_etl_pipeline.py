@@ -4,6 +4,7 @@ import unittest
 from nose.tools import raises
 from nose.tools import eq_
 
+from datetime import timedelta
 from ..etl_pipeline import ETLPipeline
 from ...utils.exceptions import ETLInputError
 
@@ -25,7 +26,7 @@ class EtlPipelineTests(unittest.TestCase):
             'test_pipeline',
             frequency='one-time',
             ec2_resource_config={'terminate_after':'2 Hours'},
-            delay=13,
+            time_delta=timedelta(seconds=3600),
             emr_cluster_config={'cfg1': 'value'},
             load_time='12:34',
             topic_arn='sns:topic-arn:test-case',
@@ -37,7 +38,7 @@ class EtlPipelineTests(unittest.TestCase):
         eq_(result.ec2_resource_config, {'terminate_after':'2 Hours'})
         eq_(result.load_hour, 12)
         eq_(result.load_min, 34)
-        eq_(result.delay, 13)
+        eq_(result.time_delta, timedelta(seconds=3600))
         eq_(result.max_retries, 5)
         eq_(result.topic_arn, 'sns:topic-arn:test-case')
         eq_(result.bootstrap_definitions, {'cfg1': 'value'})

@@ -7,11 +7,15 @@ from pyparsing import restOfLine
 from pyparsing import Word
 from pyparsing import WordStart
 from pyparsing import ParseException
+from pyparsing import Optional
 
+from .utils import _as
 from .utils import _db_name
 from .utils import _from
 from .utils import _join
 from .utils import _select
+from .utils import _with
+from .utils import subquery
 from .utils import field_parser
 
 
@@ -82,6 +86,10 @@ def parse_select_columns(string):
 
     if string == '':
         return list()
+
+    if string.upper().startswith('WITH'):
+        suppressor = _with + delimitedList(_db_name + _as + subquery)
+        string = suppressor.suppress().transformString(string)
 
     # Supress everything after the first from
     suppressor = MatchFirst(_from) + restOfLine

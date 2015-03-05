@@ -4,10 +4,12 @@ Pipeline object class for default metadata
 
 from .pipeline_object import PipelineObject
 from ..config import Config
+from ..utils import constants as const
 
 config = Config()
 ROLE = config.etl['ROLE']
 RESOURCE_ROLE = config.etl['RESOURCE_ROLE']
+MAX_ACTIVE_INSTANCES = config.etl.get('MAX_ACTIVE_INSTANCES', const.ONE)
 
 
 class DefaultObject(PipelineObject):
@@ -35,6 +37,7 @@ class DefaultObject(PipelineObject):
             failureAndRerunMode=failureAndRerunMode,
             role=ROLE,
             resourceRole=RESOURCE_ROLE,
+            maxActiveInstances=MAX_ACTIVE_INSTANCES,
             pipelineLogUri=pipeline_log_uri,
             onFail=sns
         )
