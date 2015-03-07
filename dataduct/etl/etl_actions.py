@@ -17,10 +17,8 @@ logger = logging.getLogger(__name__)
 
 config = Config()
 REGION = config.etl.get('REGION', None)
-URL_TEMPLATE = 'https://console.aws.amazon.com/datapipeline/?#ExecutionDetailsPlace:pipelineId={ID}&show=latest'  # noqa
-if REGION:
-    URL_TEMPLATE = "https://console.aws.amazon.com/datapipeline/?&region=%s#ExecutionDetailsPlace:pipelineId={ID}&show=latest" % REGION
-
+URL_TEMPLATE = 'https://console.aws.amazon.com/datapipeline/?#ExecutionDetailsPlace:pipelineId={ID}&show=latest%s'  # noqa
+URL_TEMPLATE %= 'region=%s' % REGION if REGION is not None else ''
 
 def read_pipeline_definition(file_path):
     """Function reads the yaml pipeline definitions.
