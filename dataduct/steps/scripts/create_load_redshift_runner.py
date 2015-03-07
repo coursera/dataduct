@@ -11,7 +11,8 @@ from dataduct.database import Table
 
 
 def load_redshift(table, input_paths, max_error=0,
-                  replace_invalid_char=None, no_escape=False, gzip=False, command_options=None):
+                  replace_invalid_char=None, no_escape=False, gzip=False,
+                  command_options=None):
     """Load redshift table with the data in the input s3 paths
     """
     table_name = table.full_name
@@ -33,29 +34,25 @@ def load_redshift(table, input_paths, max_error=0,
 
     query = [delete_statement]
 
+    template = \
+        "COPY {table} FROM '{path}' WITH CREDENTIALS AS '{creds}' {options};"
+
     for input_path in input_paths:
-        if command_options:
-            statement = (
-                "COPY {table} FROM '{path}' WITH CREDENTIALS AS '{creds}' "
-                "{command_options};"
-            ).format(table=table_name,
-                     path=input_path,
-                     creds=creds,
-                     command_options=command_options)
-        else:
-            statement = (
-                "COPY {table} FROM '{path}' WITH CREDENTIALS AS '{creds}' "
+        if not command_options:
+            command_options = (
                 "DELIMITER '\t' {escape} {gzip} NULL AS 'NULL' TRUNCATECOLUMNS "
                 "{max_error} {invalid_char_str};"
-            ).format(table=table_name,
-                     path=input_path,
-                     creds=creds,
-                     escape='ESCAPE' if not no_escape else '',
+            ).format(escape='ESCAPE' if not no_escape else '',
                      gzip='GZIP' if gzip else '',
                      max_error=error_string,
                      invalid_char_str=invalid_char_str)
 
+        statement = template.format(table=table_name,
+                                    path=input_path,
+                                    creds=creds,
+                                    options=command_options)
         query.append(statement)
+
     return ' '.join(query)
 
 
@@ -87,7 +84,6 @@ def main():
     load_query = load_redshift(table, args.input_paths, args.max_error,
                                args.replace_invalid_char, args.no_escape,
                                args.gzip, args.command_options)
-    print load_query
     cursor.execute(load_query)
     cursor.execute('COMMIT')
     cursor.close()
