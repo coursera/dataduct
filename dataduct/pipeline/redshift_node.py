@@ -16,7 +16,9 @@ class RedshiftNode(PipelineObject):
                  schedule,
                  redshift_database,
                  schema_name,
-                 table_name):
+                 table_name,
+                 create_table_sql,
+                 primary_keys):
         """Constructor for the RedshiftNode class
 
         Args:
@@ -25,6 +27,8 @@ class RedshiftNode(PipelineObject):
             redshift_database(RedshiftDatabase): database for the node
             schema_name(str): schema for node to extract or load data
             table_name(str): table for node to extract or load data
+            create_table_sql(str): Default value of table schema for node to extract or load data
+            primary_keys(str): primary keys for node to extract or load data
         """
 
         # Validate inputs
@@ -39,6 +43,8 @@ class RedshiftNode(PipelineObject):
             database=redshift_database,
             schemaName=schema_name,
             tableName=table_name,
+            createTableSql=create_table_sql,
+            primaryKeys=primary_keys,
         )
 
     @property
