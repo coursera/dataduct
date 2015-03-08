@@ -52,12 +52,11 @@ class TransformStep(ETLStep):
             raise ETLInputError(
                 'Only one of script, command and directory allowed')
 
+        base_output_node = None
         if not no_output:
             # Create output_node based on output_path
             base_output_node = self.create_s3_data_node(
                 self.get_output_s3_path(output_path))
-        else:
-            base_output_node = None
 
         script_arguments = self.translate_arguments(script_arguments)
 
