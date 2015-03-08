@@ -38,6 +38,7 @@ class QATransformStep(TransformStep):
         super(QATransformStep, self).__init__(
             id=id,
             script_arguments=script_arguments,
+            no_output=True,
             **kwargs)
 
     @classmethod
