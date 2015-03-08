@@ -17,7 +17,8 @@ class UpsertStep(ETLStep):
 
     def __init__(self, destination, redshift_database, sql=None,
                  script=None, source=None, enforce_primary_key=True,
-                 delete_existing=False, history=None, **kwargs):
+                 delete_existing=False, history=None,
+                 analyze_table=True, **kwargs):
         """Constructor for the UpsertStep class
 
         Args:
@@ -36,8 +37,13 @@ class UpsertStep(ETLStep):
 
         # Create the destination table if doesn't exist
         script = dest.exists_clone_script()
+        script.append(dest.grant_script())
         script.append(dest.upsert_script(
             source_relation, enforce_primary_key, delete_existing))
+
+        # Analyze the destination table after the load
+        if analyze_table:
+            script.append(dest.analyze_script())
 
         if history:
             hist = HistoryTable(SqlScript(

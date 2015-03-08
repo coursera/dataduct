@@ -9,6 +9,9 @@ from ..utils.helpers import exactly_one
 from ..utils.helpers import parse_path
 from ..utils.exceptions import ETLInputError
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 class SqlCommandStep(ETLStep):
     """SQL Command Step class that helps run scripts on resouces
@@ -19,6 +22,7 @@ class SqlCommandStep(ETLStep):
                  script=None,
                  script_arguments=None,
                  queue=None,
+                 sql_script=None,
                  command=None,
                  wrap_transaction=True,
                  **kwargs):
@@ -32,21 +36,27 @@ class SqlCommandStep(ETLStep):
             redshift_database(RedshiftDatabase): database to excute the query
             **kwargs(optional): Keyword arguments directly passed to base class
         """
-        if not exactly_one(command, script):
+        if not exactly_one(command, script, sql_script):
             raise ETLInputError('Both command or script found')
+
+        if not isinstance(sql_script, SqlScript):
+            raise ETLInputError('sql_script should be of the type SqlScript')
 
         super(SqlCommandStep, self).__init__(**kwargs)
 
         # Create S3File with script / command provided
         if script:
             sql_script = SqlScript(filename=parse_path(script))
-        else:
+        elif command:
             sql_script = SqlScript(command)
 
         if wrap_transaction:
             sql_script = sql_script.wrap_transaction()
 
         script = self.create_script(S3File(text=sql_script.sql()))
+
+        logger.debug('Sql Query:')
+        logger.debug(sql_script)
 
         self.create_pipeline_object(
             object_class=SqlActivity,
@@ -72,5 +82,4 @@ class SqlCommandStep(ETLStep):
         step_args = cls.base_arguments_processor(etl, input_args)
         step_args['redshift_database'] = etl.redshift_database
         step_args['resource'] = etl.ec2_resource
-
         return step_args
