@@ -49,7 +49,7 @@ class CreateAndLoadStep(TransformStep):
 
         super(CreateAndLoadStep, self).__init__(
             id=id, script=script, input_node=input_node,
-            script_arguments=script_arguments, **kwargs)
+            script_arguments=script_arguments, no_output=True, **kwargs)
 
     @classmethod
     def arguments_processor(cls, etl, input_args):
