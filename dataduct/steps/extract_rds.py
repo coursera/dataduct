@@ -46,7 +46,7 @@ class ExtractRdsStep(ETLStep):
         if table:
             sql = 'SELECT * FROM %s;' % table
         elif sql:
-            table = SelectStatement(sql).dependencies
+            table = SelectStatement(sql).dependencies[0]
         else:
             raise ETLInputError('Provide a sql statement or a table name')
 
