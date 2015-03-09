@@ -1,0 +1,152 @@
+"""Helper function for CLI scripts
+"""
+from argparse import ArgumentParser
+from argparse import RawTextHelpFormatter
+import argparse
+
+
+def config_singleton_setup(args):
+    """Setup the config singleton based on the mode in args
+
+    Note:
+        To instantiate the singleton object with the correct state as this is
+        the single entry point to the library. We can use the __new__ function
+        to set the debug_level
+
+        We import inside the function as the singleton declaration should be
+        done here and at no other entry point. The same pattern is followed
+        at all the entry point scripts.
+    """
+    mode = args.mode if hasattr(args, 'mode') else None
+
+    import logging
+    logger = logging.getLogger(__name__)
+
+    from dataduct.config import Config
+    from dataduct.config import logger_configuration
+
+    config = Config(mode=mode)
+
+    # Setup up logging for package
+    logger_configuration()
+
+    if mode is not None:
+        logger.warning('Running in %s mode', config.mode)
+    return config
+
+
+class DataductHelpAction(argparse._HelpAction):
+    """HelpAction class used to render a custom help message
+    """
+    def __call__(self, parser, namespace, values, option_string=None):
+        parser.print_help()
+        print ''
+
+        # Retrieve subparsers from parser
+        subparsers_actions = [
+            action for action in parser._actions
+            if isinstance(action, argparse._SubParsersAction)]
+
+        for subparsers_action in subparsers_actions:
+            # get all subparsers and print help
+            for choice, subparser in subparsers_action.choices.items():
+                print "Command '{}'".format(choice)
+                print subparser.format_usage()
+        parser.exit()
+
+
+# Change the width of the output format
+formatter_class = lambda prog: RawTextHelpFormatter(prog, max_help_position=50)
+
+
+# Help parser for parsing subparsers in help
+help_parser = ArgumentParser(
+    description='Run Dataduct commands',
+    add_help=False,
+    formatter_class=formatter_class,
+)
+help_parser.add_argument(
+    '-h',
+    '--help',
+    action=DataductHelpAction,
+    help='Help message',
+)
+
+# Mode parser shared across all pipeline subparsers
+mode_help = 'Mode or config overrides to use for the commands'
+mode_parser = ArgumentParser(
+    description=mode_help,
+    add_help=False,
+)
+mode_parser.add_argument(
+    '-m',
+    '--mode',
+    default=None,
+    help=mode_help
+)
+
+# Options parser shared actions all pipeline run options
+pipeline_run_options = ArgumentParser(
+    description='Specify actions related to running pipelines',
+    add_help=False
+)
+pipeline_run_options.add_argument(
+    '-f',
+    '--force',
+    action='store_true',
+    default=False,
+    help='Destroy previous versions of this pipeline, if they exist',
+)
+pipeline_run_options.add_argument(
+    '-t',
+    '--time_delta',
+    default='0h',
+    help='Timedelta the pipeline by x time difference',
+)
+pipeline_run_options.add_argument(
+    '-b',
+    '--backfill',
+    action='store_true',
+    default=False,
+    help='Indicates that the timedelta supplied is for a backfill',
+)
+pipeline_run_options.add_argument(
+    '--frequency',
+    default=None,
+    help='Frequency override for the pipeline',
+)
+
+# Pipeline definitions parser
+pipeline_definition_help = 'Paths of the pipeline definitions'
+pipeline_definition_parser = ArgumentParser(
+    description=pipeline_definition_help,
+    add_help=False,
+)
+pipeline_definition_parser.add_argument(
+    'pipeline_definitions',
+    nargs='+',
+    help=pipeline_definition_help,
+)
+
+# Table definitions parser
+table_definition_help = 'Paths of the table definitions'
+table_definition_parser = ArgumentParser(
+    description=table_definition_help,
+    add_help=False,
+)
+table_definition_parser.add_argument(
+    'table_definitions',
+    nargs='+',
+    help=table_definition_help,
+)
+
+# Filepath input parser
+filepath_help = 'Filepath input for storing output of actions'
+file_parser = ArgumentParser(
+    description=filepath_help,
+    add_help=False,
+)
+file_parser.add_argument(
+    dest='filename',
+    help='Filename to store output of commands',
+)

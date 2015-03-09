@@ -3,14 +3,11 @@
 
 """Script that helps create and validate pipelines from command line
 """
-import argparse
 from argparse import ArgumentParser
-from argparse import RawTextHelpFormatter
 from pytimeparse import parse
 from datetime import timedelta
 
-from dataduct.config import Config
-from dataduct.config import logger_configuration
+from dataduct.utils.cli import *  # noqa
 
 import logging
 logger = logging.getLogger(__name__)
@@ -105,124 +102,9 @@ def database_actions(action, table_definitions, filename=None, **kwargs):
         print script
 
 
-class _HelpAction(argparse._HelpAction):
-    """HelpAction class used to render a custom help message
-    """
-    def __call__(self, parser, namespace, values, option_string=None):
-        parser.print_help()
-        print ''
-        # retrieve subparsers from parser
-        subparsers_actions = [
-            action for action in parser._actions
-            if isinstance(action, argparse._SubParsersAction)]
-
-        for subparsers_action in subparsers_actions:
-            # get all subparsers and print help
-            for choice, subparser in subparsers_action.choices.items():
-                print "Command '{}'".format(choice)
-                print subparser.format_usage()
-        parser.exit()
-
-
 def main():
-    """Main function
+    """Main function that parses the command line arguments
     """
-    formatter_class = lambda prog: RawTextHelpFormatter(
-        prog, max_help_position=50)
-
-    # Help parser for parsing subparsers in help
-    help_parser = ArgumentParser(
-        description='Run Dataduct commands',
-        add_help=False,
-        formatter_class=formatter_class,
-    )
-    help_parser.add_argument(
-        '-h',
-        '--help',
-        action=_HelpAction,
-        help='Help message',
-    )
-
-    # Mode parser shared across all pipeline subparsers
-    mode_help = 'Mode to run the pipeline and config overrides to use'
-    mode_parser = ArgumentParser(
-        description=mode_help,
-        add_help=False,
-    )
-    mode_parser.add_argument(
-        '-m',
-        '--mode',
-        default=None,
-        help=mode_help
-    )
-
-    # Options parser shared actions all pipeline run options
-    pipeline_run_options = ArgumentParser(
-        description='Specify actions related to running the pipelines',
-        add_help=False
-    )
-    pipeline_run_options.add_argument(
-        '-f',
-        '--force',
-        action='store_true',
-        default=False,
-        help='Indicates that if this pipeline exists, it will be destroyed',
-    )
-    pipeline_run_options.add_argument(
-        '-t',
-        '--time_delta',
-        default='0h',
-        help='Timedelta the pipeline by x time difference',
-    )
-    pipeline_run_options.add_argument(
-        '-b',
-        '--backfill',
-        action='store_true',
-        default=False,
-        help='Indicates that the timedelta supplied is for a backfill',
-    )
-    pipeline_run_options.add_argument(
-        '--frequency',
-        default=None,
-        help='Frequency override to the pipeline',
-    )
-
-    # Pipeline definitions parser
-    pipeline_definition_help = 'Paths of the pipeline definitions'
-    pipeline_definition_parser = ArgumentParser(
-        description=pipeline_definition_help,
-        add_help=False,
-    )
-    pipeline_definition_parser.add_argument(
-        'pipeline_definitions',
-        nargs='+',
-        help=pipeline_definition_help,
-    )
-
-    # Table definitions parser
-    table_definition_help = 'Paths of the table definitions'
-    table_definition_parser = ArgumentParser(
-        description=table_definition_help,
-        add_help=False,
-    )
-    table_definition_parser.add_argument(
-        'table_definitions',
-        nargs='+',
-        help=table_definition_help,
-    )
-
-    # Filepath input parser
-    filepath_help = 'filepath input for storing output of actions'
-    file_parser = ArgumentParser(
-        description=filepath_help,
-        add_help=False,
-    )
-    file_parser.add_argument(
-        dest='filename',
-        help='Filename to store output of commands',
-    )
-
-    # Main parser
     parser = ArgumentParser(
         description='Run Dataduct commands',
         add_help=False,
@@ -392,18 +274,7 @@ def main():
     except ImportError:
         pass
     args = parser.parse_args()
-    mode = args.mode
-
-    # To instantiate the singleton object with the correct state
-    # As this is the single entry point to the library
-    # We can use the __new__ function to set the debug_level
-    config = Config(mode=mode)
-
-    # Setup up logging for package
-    logger_configuration()
-
-    if mode is not None:
-        logger.warning('Running the pipeline in %s mode.' % config.mode)
+    config = config_singleton_setup(args)
 
     # Frequency override
     if hasattr(args, 'frequency') and args.frequency is not None:
@@ -422,7 +293,7 @@ def main():
     elif args.command == DATABASE:
         database_actions(**arg_vars)
     else:
-        raise ValueError('Unknown argument provided, use dataduct')
+        raise ValueError('Unknown argument provided, use dataduct -h')
 
 
 if __name__ == '__main__':
