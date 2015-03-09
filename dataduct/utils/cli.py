@@ -25,9 +25,6 @@ def config_singleton_setup(args):
     from dataduct.config import Config
     from dataduct.config import logger_configuration
 
-    # To instantiate the singleton object with the correct state
-    # As this is the single entry point to the library
-    # We can use the __new__ function to set the debug_level
     config = Config(mode=mode)
 
     # Setup up logging for package
@@ -38,7 +35,6 @@ def config_singleton_setup(args):
     return config
 
 
-# Override help action for better help output
 class DataductHelpAction(argparse._HelpAction):
     """HelpAction class used to render a custom help message
     """
