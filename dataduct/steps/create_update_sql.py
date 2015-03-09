@@ -1,5 +1,4 @@
-"""
-ETL step wrapper for sql command for inserting into tables
+"""ETL step wrapper for sql command for inserting into tables
 """
 from .sql_command import SqlCommandStep
 from ..database import SqlScript
@@ -27,7 +26,7 @@ class CreateUpdateSqlStep(SqlCommandStep):
             **kwargs(optional): Keyword arguments directly passed to base class
         """
         if not exactly_one(command, script):
-            raise ETLInputError('Both command or script found')
+            raise ETLInputError('Both command and script found')
 
         # Create S3File with script / command provided
         if script:
