@@ -158,3 +158,35 @@ def delete_dir_from_s3(s3_path):
     keys = bucket.get_all_keys(prefix=s3_path.key)
     for key in keys:
         key.delete()
+
+
+def copy_dir_with_s3(s3_old_path, s3_new_path, raise_when_no_exist=True):
+    """Copies files from one S3 Path to another
+
+    Args:
+        s3_old_path(S3Path): Output path of the file to be uploaded
+        s3_new_path(S3Path): Output path of the file to be uploaded
+        raise_when_no_exist(bool, optional): Raise error if file not found
+
+    Raises:
+        ETLInputError: If s3_old_path does not exist
+    """
+    assert isinstance(s3_old_path, S3Path), 'old path should be of type S3Path'
+    assert s3_old_path.is_directory, 'S3 old path must be directory'
+    assert isinstance(s3_new_path, S3Path), 'new path should be of type S3Path'
+    assert s3_new_path.is_directory, 'S3 new path must be directory'
+
+    bucket = get_s3_bucket(s3_old_path.bucket)
+    prefix = s3_old_path.key
+
+    # Enforce this to be a folder's prefix
+    if not prefix.endswith('/'):
+        prefix += '/'
+    keys = bucket.get_all_keys(prefix=s3_old_path.key)
+    for key in keys:
+        if key:
+            key.copy(s3_new_path.bucket,
+                     os.path.join(s3_new_path.key, os.path.basename(key.key)))
+
+        if raise_when_no_exist and not key:
+            raise ETLInputError('The key does not exist: %s' % s3_old_path.uri)
