@@ -12,6 +12,7 @@ from pyparsing import Word
 
 # Data types
 _smallint = CaselessKeyword('SMALLINT')
+_int = CaselessKeyword('INT')
 _integer = CaselessKeyword('INTEGER')
 _bigint = CaselessKeyword('BIGINT')
 _decimal = Combine(CaselessKeyword('DECIMAL') + '(' + Word(nums + ',') + ')')
@@ -58,7 +59,7 @@ pk_check = (_primary_key | _unique)
 
 # Column types
 column_types = _smallint | _integer | _bigint | _decimal | _real | _double
-column_types |= _boolean | _char | _varchar | _date | _timestamp
+column_types |= _boolean | _char | _varchar | _date | _timestamp | _int
 
 # Define a field parser for create table fields or select query fields
 field_parser = Forward()
