@@ -93,7 +93,8 @@ class S3File(object):
             If there is no path, the name "file" will be applied.
         """
 
-        assert isinstance(s3_path, S3Path), 'input path must be of type S3Path'
+        if not isinstance(s3_path, S3Path):
+            raise ETLInputError('Input path should be of type S3Path')
 
         # Copy the object as we would change it for the file
         self._s3_path = S3Path(

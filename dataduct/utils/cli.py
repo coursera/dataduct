@@ -7,14 +7,23 @@ import argparse
 
 def config_singleton_setup(args):
     """Setup the config singleton based on the mode in args
+
+    Note:
+        To instantiate the singleton object with the correct state as this is
+        the single entry point to the library. We can use the __new__ function
+        to set the debug_level
+
+        We import inside the function as the singleton declaration should be
+        done here and at no other entry point. The same pattern is followed
+        at all the entry point scripts.
     """
     mode = args.mode if hasattr(args, 'mode') else None
+
     import logging
     logger = logging.getLogger(__name__)
 
     from dataduct.config import Config
     from dataduct.config import logger_configuration
-
 
     # To instantiate the singleton object with the correct state
     # As this is the single entry point to the library
@@ -36,7 +45,8 @@ class DataductHelpAction(argparse._HelpAction):
     def __call__(self, parser, namespace, values, option_string=None):
         parser.print_help()
         print ''
-        # retrieve subparsers from parser
+
+        # Retrieve subparsers from parser
         subparsers_actions = [
             action for action in parser._actions
             if isinstance(action, argparse._SubParsersAction)]
@@ -81,7 +91,7 @@ mode_parser.add_argument(
 
 # Options parser shared actions all pipeline run options
 pipeline_run_options = ArgumentParser(
-    description='Specify actions related to running the pipelines',
+    description='Specify actions related to running pipelines',
     add_help=False
 )
 pipeline_run_options.add_argument(
@@ -89,7 +99,7 @@ pipeline_run_options.add_argument(
     '--force',
     action='store_true',
     default=False,
-    help='Indicates that if this pipeline exists, it will be destroyed',
+    help='Destroy previous versions of this pipeline, if they exist',
 )
 pipeline_run_options.add_argument(
     '-t',
@@ -107,7 +117,7 @@ pipeline_run_options.add_argument(
 pipeline_run_options.add_argument(
     '--frequency',
     default=None,
-    help='Frequency override to the pipeline',
+    help='Frequency override for the pipeline',
 )
 
 # Pipeline definitions parser
@@ -135,7 +145,7 @@ table_definition_parser.add_argument(
 )
 
 # Filepath input parser
-filepath_help = 'filepath input for storing output of actions'
+filepath_help = 'Filepath input for storing output of actions'
 file_parser = ArgumentParser(
     description=filepath_help,
     add_help=False,
