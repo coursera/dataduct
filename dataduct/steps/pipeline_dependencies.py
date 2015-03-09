@@ -67,6 +67,7 @@ class PipelineDependenciesStep(TransformStep):
             script=script,
             command=command,
             script_arguments=script_arguments,
+            no_output=True,
             **kwargs)
 
         self._output = None
