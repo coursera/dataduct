@@ -9,7 +9,7 @@ emr:
     MASTER_INSTANCE_TYPE: m1.large
     NUM_CORE_INSTANCES: 1
     CORE_INSTANCE_TYPE: m1.large
-    CLUSTER_AMI: 2.4.7
+    CLUSTER_AMI: 3.1.0
 
 etl:
     S3_ETL_BUCKET: FILL_ME_IN

@@ -20,7 +20,7 @@ def logger_configuration():
 
     if hasattr(config, 'logging'):
         log_directory = config.logging.get(
-            'LOG_DIR', os.path.join(os.path.expanduser(CONFIG_DIR)))
+            'LOG_DIR', os.path.expanduser('~' + CONFIG_DIR))
         file_name = config.logging.get(
             'LOG_FILE', LOG_FILE)
 

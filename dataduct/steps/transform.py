@@ -9,6 +9,7 @@ from ..pipeline import S3Node
 from ..s3 import S3File
 from ..s3 import S3Directory
 from ..utils.helpers import exactly_one
+from ..utils.helpers import get_modified_s3_path
 from ..utils.exceptions import ETLInputError
 from ..utils import constants as const
 
@@ -56,7 +57,7 @@ class TransformStep(ETLStep):
         if not no_output:
             # Create output_node based on output_path
             base_output_node = self.create_s3_data_node(
-                self.get_output_s3_path(output_path))
+                self.get_output_s3_path(get_modified_s3_path(output_path)))
 
         script_arguments = self.translate_arguments(script_arguments)
 

@@ -130,10 +130,12 @@ def parse_path(path, path_type=RESOURCE_BASE_PATH):
     config = Config()
     if path_type == RESOURCE_BASE_PATH:
         if RESOURCE_BASE_PATH in config.etl:
-            return os.path.join(config.etl[RESOURCE_BASE_PATH], path)
+            return os.path.join(
+                os.path.expanduser(config.etl[RESOURCE_BASE_PATH]), path)
     else:
         if CUSTOM_STEPS_PATH in config.etl:
-            return os.path.join(config.etl[CUSTOM_STEPS_PATH], path)
+            return os.path.join(
+                os.path.expanduser(config.etl[CUSTOM_STEPS_PATH]), path)
 
     # Return the path as is.
     return path
@@ -145,3 +147,11 @@ def get_s3_base_path():
     config = Config()
     return os.path.join('s3://', config.etl.get('S3_ETL_BUCKET', ''),
                         config.etl.get('S3_BASE_PATH', ''))
+
+def get_modified_s3_path(path):
+    """Modify the s3 path to replace S3_BASE_PATH with config parameter
+    """
+    config = Config()
+    if path is None:
+        return None
+    return path.replace('{S3_BASE_PATH}', config.etl.get('S3_BASE_PATH'))
