@@ -5,6 +5,7 @@ from .etl_step import ETLStep
 from ..s3 import S3Path
 from ..utils.helpers import exactly_one
 from ..utils.exceptions import ETLInputError
+from ..utils.helpers import get_modified_s3_path
 
 
 class ExtractS3Step(ETLStep):
@@ -25,8 +26,10 @@ class ExtractS3Step(ETLStep):
         super(ExtractS3Step, self).__init__(**kwargs)
 
         if directory_uri:
+            directory_uri = get_modified_s3_path(directory_uri)
             s3_path = S3Path(uri=directory_uri, is_directory=True)
         else:
+            file_uri = get_modified_s3_path(file_uri)
             s3_path = S3Path(uri=file_uri)
         self._output = self.create_s3_data_node(s3_path)
 
