@@ -37,9 +37,9 @@ class SqlCommandStep(ETLStep):
             **kwargs(optional): Keyword arguments directly passed to base class
         """
         if not exactly_one(command, script, sql_script):
-            raise ETLInputError('Both command or script found')
+            raise ETLInputError('Both command and script found')
 
-        if not isinstance(sql_script, SqlScript):
+        if sql_script is not None and not isinstance(sql_script, SqlScript):
             raise ETLInputError('sql_script should be of the type SqlScript')
 
         super(SqlCommandStep, self).__init__(**kwargs)
