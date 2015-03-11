@@ -19,8 +19,8 @@ def logger_configuration():
     config = Config()
 
     if hasattr(config, 'logging'):
-        log_directory = config.logging.get(
-            'LOG_DIR', os.path.expanduser('~' + CONFIG_DIR))
+        log_directory = os.path.expanduser(config.logging.get(
+            'LOG_DIR', '~' + CONFIG_DIR))
         file_name = config.logging.get(
             'LOG_FILE', LOG_FILE)
 
