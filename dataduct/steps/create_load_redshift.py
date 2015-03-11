@@ -28,8 +28,7 @@ class CreateAndLoadStep(TransformStep):
         with open(parse_path(table_definition)) as f:
             table_def_string = f.read()
 
-        table_exists_script = Table(
-            SqlStatement(table_def_string)).exists_clone_script()
+        table = Table(SqlStatement(table_def_string))
 
         if isinstance(input_node, dict):
             input_paths = [i.path().uri for i in input_node.values()]
@@ -41,7 +40,7 @@ class CreateAndLoadStep(TransformStep):
             script_arguments = list()
 
         script_arguments.extend([
-            '--table_definition=%s' % table_exists_script.sql(),
+            '--table_definition=%s' % table.sql().sql(),
             '--s3_input_paths'] + input_paths)
 
         steps_path = os.path.abspath(os.path.dirname(__file__))

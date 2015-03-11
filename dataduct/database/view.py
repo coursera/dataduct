@@ -46,3 +46,15 @@ class View(Relation):
         """Sql script to drop the view
         """
         return SqlScript('DROP VIEW IF EXISTS %s CASCADE' % self.full_name)
+
+    def check_not_exists_script(self):
+        """Sql script to create statement if the table exists or not
+        """
+        return SqlScript("""
+            SELECT NOT EXISTS(
+                SELECT 1
+                FROM information_schema.views
+                WHERE table_schema = '%s'
+                AND table_name = '%s'
+            )
+        """ % (self.schema_name, self.view_name))
