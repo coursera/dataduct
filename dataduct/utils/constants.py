@@ -34,3 +34,5 @@ COLUMN_CHECK_SCRIPT_PATH = os.path.join(
     SCRIPTS_DIRECTORY, 'column_check_test.py')
 CREATE_LOAD_SCRIPT_PATH = os.path.join(
     SCRIPTS_DIRECTORY, 'create_load_redshift_runner.py')
+SQL_RUNNER_SCRIPT_PATH = os.path.join(
+    SCRIPTS_DIRECTORY, 'sql_runner.py')

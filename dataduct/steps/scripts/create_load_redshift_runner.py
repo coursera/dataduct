@@ -4,6 +4,7 @@
 """
 
 import argparse
+import pandas.io.sql as pdsql
 from dataduct.config import get_aws_credentials
 from dataduct.data_access import redshift_connection
 from dataduct.database import SqlStatement
@@ -72,13 +73,15 @@ def main():
     args = parser.parse_args()
     print args
 
-    connection = redshift_connection()
-    cursor = connection.cursor()
-
     table = Table(SqlStatement(args.table_definition))
+    connection = redshift_connection()
+    table_not_exists = pdsql.read_sql(table.check_not_exists_script().sql(),
+                                      connection).loc[0][0]
 
+    cursor = connection.cursor()
     # Create table in redshift, this is safe due to the if exists condition
-    cursor.execute(table.create_script().sql())
+    if table_not_exists:
+        cursor.execute(table.create_script().sql())
 
     # Load data into redshift
     load_query = load_redshift(table, args.input_paths, args.max_error,

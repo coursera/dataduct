@@ -300,3 +300,15 @@ class Table(Relation):
         script.append(self.insert_script(temp_table))
         script.append(temp_table.drop_script())
         return script
+
+    def check_not_exists_script(self):
+        """Sql script to create statement if the table exists or not
+        """
+        return SqlScript("""
+            SELECT NOT EXISTS(
+                SELECT 1
+                FROM information_schema.tables
+                WHERE table_schema = '%s'
+                AND table_name = '%s'
+            )
+        """ % (self.schema_name, self.table_name))
