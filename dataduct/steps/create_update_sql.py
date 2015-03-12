@@ -20,6 +20,7 @@ class CreateUpdateSqlStep(TransformStep):
                  script=None,
                  command=None,
                  analyze_table=True,
+                 script_arguments=None,
                  **kwargs):
         """Constructor for the CreateUpdateStep class
 
@@ -40,10 +41,13 @@ class CreateUpdateSqlStep(TransformStep):
         steps_path = os.path.abspath(os.path.dirname(__file__))
         runner_script = os.path.join(steps_path, const.SQL_RUNNER_SCRIPT_PATH)
 
-        script_arguments = [
+        if script_arguments is None:
+            script_arguments = list()
+
+        script_arguments.extend([
             '--table_definition=%s' % dest.sql().sql(),
             '--sql=%s' % update_script.sql()
-        ]
+        ])
 
         if analyze_table:
             script_arguments.append('--analyze')
