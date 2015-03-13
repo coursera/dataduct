@@ -39,7 +39,9 @@ MAX_RETRIES = config.etl.get('MAX_RETRIES', const.ZERO)
 S3_BASE_PATH = config.etl.get('S3_BASE_PATH', const.EMPTY_STR)
 SNS_TOPIC_ARN_FAILURE = config.etl.get('SNS_TOPIC_ARN_FAILURE', const.NONE)
 NAME_PREFIX = config.etl.get('NAME_PREFIX', const.EMPTY_STR)
+QA_LOG_PATH = config.etl.get('QA_LOG_PATH', const.QA_STR)
 DP_INSTANCE_LOG_PATH = config.etl.get('DP_INSTANCE_LOG_PATH', const.NONE)
+DP_PIPELINE_LOG_PATH = config.etl.get('DP_PIPELINE_LOG_PATH', const.NONE)
 
 
 class ETLPipeline(object):
@@ -470,7 +472,21 @@ class ETLPipeline(object):
         return result
 
     @staticmethod
-    def log_s3_dp_instance_data(pipeline):
+    def log_uploader(uri, filename, string):
+        """Utility function to upload log files to S3
+        """
+        dp_dir = S3Path(uri=uri, is_directory=True)
+        dp_path = S3Path(
+            key=filename + '.tsv',
+            parent_dir=dp_dir,
+        )
+        dp_file = S3File(
+            text=string,
+            s3_path=dp_path,
+        )
+        dp_file.upload_to_s3()
+
+    def log_s3_dp_instance_data(self, pipeline):
         """Uploads instance info for dp_instances to S3
         """
         dp_instance_entries = list_formatted_instance_details(pipeline)
@@ -481,21 +497,31 @@ class ETLPipeline(object):
             writer.writerows(dp_instance_entries)
 
             # S3 Path computation
-            uri = os.path.join(get_s3_base_path(),
-                               config.etl.get('DP_INSTANCE_LOG_PATH'),
+            uri = os.path.join(get_s3_base_path(), QA_LOG_PATH,
+                               DP_INSTANCE_LOG_PATH,
                                datetime.utcnow().strftime('%Y%m%d'))
 
-            dp_instances_dir = S3Path(uri=uri, is_directory=True)
-            dp_instances_path = S3Path(
-                key=pipeline.id + '.tsv',
-                parent_dir=dp_instances_dir,
-            )
-            dp_instances_file = S3File(
-                text=output_string.getvalue(),
-                s3_path=dp_instances_path,
-            )
-            dp_instances_file.upload_to_s3()
+            self.log_uploader(uri, pipeline.id, output_string.getvalue())
             output_string.close()
+
+    def log_s3_dp_pipeline_data(self):
+        """Uploads instance info for dp_pipeline to S3
+        """
+        output_string = StringIO()
+        writer = csv.writer(output_string, delimiter='\t')
+        writer.writerow([
+            self.pipeline.id,
+            self.name,
+            self.version_ts
+        ])
+
+        # S3 Path computation
+        uri = os.path.join(get_s3_base_path(), QA_LOG_PATH,
+                           DP_PIPELINE_LOG_PATH,
+                           datetime.utcnow().strftime('%Y%m%d'))
+
+        self.log_uploader(uri, self.pipeline.id, output_string.getvalue())
+        output_string.close()
 
     def delete_if_exists(self):
         """Delete the pipelines with the same name as current pipeline
@@ -590,6 +616,10 @@ class ETLPipeline(object):
             s3_path=pipeline_definition_path
         )
         pipeline_definition.upload_to_s3()
+
+        # Upload pipeline instance metadata to S3
+        if DP_PIPELINE_LOG_PATH:
+            self.log_s3_dp_pipeline_data()
 
         # Activate the pipeline with AWS
         self.pipeline.activate()

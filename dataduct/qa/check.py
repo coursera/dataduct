@@ -9,6 +9,7 @@ from ..config import Config
 from ..database import SelectStatement
 from ..s3 import S3Path
 from ..s3 import S3File
+from ..utils import constants as const
 from ..utils.helpers import exactly_one
 from ..utils.helpers import get_s3_base_path
 
@@ -144,9 +145,10 @@ class Check(object):
         string = '\t'.join(map(str, row))
 
         # S3 Path computation
-        qa_test_dir_uri = os.path.join(get_s3_base_path(),
-                                       config.etl.get('QA_LOG_PATH', 'qa'),
-                                       path_suffix if path_suffix else '')
+        qa_test_dir_uri = os.path.join(
+            get_s3_base_path(), config.etl.get('QA_LOG_PATH', const.QA_STR),
+            config.etl.get('DP_QA_TESTS_LOG_PATH', 'dba_table_qa_tests'),
+            path_suffix if path_suffix else '')
 
         parent_dir = S3Path(uri=qa_test_dir_uri, is_directory=True)
 
