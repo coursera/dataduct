@@ -18,11 +18,18 @@ def main():
                         required=True)
     parser.add_argument('--sql', dest='sql', required=True)
     parser.add_argument('--analyze', action='store_true', default=False)
-    args = parser.parse_args()
-    print args
+    parser.add_argument('--non_transactional', action='store_true',
+                        default=False)
+
+    args, sql_arguments = parser.parse_known_args()
+    print args, sql_arguments
 
     table = Table(SqlStatement(args.table_definition))
     connection = redshift_connection()
+    # Enable autocommit for non transactional sql execution
+    if args.non_transactional:
+        connection.autocommit = True
+
     table_not_exists = pdsql.read_sql(table.check_not_exists_script().sql(),
                                       connection).loc[0][0]
 
@@ -32,7 +39,9 @@ def main():
         cursor.execute(table.create_script().sql())
 
     # Load data into redshift with upsert query
-    cursor.execute(args.sql)
+    sql = args.sql % tuple(sql_arguments)
+    print 'Running :', sql
+    cursor.execute(sql)
     cursor.execute('COMMIT')
 
     # Analyze the table
