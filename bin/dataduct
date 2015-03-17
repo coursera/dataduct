@@ -35,13 +35,16 @@ def initialize_etl_objects(pipeline_definitions, time_delta=None,
     from dataduct.etl import create_pipeline
     from dataduct.etl import read_pipeline_definition
 
+    # Convert the time_delta if it exists
+    if time_delta is not None:
+        time_delta = timedelta(seconds=parse(time_delta))
+        if backfill:
+            time_delta *= -1
+
     etls = []
     for pipeline_definition in pipeline_definitions:
         definition = read_pipeline_definition(pipeline_definition)
         if time_delta is not None:
-            time_delta = timedelta(seconds=parse(time_delta))
-            if backfill:
-                time_delta *= -1
             definition.update({'time_delta': time_delta})
         if frequency_override is not None:
             definition.update({'frequency': frequency_override})
