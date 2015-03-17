@@ -39,9 +39,8 @@ def main():
         cursor.execute(table.create_script().sql())
 
     # Load data into redshift with upsert query
-    sql = args.sql % tuple(sql_arguments)
-    print 'Running :', sql
-    cursor.execute(sql)
+    print cursor.mogrify(args.sql, tuple(sql_arguments))
+    cursor.execute(args.sql, tuple(sql_arguments))
     cursor.execute('COMMIT')
 
     # Analyze the table
