@@ -9,4 +9,4 @@ steps:
     table_definition: tables/dev.test_table.sql
     log_to_s3: true
     script_arguments:
-    -   --path_suffix=dba_table_qa_tests
+    -   "--path_suffix=#{format(@scheduledStartTime, 'YYYY-MM-dd')}"

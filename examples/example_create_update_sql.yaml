@@ -9,5 +9,8 @@ steps:
     command: |
         DELETE FROM dev.test_table WHERE id < 0;
         INSERT INTO dev.test_table
-        SELECT * FROM dev.test_table_2;
+        SELECT * FROM dev.test_table_2
+        WHERE id < %s;
     table_definition: tables/dev.test_table.sql
+    script_arguments:
+    -   4

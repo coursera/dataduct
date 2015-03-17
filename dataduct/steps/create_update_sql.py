@@ -21,6 +21,7 @@ class CreateUpdateSqlStep(TransformStep):
                  command=None,
                  analyze_table=True,
                  script_arguments=None,
+                 non_transactional=False,
                  **kwargs):
         """Constructor for the CreateUpdateStep class
 
@@ -41,19 +42,25 @@ class CreateUpdateSqlStep(TransformStep):
         steps_path = os.path.abspath(os.path.dirname(__file__))
         runner_script = os.path.join(steps_path, const.SQL_RUNNER_SCRIPT_PATH)
 
-        if script_arguments is None:
-            script_arguments = list()
-
-        script_arguments.extend([
+        arguments = [
             '--table_definition=%s' % dest.sql().sql(),
             '--sql=%s' % update_script.sql()
-        ])
+        ]
 
         if analyze_table:
-            script_arguments.append('--analyze')
+            arguments.append('--analyze')
+
+        if non_transactional:
+            arguments.append('--non_transactional')
+
+        if script_arguments is not None:
+            if not isinstance(script_arguments, list):
+                raise ETLInputError(
+                    'Script arguments for SQL steps should be dictionary')
+            arguments.extend(script_arguments)
 
         super(CreateUpdateSqlStep, self).__init__(
-            script=runner_script, script_arguments=script_arguments,
+            script=runner_script, script_arguments=arguments,
             no_output=True, **kwargs)
 
     @classmethod

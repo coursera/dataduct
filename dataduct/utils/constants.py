@@ -19,6 +19,7 @@ M1_LARGE = 'm1.large'
 LOG_STR = 'logs'
 DATA_STR = 'data'
 SRC_STR = 'src'
+QA_STR = 'qa'
 
 # Step paths
 SCRIPTS_DIRECTORY = 'scripts'
