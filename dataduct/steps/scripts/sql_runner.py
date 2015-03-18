@@ -39,7 +39,7 @@ def main():
     # Load data into redshift with upsert query
     # If there are sql_arguments, place them along with the query
     # Otherwise, don't include them to avoid having to use %% everytime
-    if len(sql_arguments) > 1:
+    if len(sql_arguments) >= 1:
         print cursor.mogrify(args.sql, tuple(sql_arguments))
         cursor.execute(args.sql, tuple(sql_arguments))
     else:
