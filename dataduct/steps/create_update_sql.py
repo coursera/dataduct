@@ -56,7 +56,7 @@ class CreateUpdateSqlStep(TransformStep):
         if script_arguments is not None:
             if not isinstance(script_arguments, list):
                 raise ETLInputError(
-                    'Script arguments for SQL steps should be dictionary')
+                    'Script arguments for SQL steps should be a list')
             arguments.extend(script_arguments)
 
         super(CreateUpdateSqlStep, self).__init__(

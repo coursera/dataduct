@@ -1,8 +1,6 @@
 #!/usr/bin/env python
-
 """Runner for the upsert SQL step
 """
-
 import argparse
 import pandas.io.sql as pdsql
 from dataduct.data_access import redshift_connection
@@ -39,8 +37,14 @@ def main():
         cursor.execute(table.create_script().sql())
 
     # Load data into redshift with upsert query
-    print cursor.mogrify(args.sql, tuple(sql_arguments))
-    cursor.execute(args.sql, tuple(sql_arguments))
+    # If there are sql_arguments, place them along with the query
+    # Otherwise, don't include them to avoid having to use %% everytime
+    if len(sql_arguments) > 1:
+        print cursor.mogrify(args.sql, tuple(sql_arguments))
+        cursor.execute(args.sql, tuple(sql_arguments))
+    else:
+        print args.sql
+        cursor.execute(args.sql)
     cursor.execute('COMMIT')
 
     # Analyze the table
