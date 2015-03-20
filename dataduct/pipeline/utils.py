@@ -47,16 +47,16 @@ def get_response_from_boto(fn, *args, **kwargs):
 
     Args:
         func(function): Function to call
-        *args(optional): arguments
-        **kwargs(optional): keyword arguments
+        args(optional): arguments
+        kwargs(optional): keyword arguments
 
     Returns:
         response(json): request response.
 
     Input:
         func(function): Function to call
-        *args(optional): arguments
-        **kwargs(optional): keyword arguments
+        args(optional): arguments
+        kwargs(optional): keyword arguments
     """
 
     response = None

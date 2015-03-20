@@ -1,79 +1,85 @@
 Installation
-~~~~~~~~~~~~
+============
 
-Install the dataduct package using pip
+Installation using pip
+----------------------
+
+Dataduct can easily be installed using pip with the following commands.
 
 ::
 
     pip install dataduct
 
-**Dependencies**
+The major dependencies of dataduct are:
 
-dataduct currently has the following dependencies: - boto >= 2.32.0 -
-yaml
+-  ``boto`` greater than version 2.34, older versions are missing some
+   of the functionality provided by EMR
+-  ``PyYAML``
+-  ``pandas``
+-  ``psycopg2``
+-  ``pytimeparse``
+-  ``MySQL-python``
+-  ``pyparsing``
+-  ``testfixtures``
 
-We have tried some older versions of boto with the problem being support
-some functionality around EMR that will be used in the later versions of
-dataduct.
+The visualizations are created using:
 
-**Setup Configuration**
+-  ``graphviz``
+-  ``pygraphviz``
 
-Setup the configuration file to set the credentials and defaul values
-for various parameters passed to datapipeline. Copy the config template
-from https://github.com/coursera/dataduct/../example\_config and write
-it to ``~/.dataduct`` or ``/etc/.dataduct``. You can also set an
-environment variable pointing to the config file location by setting the
-``DATADUCT_PATH`` variable.
+Autocomplete for the CLI is supported using:
 
-*Config file template:*
+-  ``argcomplete``
+
+The documentation is created using:
+
+-  ``sphinx``
+-  ``sphinx-napolean``
+-  ``sphinx_rtd_theme``
+
+Installing in the developer environment
+---------------------------------------
+
+1. Clone the Repo
+^^^^^^^^^^^^^^^^^
 
 ::
 
-    # Constants that are used across the dataduct library
+    git clone https://github.com/coursera/dataduct.git
 
-    ec2:
-      ROLE: FILL_ME_IN
-      RESOURCE_ROLE: FILL_ME_IN
-      INSTANCE_TYPE: m1.large
-      ETL_AMI: ami-05355a6c # Default AMI used by data pipeline
-      KEY_PAIR: FILL_ME_IN
-      SECURITY_GROUP: FILL_ME_IN
+2. Update PATH and PYTHONPATH
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-    emr:
-      NUM_CORE_INSTANCES: 3
-      CORE_INSTANCE_TYPE: m1.large
-      TASK_INSTANCE_BID_PRICE: null  # null if we want it to be None
-      TASK_INSTANCE_TYPE: m1.large
-      MASTER_INSTANCE_TYPE: m1.large
-      CLUSTER_TIMEOUT: 6 Hours
-      HADOOP_VERSION: null
-      HIVE_VERSION: null
-      PIG_VERSION: null
-      CLUSTER_AMI: 2.4.7
+Add these lines into your ``.bash_profile`` or ``.zshrc`` etc based on
+your shell type.
 
-    redshift:
-      DATABASE_NAME: FILL_ME_IN
-      CLUSTER_ID: FILL_ME_IN
-      USERNAME: FILL_ME_IN
-      PASSWORD: FILL_ME_IN
+::
 
-    mysql:
-      DATABASE_KEY:
-        HOST: FILL_ME_IN,
-        USERNAME: FILL_ME_IN,
-        PASSWORD: FILL_ME_IN
+    export PYTHONPATH=~/dataduct:$PYTHONPATH
+    export PATH=~/dataduct/bin:$PATH
 
-    etl:
-      RETRY_DELAY: 10 Minutes
-      MAX_RETRIES: 0
-      S3_ETL_BUCKET: FILL_ME_IN
-      SNS_TOPIC_ARN_FAILURE: FILL_ME_IN
-      SNS_TOPIC_ARN_WARNING: FILL_ME_IN
-      DAILY_LOAD_TIME: 1  # run at 1AM UTC
+3. Config
+^^^^^^^^^
 
-    bootstrap:
-      - step_type: transform
-        input_node: []
-        command: whoami >> ${OUTPUT1_STAGING_DIR}/output.txt
-        resource: FILL_ME_IN
-        name: bootstrap_transform
+Create a config file. Instructions for this are provided in the config
+section.
+
+Setup Autocomplete
+------------------
+
+Install argcomplete with ``pip install argcomplete``.
+
+If you're using ``bash`` then add the following to your
+``.bash_profile``:
+
+::
+
+    eval "$(register-python-argcomplete dataduct)"
+
+if you're using ``zsh`` then add the following line to your ``.zshrc``:
+
+::
+
+    autoload bashcompinit
+    bashcompinit
+    eval "$(register-python-argcomplete dataduct)"

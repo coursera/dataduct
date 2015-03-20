@@ -10,8 +10,8 @@ def get_aws_credentials_from_iam():
     """Get aws credentials using the IAM api
     Note: this script only runs on an EC2 instance with the appropriate
         resource roles. For more information, see the following:
-            http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/\
-                AESDG-chapter-instancedata.html
+        http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/\
+        AESDG-chapter-instancedata.html
 
     Returns:
         access_key(str): AWS access key

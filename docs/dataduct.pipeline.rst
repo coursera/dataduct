@@ -1,6 +1,9 @@
 dataduct.pipeline package
 =========================
 
+Submodules
+----------
+
 dataduct.pipeline.activity module
 ---------------------------------
 

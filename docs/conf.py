@@ -260,7 +260,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
   ('index', 'dataduct', u'dataduct Documentation',
-   u'Coursera', 'dataduct', 'One line description of project.',
+   u'Coursera', 'dataduct', 'DataPipeline for Humans.',
    'Miscellaneous'),
 ]
 
