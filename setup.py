@@ -4,9 +4,11 @@ Setup file for installation of the dataduct code
 from setuptools import setup
 from setuptools import find_packages
 
+from dataduct import __version__ as version
+
 setup(
     name='dataduct',
-    version='0.2.0',
+    version=version,
     author='Coursera Inc.',
     packages=find_packages(
         exclude=["*.tests", "*.tests.*", "tests.*", "tests"]),
