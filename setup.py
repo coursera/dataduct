@@ -1,30 +1,32 @@
 """
-Setup file for installation of the etllib code
+Setup file for installation of the dataduct code
 """
 from setuptools import setup
+from setuptools import find_packages
 
 setup(
     name='dataduct',
-    version='0.1.0',
+    version='0.2.0',
     author='Coursera Inc.',
-    packages=[
-        'dataduct',
-        'dataduct.config',
-        'dataduct.pipeline',
-        'dataduct.s3',
-        'dataduct.steps',
-        'dataduct.utils',
-    ],
+    packages=find_packages(
+        exclude=["*.tests", "*.tests.*", "tests.*", "tests"]),
     namespace_packages=['dataduct'],
     include_package_data=True,
     url='https://github.com/coursera/dataduct',
     long_description=open('README.rst').read(),
     author_email='data-infra@coursera.org',
     license='Apache License 2.0',
-    description='DataPipeline for Humans.',
+    description='DataPipeline for Humans',
     install_requires=[
-        'boto>=2.32',
-        'pyyaml'
+        'boto>=2.34',
+        'PyYAML',
+        'pandas',
+        'psycopg2',
+        'pytimeparse',
+        'MySQL-python',
+        'pyparsing',
+        'testfixtures',
+        'sphinx_rtd_theme'
     ],
     scripts=['bin/dataduct'],
     classifiers=[

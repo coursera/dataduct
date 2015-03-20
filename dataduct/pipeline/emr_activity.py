@@ -5,10 +5,11 @@ Pipeline object class for EmrActivity
 from .activity import Activity
 from ..config import Config
 from .schedule import Schedule
+from ..utils import constants as const
 from ..utils.exceptions import ETLInputError
 
 config = Config()
-DEFAULT_MAX_RETRIES = config.etl['DEFAULT_MAX_RETRIES']
+MAX_RETRIES = config.etl.get('MAX_RETRIES', const.ZERO)
 
 
 class EmrActivity(Activity):
@@ -19,6 +20,7 @@ class EmrActivity(Activity):
                  id,
                  resource,
                  schedule,
+                 input_node,
                  emr_step_string,
                  output_node=None,
                  additional_files=None,
@@ -46,7 +48,7 @@ class EmrActivity(Activity):
         if depends_on is None:
             depends_on = []
         if max_retries is None:
-            max_retries = DEFAULT_MAX_RETRIES
+            max_retries = MAX_RETRIES
 
         super(EmrActivity, self).__init__(
             id=id,
@@ -57,6 +59,7 @@ class EmrActivity(Activity):
             schedule=schedule,
             step=emr_step_string,
             output=output_node,
+            input=input_node,
         )
 
         self.add_additional_files(additional_files)

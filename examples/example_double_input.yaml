@@ -1,0 +1,25 @@
+name: example_double_input
+frequency: one-time
+load_time: 01:00  # Hour:Min in UTC
+
+description: Example for the transform step with multiple inputs
+
+steps:
+-   step_type: extract-local
+    name: step1
+    path: data/test_table1.tsv
+
+-   step_type: extract-local
+    name: step2
+    path: data/test_table2.tsv
+
+-   step_type: transform
+    script: scripts/s3_profiler.py
+    input_node:
+        step1: script
+        step2: directory
+    script_arguments:
+    -   --input=INPUT1_STAGING_DIR
+    -   --output=OUTPUT1_STAGING_DIR
+    -   script/
+    -   directory/

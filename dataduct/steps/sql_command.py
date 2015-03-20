@@ -2,10 +2,15 @@
 ETL step wrapper for SqlActivity can be executed on Ec2
 """
 from .etl_step import ETLStep
-from ..pipeline.sql_activity import SqlActivity
-from ..s3.s3_file import S3File
+from ..pipeline import SqlActivity
+from ..database import SqlScript
+from ..s3 import S3File
 from ..utils.helpers import exactly_one
+from ..utils.helpers import parse_path
 from ..utils.exceptions import ETLInputError
+
+import logging
+logger = logging.getLogger(__name__)
 
 
 class SqlCommandStep(ETLStep):
@@ -17,8 +22,9 @@ class SqlCommandStep(ETLStep):
                  script=None,
                  script_arguments=None,
                  queue=None,
+                 sql_script=None,
                  command=None,
-                 depends_on=None,
+                 wrap_transaction=True,
                  **kwargs):
         """Constructor for the SqlCommandStep class
 
@@ -30,19 +36,27 @@ class SqlCommandStep(ETLStep):
             redshift_database(RedshiftDatabase): database to excute the query
             **kwargs(optional): Keyword arguments directly passed to base class
         """
-        if not exactly_one(command, script):
-            raise ETLInputError('Both command or script found')
+        if not exactly_one(command, script, sql_script):
+            raise ETLInputError('Both command and script found')
+
+        if sql_script is not None and not isinstance(sql_script, SqlScript):
+            raise ETLInputError('sql_script should be of the type SqlScript')
 
         super(SqlCommandStep, self).__init__(**kwargs)
 
-        if depends_on is not None:
-            self._depends_on = depends_on
-
         # Create S3File with script / command provided
         if script:
-            script = self.create_script(S3File(path=script))
-        else:
-            script = self.create_script(S3File(text=command))
+            sql_script = SqlScript(filename=parse_path(script))
+        elif command:
+            sql_script = SqlScript(command)
+
+        if wrap_transaction:
+            sql_script = sql_script.wrap_transaction()
+
+        script = self.create_script(S3File(text=sql_script.sql()))
+
+        logger.debug('Sql Query:')
+        logger.debug(sql_script)
 
         self.create_pipeline_object(
             object_class=SqlActivity,
@@ -55,3 +69,17 @@ class SqlCommandStep(ETLStep):
             script=script,
             queue=queue,
         )
+
+    @classmethod
+    def arguments_processor(cls, etl, input_args):
+        """Parse the step arguments according to the ETL pipeline
+
+        Args:
+            etl(ETLPipeline): Pipeline object containing resources and steps
+            step_args(dict): Dictionary of the step arguments for the class
+        """
+        input_args = cls.pop_inputs(input_args)
+        step_args = cls.base_arguments_processor(etl, input_args)
+        step_args['redshift_database'] = etl.redshift_database
+        step_args['resource'] = etl.ec2_resource
+        return step_args

@@ -4,18 +4,20 @@ Pipeline object class for ec2 resource
 
 from ..config import Config
 from .pipeline_object import PipelineObject
-from ..s3.s3_log_path import S3LogPath
+from ..s3 import S3LogPath
 from .schedule import Schedule
+from ..utils import constants as const
 from ..utils.exceptions import ETLInputError
 
 config = Config()
-DEFAULT_RESOURCE_ROLE = config.ec2['DEFAULT_RESOURCE_ROLE']
-DEFAULT_EC2_INSTANCE_TYPE = config.ec2['DEFAULT_EC2_INSTANCE_TYPE']
-ETL_AMI = config.ec2['ETL_AMI']
-KEY_PAIR = config.ec2['KEY_PAIR']
-DEFAULT_ROLE = config.ec2['DEFAULT_ROLE']
-SECURITY_GROUP = config.ec2['SECURITY_GROUP']
-RETRY_DELAY = config.etl['RETRY_DELAY']
+ROLE = config.etl['ROLE']
+RESOURCE_ROLE = config.etl['RESOURCE_ROLE']
+
+INSTANCE_TYPE = config.ec2.get('INSTANCE_TYPE', const.M1_LARGE)
+ETL_AMI = config.ec2.get('ETL_AMI', const.NONE)
+SECURITY_GROUP = config.ec2.get('SECURITY_GROUP', const.NONE)
+KEY_PAIR = config.etl.get('KEY_PAIR', const.NONE)
+RETRY_DELAY = config.etl.get('RETRY_DELAY', const.DEFAULT_DELAY)
 
 
 class Ec2Resource(PipelineObject):
@@ -27,7 +29,7 @@ class Ec2Resource(PipelineObject):
                  s3_log_dir=None,
                  schedule=None,
                  terminate_after='6 Hours',
-                 instance_type=DEFAULT_EC2_INSTANCE_TYPE,
+                 instance_type=INSTANCE_TYPE,
                  ami=ETL_AMI,
                  security_group=SECURITY_GROUP,
                  **kwargs):
@@ -60,8 +62,8 @@ class Ec2Resource(PipelineObject):
             schedule=schedule,
             imageId=ami,
             instanceType=instance_type,
-            role=DEFAULT_ROLE,
-            resourceRole=DEFAULT_RESOURCE_ROLE,
+            role=ROLE,
+            resourceRole=RESOURCE_ROLE,
             keyPair=KEY_PAIR,
             retryDelay=RETRY_DELAY,
             securityGroups=security_group

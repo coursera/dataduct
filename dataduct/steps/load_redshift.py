@@ -2,8 +2,8 @@
 ETL step wrapper for RedshiftCopyActivity to load data into Redshift
 """
 from .etl_step import ETLStep
-from ..pipeline.redshift_node import RedshiftNode
-from ..pipeline.redshift_copy_activity import RedshiftCopyActivity
+from ..pipeline import RedshiftNode
+from ..pipeline import RedshiftCopyActivity
 
 
 class LoadRedshiftStep(ETLStep):
@@ -17,7 +17,6 @@ class LoadRedshiftStep(ETLStep):
                  insert_mode="TRUNCATE",
                  max_errors=None,
                  replace_invalid_char=None,
-                 depends_on=None,
                  **kwargs):
         """Constructor for the LoadRedshiftStep class
 
@@ -31,9 +30,6 @@ class LoadRedshiftStep(ETLStep):
             **kwargs(optional): Keyword arguments directly passed to base class
         """
         super(LoadRedshiftStep, self).__init__(**kwargs)
-
-        if depends_on is not None:
-            self._depends_on = depends_on
 
         # Create output node
         self._output = self.create_pipeline_object(
@@ -55,11 +51,25 @@ class LoadRedshiftStep(ETLStep):
         self.create_pipeline_object(
             object_class=RedshiftCopyActivity,
             max_retries=self.max_retries,
-            input_node=self._input_node,
-            output_node=self._output,
+            input_node=self.input,
+            output_node=self.output,
             insert_mode=insert_mode,
             resource=self.resource,
             schedule=self.schedule,
             depends_on=self.depends_on,
             command_options=command_options,
         )
+
+    @classmethod
+    def arguments_processor(cls, etl, input_args):
+        """Parse the step arguments according to the ETL pipeline
+
+        Args:
+            etl(ETLPipeline): Pipeline object containing resources and steps
+            step_args(dict): Dictionary of the step arguments for the class
+        """
+        step_args = cls.base_arguments_processor(etl, input_args)
+        step_args['redshift_database'] = etl.redshift_database
+        step_args['resource'] = etl.ec2_resource
+
+        return step_args

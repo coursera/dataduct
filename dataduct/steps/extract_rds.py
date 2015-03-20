@@ -1,32 +1,21 @@
 """
 ETL step wrapper to extract data from RDS to S3
 """
-from re import findall
-
 from ..config import Config
 from .etl_step import ETLStep
-from ..pipeline.copy_activity import CopyActivity
-from ..pipeline.mysql_node import MysqlNode
-from ..pipeline.pipeline_object import PipelineObject
-from ..pipeline.shell_command_activity import ShellCommandActivity
+from ..pipeline import CopyActivity
+from ..pipeline import MysqlNode
+from ..pipeline import PipelineObject
+from ..pipeline import ShellCommandActivity
 from ..utils.helpers import exactly_one
 from ..utils.exceptions import ETLInputError
+from ..database import SelectStatement
 
 config = Config()
+if not hasattr(config, 'mysql'):
+    raise ETLInputError('MySQL config not specified in ETL')
+
 MYSQL_CONFIG = config.mysql
-
-
-def guess_input_tables(sql):
-    """Guess input tables from the sql query
-
-    Returns:
-        results(list of str): tables which are used in the sql statement
-    """
-    results = findall(r'from ([A-Za-z0-9._]+)', sql)
-    results.extend(findall(r'FROM ([A-Za-z0-9._]+)', sql))
-    results.extend(findall(r'join ([A-Za-z0-9._]+)', sql))
-    results.extend(findall(r'JOIN ([A-Za-z0-9._]+)', sql))
-    return list(set(results))
 
 
 class ExtractRdsStep(ETLStep):
@@ -38,7 +27,7 @@ class ExtractRdsStep(ETLStep):
                  sql=None,
                  host_name=None,
                  database=None,
-                 depends_on=None,
+                 output_path=None,
                  **kwargs):
         """Constructor for the ExtractRdsStep class
 
@@ -54,13 +43,10 @@ class ExtractRdsStep(ETLStep):
 
         super(ExtractRdsStep, self).__init__(**kwargs)
 
-        if depends_on is not None:
-            self._depends_on = depends_on
-
         if table:
-            sql = 'select * from %s;' % table
+            sql = 'SELECT * FROM %s;' % table
         elif sql:
-            table = guess_input_tables(sql)
+            table = SelectStatement(sql).dependencies[0]
         else:
             raise ETLInputError('Provide a sql statement or a table name')
 
@@ -96,10 +82,11 @@ class ExtractRdsStep(ETLStep):
             max_retries=self.max_retries,
         )
 
+        self._output = self.create_s3_data_node(
+            self.get_output_s3_path(output_path))
+
         # This shouldn't be necessary but -
         # AWS uses \\n as null, so we need to remove it
-        self._output = self.create_s3_data_node()
-
         command = ' '.join(["cat",
                             "${INPUT1_STAGING_DIR}/*",
                             "| sed 's/\\\\\\\\n/NULL/g'",  # replace \\n
@@ -110,9 +97,23 @@ class ExtractRdsStep(ETLStep):
         self.create_pipeline_object(
             object_class=ShellCommandActivity,
             input_node=intermediate_node,
-            output_node=self._output,
+            output_node=self.output,
             command=command,
             max_retries=self.max_retries,
             resource=self.resource,
             schedule=self.schedule,
         )
+
+    @classmethod
+    def arguments_processor(cls, etl, input_args):
+        """Parse the step arguments according to the ETL pipeline
+
+        Args:
+            etl(ETLPipeline): Pipeline object containing resources and steps
+            step_args(dict): Dictionary of the step arguments for the class
+        """
+        input_args = cls.pop_inputs(input_args)
+        step_args = cls.base_arguments_processor(etl, input_args)
+        step_args['resource'] = etl.ec2_resource
+
+        return step_args

@@ -1,0 +1,16 @@
+name: example_create_update_sql
+frequency: one-time
+load_time: 01:00  # Hour:Min in UTC
+
+description: Example for the create-update-sql step
+
+steps:
+-   step_type: create-update-sql
+    command: |
+        DELETE FROM dev.test_table WHERE id < 0;
+        INSERT INTO dev.test_table
+        SELECT * FROM dev.test_table_2
+        WHERE id < %s;
+    table_definition: tables/dev.test_table.sql
+    script_arguments:
+    -   4

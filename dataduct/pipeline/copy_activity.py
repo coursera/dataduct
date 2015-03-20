@@ -6,11 +6,12 @@ from .activity import Activity
 from .schedule import Schedule
 
 from ..config import Config
+from ..utils import constants as const
 from ..utils.exceptions import ETLInputError
 
 config = Config()
-DEFAULT_MAX_RETRIES = config.etl['DEFAULT_MAX_RETRIES']
-RETRY_DELAY = config.etl['RETRY_DELAY']
+MAX_RETRIES = config.etl.get('MAX_RETRIES', const.ZERO)
+RETRY_DELAY = config.etl.get('RETRY_DELAY', const.DEFAULT_DELAY)
 
 
 class CopyActivity(Activity):
@@ -48,7 +49,7 @@ class CopyActivity(Activity):
         if depends_on is None:
             depends_on = []
         if max_retries is None:
-            max_retries = DEFAULT_MAX_RETRIES
+            max_retries = MAX_RETRIES
 
         super(CopyActivity, self).__init__(
             id=id,

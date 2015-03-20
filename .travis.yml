@@ -1,0 +1,46 @@
+language: python
+python:
+  - 2.7
+
+sudo: false
+
+addons:
+    apt_packages:
+        - graphviz
+# command to install dependencies
+install:
+  - pip install coveralls
+  - pip install -r requirements.txt
+
+# Setup config file
+before_script:
+  - mkdir ~/.dataduct
+  - |+
+    echo "
+    etl:
+      ROLE: DataPipelineDefaultRole
+      RESOURCE_ROLE: DataPipelineDefaultResourceRole
+      S3_ETL_BUCKET: FILL_ME_IN
+
+    ec2:
+      CORE_INSTANCE_TYPE: m1.large
+
+    emr:
+      CLUSTER_AMI: 2.4.7
+
+    redshift:
+      DATABASE_NAME: FILL_ME_IN
+      CLUSTER_ID: FILL_ME_IN
+      USERNAME: FILL_ME_IN
+      PASSWORD: FILL_ME_IN
+
+    mysql:
+      DATABASE_KEY:
+        HOST: FILL_ME_IN
+        USERNAME: FILL_ME_IN
+        PASSWORD: FILL_ME_IN" > ~/.dataduct/dataduct.cfg
+
+# Run tests
+script: nosetests --with-coverage --cover-package=. --cover-erase
+after_success:
+  coveralls

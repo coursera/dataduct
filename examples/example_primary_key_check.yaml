@@ -1,0 +1,12 @@
+name: example_primary_key_check
+frequency: one-time
+load_time: 01:00  # Hour:Min in UTC
+
+description: Example for the primary-key-check step
+
+steps:
+-   step_type: primary-key-check
+    table_definition: tables/dev.test_table.sql
+    log_to_s3: true
+    script_arguments:
+    -   "--path_suffix=#{format(@scheduledStartTime, 'YYYY-MM-dd')}"

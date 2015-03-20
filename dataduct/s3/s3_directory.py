@@ -3,6 +3,8 @@ Base class for storing a S3 File
 """
 from .s3_path import S3Path
 from .utils import upload_dir_to_s3
+from ..utils.helpers import parse_path
+from ..utils.exceptions import ETLInputError
 
 
 class S3Directory(object):
@@ -21,7 +23,7 @@ class S3Directory(object):
             s3_path (S3Path, optional): s3_path of the file
 
         """
-        self.path = path
+        self.path = parse_path(path)
         self._s3_path = s3_path
 
     @property
@@ -37,8 +39,11 @@ class S3Directory(object):
         Args:
             value(S3Path): s3path of the directory
         """
-        assert isinstance(value, S3Path), 'input path must be of type S3Path'
-        assert value.is_directory, 'input path must be a directory'
+        if not isinstance(value, S3Path):
+            raise ETLInputError('Input path should be of type S3Path')
+
+        if not value.is_directory:
+            raise ETLInputError('S3 path must be directory')
         self._s3_path = value
 
     def upload_to_s3(self):

@@ -4,8 +4,8 @@ Base class for storing a S3 File
 from .s3_path import S3Path
 from .utils import upload_to_s3
 from .utils import read_from_s3
+from ..utils.helpers import parse_path
 from ..utils.exceptions import ETLInputError
-
 
 DEFAULT_FILE_NAME = 'file'
 
@@ -32,7 +32,7 @@ class S3File(object):
                 'Cannot specify both path and text for s3 file.'
 
         # Initialize all the values
-        self._path = path
+        self._path = parse_path(path)
         self._text = text
         self._s3_path = s3_path
 
@@ -73,7 +73,7 @@ class S3File(object):
             file_name(str): The file_name of this file
         """
         if self._path:
-            return self._path.split("/").pop()
+            return self._path.split('/').pop()
         else:
             return DEFAULT_FILE_NAME
 
@@ -82,7 +82,6 @@ class S3File(object):
         """Outputs the s3_path
         """
         return self._s3_path
-
 
     @s3_path.setter
     def s3_path(self, s3_path):
@@ -94,7 +93,8 @@ class S3File(object):
             If there is no path, the name "file" will be applied.
         """
 
-        assert isinstance(s3_path, S3Path), 'input path must be of type S3Path'
+        if not isinstance(s3_path, S3Path):
+            raise ETLInputError('Input path should be of type S3Path')
 
         # Copy the object as we would change it for the file
         self._s3_path = S3Path(

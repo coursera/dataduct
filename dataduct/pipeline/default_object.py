@@ -4,22 +4,20 @@ Pipeline object class for default metadata
 
 from .pipeline_object import PipelineObject
 from ..config import Config
+from ..utils import constants as const
 
 config = Config()
-DEFAULT_ROLE = config.ec2['DEFAULT_ROLE']
-DEFAULT_RESOURCE_ROLE = config.ec2['DEFAULT_RESOURCE_ROLE']
+ROLE = config.etl['ROLE']
+RESOURCE_ROLE = config.etl['RESOURCE_ROLE']
+MAX_ACTIVE_INSTANCES = config.etl.get('MAX_ACTIVE_INSTANCES', const.ONE)
 
 
 class DefaultObject(PipelineObject):
     """Default object added to all pipelines
     """
 
-    def __init__(self,
-                 id='Default',
-                 sns=None,
-                 scheduleType='cron',
-                 failureAndRerunMode='CASCADE',
-                 **kwargs):
+    def __init__(self, id, pipeline_log_uri, sns=None, scheduleType='cron',
+                 failureAndRerunMode='CASCADE', **kwargs):
         """Constructor for the DefaultObject class
 
         Args:
@@ -34,10 +32,12 @@ class DefaultObject(PipelineObject):
         """
 
         super(DefaultObject, self).__init__(
-            id=id,
+            id='Default', # This should always have the default id
             scheduleType=scheduleType,
             failureAndRerunMode=failureAndRerunMode,
-            role=DEFAULT_ROLE,
-            resourceRole=DEFAULT_RESOURCE_ROLE,
+            role=ROLE,
+            resourceRole=RESOURCE_ROLE,
+            maxActiveInstances=MAX_ACTIVE_INSTANCES,
+            pipelineLogUri=pipeline_log_uri,
             onFail=sns
         )

@@ -1,0 +1,9 @@
+name: example_sql_command
+frequency: one-time
+load_time: 01:00  # Hour:Min in UTC
+
+description: Example for the sql_command step
+
+steps:
+-   step_type: sql-command
+    command: SELECT * FROM dev.test_table;
