@@ -15,11 +15,14 @@ which makes it easy to create ETL jobs. All jobs can be specified as a
 series of steps in a YAML file and would automatically be translated
 into datapipeline with appropriate pipeline objects.
 
-Top features include visualizing pipeline dependencies, extract data
-from different sources such as RDS, S3, Local files, run a series of
-transformations using EC2 or EMR, load data into Redshift and complete
-transformations inside redshift as well. QA steps for sanity checking
-the data.
+Features include:
+
+- Visualizing pipeline activities
+- Extracting data from different sources such as RDS, S3, local files
+- Transforming data using EC2 and EMR
+- Loading data into redshift
+- Transforming data inside redshift
+- QA data between the source system and warehouse
 
 It is easy to create custom steps to augment the DSL as per the
 requirements. As well as running a backfill with the command line
