@@ -36,6 +36,7 @@ Contents:
 
    introduction
    installation
+   commands
    config
    creating_an_etl
    steps
