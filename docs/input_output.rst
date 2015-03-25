@@ -109,8 +109,8 @@ specify this by writing ``input_node: []``.
         script: scripts/example_script.py
 
 If you are running your own script (e.g. through the Transform step),
-the input node's data can be found in the directory specified by
-``INPUT1_STAGING_DIR``.
+the input node's data can be found in the directory specified by the
+``INPUT1_STAGING_DIR`` enviroment variable.
 
 ::
 
@@ -118,7 +118,8 @@ the input node's data can be found in the directory specified by
         name: extract_data
         path: data/test_table1.tsv
 
-    # manipulate_data.py takes in the input directory as a script argument
+    # manipulate_data.py takes in the input directory as a script argument and
+    # converts the string into the enviroment variable.
     -   step_type: transform
         script: scripts/manipulate_data.py
         script_arguments:
@@ -138,11 +139,13 @@ Transform Step and Output Nodes
 
 Transform steps allow you to run your own scripts. If you want to save
 the results of your script, you can store data into the output node by
-writing to the directory specified by ``OUTPUT1_STAGING_DIR``.
+writing to the directory specified by the ``OUTPUT1_STAGING_DIR`` enviroment
+variable.
 
 ::
 
-    # generate_data.py takes in the output directory as a script argument
+    # generate_data.py takes in the output directory as a script argument and
+    # converts the string into the enviroment variable.
     -   step_type: transform
         script: scripts/generate_data.py
         script_arguments:
