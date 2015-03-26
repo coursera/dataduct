@@ -19,8 +19,16 @@ class Table(Relation):
     """
     def __init__(self, sql):
         """Constructor for Table class
+
+        Args:
+            sql: A SqlScript or a string containing the SQL definition of a
+                 table. If sql is a string, it will be converted into a
+                 SqlScript.
         """
         super(Table, self).__init__()
+
+        if isinstance(sql, str):
+            sql = SqlScript(sql)
 
         if isinstance(sql, SqlScript):
             # Take the first statement and ignore the rest
