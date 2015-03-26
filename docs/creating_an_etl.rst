@@ -25,6 +25,7 @@ Example:
     name : example_emr_streaming
     frequency : one-time
     load_time: 01:00  # Hour:Min in UTC
+    topic_arn: 'arn:aws:sns:example_arn'
     emr_cluster_config:
         num_instances: 1
         instance_size: m1.xlarge
@@ -75,6 +76,14 @@ at 1AM UTC:
 .. code:: yaml
 
     load_time: 01:00  # Hour:Min in UTC
+
+In your config file, you have the option of specifying a default Amazon
+Resource Name that will be messaged if the pipeline fails, if you would wish to
+override this default ARN, you may use the topic_arn property:
+
+.. code:: yaml
+
+    topic_arn: 'arn:aws:sns:example_arn'
 
 If the pipeline includes an EMR-streaming step, the EMR instance can be
 configured. For example, you can configure the bootstrap, number of core
