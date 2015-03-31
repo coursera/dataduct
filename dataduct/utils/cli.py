@@ -1,8 +1,24 @@
 """Helper function for CLI scripts
 """
+import argparse
+import contextlib
+import os
+
 from argparse import ArgumentParser
 from argparse import RawTextHelpFormatter
-import argparse
+
+
+@contextlib.contextmanager
+def chdir(dirname=None):
+    """Get a context to switch to another working directory
+    """
+    curdir = os.getcwd()
+    try:
+        if dirname is not None:
+            os.chdir(dirname)
+        yield
+    finally:
+        os.chdir(curdir)
 
 
 def config_singleton_setup(args):

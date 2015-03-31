@@ -1,9 +1,10 @@
 """
 Shared utility functions
 """
-import time
 import math
 import os
+import time
+
 from sys import stderr
 
 from ..config import Config
@@ -70,7 +71,7 @@ def retry(tries, delay=3, backoff=2):
             """
             template = 'Attempt failed with Exception: \n{0}: {1}\n'
             try:
-                r_value = f(*args, **kwargs) # first attempt
+                r_value = f(*args, **kwargs)  # first attempt
                 r_status = True
             except Exception as exp:
                 stderr.write(template.format(type(exp).__name__, exp))
@@ -81,7 +82,7 @@ def retry(tries, delay=3, backoff=2):
 
         def f_retry(*args, **kwargs):
             """True decorator"""
-            m_tries, m_delay = tries, delay # make mutable
+            m_tries, m_delay = tries, delay  # make mutable
 
             r_value, r_status = function_attempt(f, *args, **kwargs)
 
@@ -91,9 +92,9 @@ def retry(tries, delay=3, backoff=2):
                 if r_status is True:
                     return r_value
 
-                m_tries -= 1        # consume an attempt
-                time.sleep(m_delay) # wait...
-                m_delay *= backoff  # make future wait longer
+                m_tries -= 1         # consume an attempt
+                time.sleep(m_delay)  # wait...
+                m_delay *= backoff   # make future wait longer
 
                 # Try again
                 r_value, r_status = function_attempt(f, *args, **kwargs)
@@ -147,6 +148,7 @@ def get_s3_base_path():
     config = Config()
     return os.path.join('s3://', config.etl.get('S3_ETL_BUCKET', ''),
                         config.etl.get('S3_BASE_PATH', ''))
+
 
 def get_modified_s3_path(path):
     """Modify the s3 path to replace S3_BASE_PATH with config parameter
