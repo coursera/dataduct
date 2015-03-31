@@ -60,6 +60,8 @@ class TransformStep(ETLStep):
                 self.get_output_s3_path(get_modified_s3_path(output_path)))
 
         script_arguments = self.translate_arguments(script_arguments)
+        if script_arguments is None:
+            script_arguments = []
 
         if self.input:
             input_nodes = [self.input]
