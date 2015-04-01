@@ -157,3 +157,22 @@ def get_modified_s3_path(path):
     if path is None:
         return None
     return path.replace('{S3_BASE_PATH}', config.etl.get('S3_BASE_PATH'))
+
+
+def stringify_credentials(access_key, secret_key, token=None):
+    """Serialize the credentials into a format accepted by redshift
+
+    Args:
+        access_key(str): The public AWS credential
+        secret_key(str): The secret AWS credential
+        token(str): A token needed for temporary AWS credentials
+
+    Returns:
+        A serialized string of the credentials.
+    """
+    creds = 'aws_access_key_id=%s;aws_secret_access_key=%s' % (
+        access_key, secret_key
+    )
+    if token:
+        creds += ';token=%s' % token
+    return creds
