@@ -4,6 +4,7 @@ from copy import deepcopy
 from .sql import SqlScript
 from ..config import Config
 from ..utils.helpers import atleast_one
+from ..utils.helpers import stringify_credentials
 
 
 class Relation(object):
@@ -90,3 +91,29 @@ class Relation(object):
         script = self.drop_script()
         script.append(self.create_script(grant_permissions))
         return script
+
+    def unload_script(self, s3_path, access_key, secret_key, token=None):
+        """Sql script to unload table to S3
+        """
+        script = (
+            "UNLOAD ('{select_script}') TO '{s3_path}' CREDENTIALS '{creds}' "
+            "DELIMITER '\t' ESCAPE NULL AS 'NULL'"
+        ).format(
+            select_script=self.select_script(),
+            s3_path=s3_path,
+            creds=stringify_credentials(access_key, secret_key, token)
+        )
+        return SqlScript(script)
+
+    def load_script(self, s3_path, access_key, secret_key, token=None):
+        """Sql script to load table from S3
+        """
+        script = (
+            "COPY {name} FROM '{s3_path}' CREDENTIALS '{creds}' "
+            "DELIMITER '\t' ESCAPE NULL AS 'NULL'"
+        ).format(
+            name=self.full_name,
+            s3_path=s3_path,
+            creds=stringify_credentials(access_key, secret_key, token)
+        )
+        return SqlScript(script)
