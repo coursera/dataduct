@@ -9,7 +9,7 @@ from ..pipeline import RedshiftNode
 from ..pipeline import S3Node
 from ..config import Config
 from ..utils.exceptions import ETLInputError
-from ..utils.slack_hook import post_message
+from ..utils.hook import hook
 
 import logging
 logger = logging.getLogger(__name__)
@@ -19,6 +19,7 @@ config = Config()
 REGION = config.etl.get('REGION', None)
 URL_TEMPLATE = 'https://console.aws.amazon.com/datapipeline/?%s#ExecutionDetailsPlace:pipelineId={ID}&show=latest'  # noqa
 URL_TEMPLATE %= 'region=%s' % REGION if REGION is not None else ''
+
 
 def read_pipeline_definition(file_path):
     """Function reads the yaml pipeline definitions.
@@ -76,6 +77,7 @@ def validate_pipeline(etl, force=False):
     logger.info('Validated pipeline. Id: %s', etl.pipeline.id)
 
 
+@hook('activate_pipeline')
 def activate_pipeline(etl):
     """Activate the pipeline that was created
 
@@ -86,8 +88,6 @@ def activate_pipeline(etl):
     logger.info('Activated pipeline. Id: %s', etl.pipeline.id)
     logger.info('Monitor pipeline here: %s',
                 URL_TEMPLATE.format(ID=etl.pipeline.id))
-    # Post a slack message if slack is setup
-    post_message('{user} started pipeline: `%s`' % etl.name)
 
 
 def visualize_pipeline(etl, activities_only=False, filename=None):
