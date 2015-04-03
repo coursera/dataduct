@@ -6,6 +6,7 @@ from .sql import SqlScript
 from .select_statement import SelectStatement
 from .column import Column
 from .relation import Relation
+from ..utils.helpers import stringify_credentials
 
 
 def comma_seperated(elements):
@@ -320,3 +321,29 @@ class Table(Relation):
                 AND table_name = '%s'
             )
         """ % (self.schema_name, self.table_name))
+
+    def unload_script(self, s3_path, access_key, secret_key, token=None):
+        """Sql script to unload table to S3
+        """
+        script = (
+            "UNLOAD ('{select_script}') TO '{s3_path}' CREDENTIALS '{creds}' "
+            "DELIMITER '\t' ESCAPE NULL AS 'NULL'"
+        ).format(
+            select_script=self.select_script(),
+            s3_path=s3_path,
+            creds=stringify_credentials(access_key, secret_key, token)
+        )
+        return SqlScript(script)
+
+    def load_script(self, s3_path, access_key, secret_key, token=None):
+        """Sql script to load table from S3
+        """
+        script = (
+            "COPY {name} FROM '{s3_path}' CREDENTIALS '{creds}' "
+            "DELIMITER '\t' ESCAPE NULL AS 'NULL'"
+        ).format(
+            name=self.full_name,
+            s3_path=s3_path,
+            creds=stringify_credentials(access_key, secret_key, token)
+        )
+        return SqlScript(script)

@@ -156,6 +156,18 @@ table_definition_parser.add_argument(
     help=table_definition_help,
 )
 
+# Single Table definition parser
+single_table_definition_help = 'Path of a table definition'
+single_table_definition_parser = ArgumentParser(
+    description=single_table_definition_help,
+    add_help=False,
+)
+single_table_definition_parser.add_argument(
+    'table_definition',
+    help=single_table_definition_help,
+)
+
+
 # Filepath input parser
 filepath_help = 'Filepath input for storing output of actions'
 file_parser = ArgumentParser(
@@ -165,4 +177,15 @@ file_parser = ArgumentParser(
 file_parser.add_argument(
     dest='filename',
     help='Filename to store output of commands',
+)
+
+# S3 Filepath input parser
+s3_path_help = 'S3 Path'
+s3_path_parser = ArgumentParser(
+    description=s3_path_help,
+    add_help=False,
+)
+s3_path_parser.add_argument(
+    dest='s3_path',
+    help='S3 Path',
 )
