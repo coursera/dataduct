@@ -156,6 +156,21 @@ table_definition_parser.add_argument(
     help=table_definition_help,
 )
 
+# Execute SQL parser
+execute_sql_parser_help = 'Execute the query'
+execute_sql_parser = ArgumentParser(
+    description=execute_sql_parser_help,
+    add_help=False,
+)
+execute_sql_parser.add_argument(
+    '-e',
+    '--execute',
+    action='store_true',
+    default=False,
+    help='Executes the query',
+)
+
+
 # Single Table definition parser
 single_table_definition_help = 'Path of a table definition'
 single_table_definition_parser = ArgumentParser(
