@@ -11,6 +11,7 @@ from ..config import Config
 
 RESOURCE_BASE_PATH = 'RESOURCE_BASE_PATH'
 CUSTOM_STEPS_PATH = 'CUSTOM_STEPS_PATH'
+HOOKS_BASE_PATH = 'HOOKS_BASE_PATH'
 
 
 def atmost_one(*args):
@@ -133,10 +134,14 @@ def parse_path(path, path_type=RESOURCE_BASE_PATH):
         if RESOURCE_BASE_PATH in config.etl:
             return os.path.join(
                 os.path.expanduser(config.etl[RESOURCE_BASE_PATH]), path)
-    else:
+    elif path_type == CUSTOM_STEPS_PATH:
         if CUSTOM_STEPS_PATH in config.etl:
             return os.path.join(
                 os.path.expanduser(config.etl[CUSTOM_STEPS_PATH]), path)
+    elif path_type == HOOKS_BASE_PATH:
+        if HOOKS_BASE_PATH in config.etl:
+            return os.path.join(
+                os.path.expanduser(config.etl[HOOKS_BASE_PATH]), path)
 
     # Return the path as is.
     return path

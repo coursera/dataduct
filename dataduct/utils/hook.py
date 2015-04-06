@@ -1,7 +1,16 @@
-"""Hook helpers
+"""Hook framework in dataduct.
+
+To make a function hookable, add the hook decorator like so:
+
+@hook('hook_name')
+def function():
+    ...
 """
 import os
 import imp
+import sys
+
+from .helpers import parse_path
 
 
 def default_before_hook(*args, **kwargs):
@@ -16,25 +25,44 @@ def default_after_hook(result):
     return result
 
 
-def hook(hook_name):
-    """The hook decorator creator
-
+def get_hooks(hook_name):
+    """Returns the before hook and after hook (in a tuple) for a particular
+    hook name
     """
     from dataduct.config import Config
     config = Config()
-    # Try to load the hook. If it fails, just fallback to default hooks.
-    try:
-        hook_directory = os.path.expanduser(config.hooks['path'])
-        hook_file = os.path.join(hook_directory, hook_name + '.py')
 
-        custom_hook = imp.load_source('custom_hook', hook_file)
+    if 'HOOKS_BASE_PATH' not in config.etl:
+        return default_before_hook, default_after_hook
+
+    hook_file = parse_path(hook_name + '.py', 'HOOKS_BASE_PATH')
+    if not os.path.isfile(hook_file):
+        return default_before_hook, default_after_hook
+
+    # Delete the previous custom hook, so the imports are not merged.
+    if 'custom_hook' in sys.modules:
+        del sys.modules['custom_hook']
+
+    # Get the hook functions, falling back to the default hooks
+    custom_hook = imp.load_source('custom_hook', hook_file)
+    try:
         before_hook = custom_hook.before_hook
-        after_hook = custom_hook.after_hook
-    except Exception:
+    except AttributeError:
         before_hook = default_before_hook
+    try:
+        after_hook = custom_hook.after_hook
+    except AttributeError:
         after_hook = default_after_hook
 
-    def hook_deco(func):
+    return before_hook, after_hook
+
+
+def hook(hook_name):
+    """The hook decorator creator
+    """
+    before_hook, after_hook = get_hooks(hook_name)
+
+    def hook_decorator(func):
         """The hook decorator
         """
         def function_wrapper(*args, **kwargs):
@@ -47,4 +75,4 @@ def hook(hook_name):
 
         return function_wrapper
 
-    return hook_deco
+    return hook_decorator
