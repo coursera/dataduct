@@ -45,14 +45,8 @@ def get_hooks(hook_name):
 
     # Get the hook functions, falling back to the default hooks
     custom_hook = imp.load_source('custom_hook', hook_file)
-    try:
-        before_hook = custom_hook.before_hook
-    except AttributeError:
-        before_hook = default_before_hook
-    try:
-        after_hook = custom_hook.after_hook
-    except AttributeError:
-        after_hook = default_after_hook
+    before_hook = getattr(custom_hook, 'before_hook', default_before_hook)
+    after_hook = getattr(custom_hook, 'after_hook', default_after_hook)
 
     return before_hook, after_hook
 
