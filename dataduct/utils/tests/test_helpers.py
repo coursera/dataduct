@@ -5,6 +5,7 @@ import os
 from unittest import TestCase
 from ..helpers import stringify_credentials
 from ..helpers import parse_path
+from ..helpers import make_pipeline_url
 from nose.tools import eq_
 
 
@@ -67,4 +68,28 @@ class TestHelpers(TestCase):
         eq_(
             parse_path('test/path', 'TEST_PATH'),
             os.path.expanduser('~/transform/test/path'),
+        )
+
+    @staticmethod
+    def test_make_pipeline_url_no_region_correct():
+        """Tests that make_pipeline_url makes a correct url without a region
+        """
+        from dataduct.config import Config
+        config = Config()
+        del config.etl['REGION']
+        eq_(
+            make_pipeline_url('123'),
+            'https://console.aws.amazon.com/datapipeline/?#ExecutionDetailsPlace:pipelineId=123&show=latest'  # noqa
+        )
+
+    @staticmethod
+    def test_make_pipeline_url_has_region_correct():
+        """Tests that make_pipeline_url makes a correct url with a region
+        """
+        from dataduct.config import Config
+        config = Config()
+        config.etl['REGION'] = 'test'
+        eq_(
+            make_pipeline_url('123'),
+            'https://console.aws.amazon.com/datapipeline/?region=test#ExecutionDetailsPlace:pipelineId=123&show=latest'  # noqa
         )

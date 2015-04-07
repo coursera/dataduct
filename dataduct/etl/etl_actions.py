@@ -7,18 +7,12 @@ from ..pipeline import Activity
 from ..pipeline import MysqlNode
 from ..pipeline import RedshiftNode
 from ..pipeline import S3Node
-from ..config import Config
 from ..utils.exceptions import ETLInputError
 from ..utils.hook import hook
+from ..utils.helpers import make_pipeline_url
 
 import logging
 logger = logging.getLogger(__name__)
-
-
-config = Config()
-REGION = config.etl.get('REGION', None)
-URL_TEMPLATE = 'https://console.aws.amazon.com/datapipeline/?%s#ExecutionDetailsPlace:pipelineId={ID}&show=latest'  # noqa
-URL_TEMPLATE %= 'region=%s' % REGION if REGION is not None else ''
 
 
 def read_pipeline_definition(file_path):
@@ -87,7 +81,7 @@ def activate_pipeline(etl):
     etl.activate()
     logger.info('Activated pipeline. Id: %s', etl.pipeline.id)
     logger.info('Monitor pipeline here: %s',
-                URL_TEMPLATE.format(ID=etl.pipeline.id))
+                make_pipeline_url(etl.pipeline.id))
 
 
 def visualize_pipeline(etl, activities_only=False, filename=None):
