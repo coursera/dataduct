@@ -161,6 +161,7 @@ ETL
         SNS_TOPIC_ARN_WARNING: null
         FREQUENCY_OVERRIDE: one-time
         DEPENDENCY_OVERRIDE: false
+        HOOKS_BASE_PATH: ~/dataduct/examples/hooks
         slack:
             api_token: FILL_ME_IN
             channel_name: "#dataduct"
@@ -209,6 +210,8 @@ level. The parameters are explained below:
    with this unless overridden by CLI
 -  ``DEPENDENCY_OVERRIDE``: Will ignore the dependency step if set to
    true.
+-  ``HOOKS_BASE_PATH``: Path prefix for the hooks directory. For more
+   information, see Hooks.
 -  ``slack``: Configuration for posting messages on slack whenever a
    pipeline is run
 -  ``Tags``: Tags to be added to the pipeline. The first key is the Tag
