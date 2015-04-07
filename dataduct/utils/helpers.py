@@ -13,6 +13,8 @@ RESOURCE_BASE_PATH = 'RESOURCE_BASE_PATH'
 CUSTOM_STEPS_PATH = 'CUSTOM_STEPS_PATH'
 HOOKS_BASE_PATH = 'HOOKS_BASE_PATH'
 
+URL_TEMPLATE = 'https://console.aws.amazon.com/datapipeline/?{region}#ExecutionDetailsPlace:pipelineId={ID}&show=latest'  # noqa
+
 
 def atmost_one(*args):
     """Asserts one of the arguments is not None
@@ -171,3 +173,22 @@ def stringify_credentials(access_key, secret_key, token=None):
     if token:
         creds += ';token=%s' % token
     return creds
+
+
+def make_pipeline_url(pipeline_id):
+    """Creates the DataPipeline url for a particular pipeline
+
+    Args:
+        pipeline_id(str): The id of the pipeline for which to create the url
+        region(str/None): The Amazon region.
+
+    Returns:
+        A string that links to the pipeline in Amazon DataPipeline's console.
+    """
+    config = Config()
+    region = config.etl.get('REGION', None)
+    region_str = 'region=%s' % region if region is not None else ''
+    return URL_TEMPLATE.format(
+        region=region_str,
+        ID=pipeline_id,
+    )
