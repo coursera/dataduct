@@ -1,10 +1,10 @@
 """Tests that the config singleton is working properly
 """
-from os import environ
 from os.path import expanduser
 from os.path import join
 
 from unittest import TestCase
+from mock import patch
 from testfixtures import TempDirectory
 from nose.tools import eq_
 from nose.tools import raises
@@ -40,14 +40,11 @@ class TestConfig(TestCase):
         }
 
     @staticmethod
+    @patch.dict('os.environ', {}, clear=True)
     def test_get_config_files_no_enviroment_variable():
         """Tests that correct config file paths are returned when there's no
         enviroment variable
         """
-        # Delete the enviroment variable
-        if 'DATADUCT_CONFIG_PATH' in environ:
-            del environ['DATADUCT_CONFIG_PATH']
-        assert 'DATADUCT_CONFIG_PATH' not in environ
         expected = [
             '/etc/dataduct.cfg',
             expanduser('~/.dataduct/dataduct.cfg'),
@@ -56,11 +53,11 @@ class TestConfig(TestCase):
         eq_(result, expected)
 
     @staticmethod
+    @patch.dict('os.environ', {'DATADUCT_CONFIG_PATH': '/test/test.cfg'})
     def test_get_config_files_with_enviroment_variable():
         """Tests that correct config file paths are returned when there is
         an enviroment variable
         """
-        environ['DATADUCT_CONFIG_PATH'] = '/test/test.cfg'
         expected = [
             '/etc/dataduct.cfg',
             expanduser('~/.dataduct/dataduct.cfg'),
