@@ -1,13 +1,13 @@
 """SQL parser utils and constants
 """
 
-from pyparsing import alphanums
 from pyparsing import CaselessKeyword
 from pyparsing import Combine
 from pyparsing import Forward
-from pyparsing import nums
 from pyparsing import OneOrMore
 from pyparsing import Word
+from pyparsing import alphanums
+from pyparsing import nums
 
 
 # Data types
@@ -66,7 +66,7 @@ field_parser = Forward()
 subquery = Forward()
 
 # List of characters allowed in the query statements
-special_character = "_-. *`><!+/=%':{}"
+special_character = "_-. *`><!+/=%':{}|"
 _word = Word(alphanums + special_character)
 
 # Subqueries allow words and commas in them
