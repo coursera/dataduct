@@ -412,29 +412,29 @@ class ETLPipeline(object):
             output: input_node for next round
             step: that is ready to add into steps
         """
-            # Assume that the preceding step is the input if not specified
-            if isinstance(input_node, S3Node) and \
-                    'input_node' not in step_param and \
-                    'input_path' not in step_param:
-                step_param['input_node'] = input_node
+        # Assume that the preceding step is the input if not specified
+        if isinstance(input_node, S3Node) and \
+                'input_node' not in step_param and \
+                'input_path' not in step_param:
+            step_param['input_node'] = input_node
 
-            try:
-                step_class = step_param.pop('step_class')
-                step_args = step_class.arguments_processor(self, step_param)
-            except Exception:
-                logger.error('Error creating step with params: %s', step_param)
-                raise
+        try:
+            step_class = step_param.pop('step_class')
+            step_args = step_class.arguments_processor(self, step_param)
+        except Exception:
+            logger.error('Error creating step with params: %s', step_param)
+            raise
 
-            try:
-                step = step_class(**step_args)
-            except Exception:
-                logger.error('Error creating step of class %s, step_param %s',
-                             str(step_class.__name__), str(step_args))
-                raise
+        try:
+            step = step_class(**step_args)
+        except Exception:
+            logger.error('Error creating step of class %s, step_param %s',
+                         str(step_class.__name__), str(step_args))
+            raise
 
-            # Add the step to the pipeline
-            self.add_step(step, is_bootstrap)
-            return step.output, step
+        # Add the step to the pipeline
+        self.add_step(step, is_bootstrap)
+        return step.output, step
 
     def create_steps(self, steps_params, is_bootstrap=False):
         """Create pipeline steps and add appropriate dependencies
