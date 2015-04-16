@@ -25,8 +25,6 @@ STEP_CLASSES = {
     'sql-command': SqlCommandStep,
     'transform': TransformStep,
     'upsert': UpsertStep,
-    'multi-load-steps': MultiLoadSteps,
-    'multi-upsert-steps': MultiUpsertSteps,
 }
 
 
