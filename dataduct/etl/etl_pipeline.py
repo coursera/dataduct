@@ -10,7 +10,6 @@ import yaml
 
 from .utils import process_steps
 from ..config import Config
-
 from ..pipeline import DefaultObject
 from ..pipeline import DataPipeline
 from ..pipeline import Ec2Resource
@@ -401,6 +400,42 @@ class ETLPipeline(object):
         elif step.output and step.id:
             self.intermediate_nodes[step.id] = step.output
 
+    def create_single_step(self, step_param, input_node, is_bootstrap):
+        """Create a single step to the pipeline
+
+        Args:
+            step_param(dict): Step params inlcudes step_class
+            input_node(dict): map of input node string
+            is_bootstrap(bool): flag indicating bootstrap steps
+
+        Return:
+            output: input_node for next round
+            step: that is ready to add into steps
+        """
+            # Assume that the preceding step is the input if not specified
+            if isinstance(input_node, S3Node) and \
+                    'input_node' not in step_param and \
+                    'input_path' not in step_param:
+                step_param['input_node'] = input_node
+
+            try:
+                step_class = step_param.pop('step_class')
+                step_args = step_class.arguments_processor(self, step_param)
+            except Exception:
+                logger.error('Error creating step with params: %s', step_param)
+                raise
+
+            try:
+                step = step_class(**step_args)
+            except Exception:
+                logger.error('Error creating step of class %s, step_param %s',
+                             str(step_class.__name__), str(step_args))
+                raise
+
+            # Add the step to the pipeline
+            self.add_step(step, is_bootstrap)
+            return step.output, step
+
     def create_steps(self, steps_params, is_bootstrap=False):
         """Create pipeline steps and add appropriate dependencies
 
@@ -417,33 +452,21 @@ class ETLPipeline(object):
         """
         input_node = None
         steps = []
-        steps_params = process_steps(steps_params)
+
         for step_param in steps_params:
+            step_param = process_steps(step_param)
+            step_class = step_param['step_class']
 
-            # Assume that the preceding step is the input if not specified
-            if isinstance(input_node, S3Node) and \
-                    'input_node' not in step_param and \
-                    'input_path' not in step_param:
-                step_param['input_node'] = input_node
-
-            try:
-                step_class = step_param.pop('step_class')
-                step_args = step_class.arguments_processor(self, step_param)
-            except Exception:
-                logger.error('Error creating step with params : %s', step_param)
-                raise
-
-            try:
-                step = step_class(**step_args)
-            except Exception:
-                logger.error('Error creating step of class %s, step_param %s',
-                             str(step_class.__name__), str(step_args))
-                raise
-
-            # Add the step to the pipeline
-            self.add_step(step, is_bootstrap)
-            input_node = step.output
-            steps.append(step)
+            if step_class.__name__.startswith('Multi'):
+                multi_steps = step_class.get_multi_step_params(step_param)
+                for one_step in multi_steps:
+                    input_node, step = self.create_single_step(
+                        one_step, input_node, is_bootstrap)
+                    steps.append(step)
+            else:
+                input_node, step = self.create_single_step(
+                    step_param, input_node, is_bootstrap)
+                steps.append(step)
         return steps
 
     def create_bootstrap_steps(self, resource_type):

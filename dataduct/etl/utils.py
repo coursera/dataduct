@@ -25,6 +25,8 @@ STEP_CLASSES = {
     'sql-command': SqlCommandStep,
     'transform': TransformStep,
     'upsert': UpsertStep,
+    'multi-load-steps': MultiLoadSteps,
+    'multi-upsert-steps': MultiUpsertSteps,
 }
 
 
@@ -57,13 +59,10 @@ STEP_CONFIG = STEP_CLASSES.copy()
 STEP_CONFIG.update(get_custom_steps())
 
 
-def process_steps(steps_params):
+def process_steps(step_param):
     """Format the step parameters by changing step type to step class
     """
-    steps = []
-    for step_param in steps_params:
-        params = step_param.copy()
-        step_type = params.pop('step_type')
-        params['step_class'] = STEP_CONFIG[step_type]
-        steps.append(params)
-    return steps
+    params = step_param.copy()
+    step_type = params.pop('step_type')
+    params['step_class'] = STEP_CONFIG[step_type]
+    return params

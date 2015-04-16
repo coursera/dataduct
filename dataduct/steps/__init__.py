@@ -17,3 +17,5 @@ from .reload import ReloadStep
 from .sql_command import SqlCommandStep
 from .transform import TransformStep
 from .upsert import UpsertStep
+from .multi_load_steps import MultiLoadSteps
+from .multi_upsert_steps import MultiUpsertSteps
