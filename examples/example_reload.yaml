@@ -9,14 +9,8 @@ steps:
     path: data/test_table1.tsv
 
 -   step_type: create-load-redshift
-    name: load_forums
     table_definition: tables/dev.test_table.sql
 
 -   step_type: reload
-    name: reload_forums
     source: tables/dev.test_table.sql
     destination: tables/dev.test_table_2.sql
-
--   step_type: primary-key-check
-    depends_on: reload_forums
-    table_definition: tables/dev.test_table_2.sql
