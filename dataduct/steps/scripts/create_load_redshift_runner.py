@@ -24,7 +24,7 @@ def load_redshift(table, input_paths, max_error=0,
     aws_key, aws_secret, token = get_aws_credentials()
     creds = stringify_credentials(aws_key, aws_secret, token)
 
-    delete_statement = 'DELETE FROM %s;' % table_name
+    delete_statement = 'TRUNCATE %s;' % table_name
     error_string = 'MAXERROR %d' % max_error if max_error > 0 else ''
     if replace_invalid_char is not None:
         invalid_char_str = "ACCEPTINVCHARS AS %s" % replace_invalid_char
