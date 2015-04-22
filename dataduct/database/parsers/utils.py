@@ -22,6 +22,7 @@ _boolean = CaselessKeyword('BOOLEAN')
 _char = CaselessKeyword('CHAR')
 _varchar = Combine(CaselessKeyword('VARCHAR') + '(' + Word(alphanums) + ')')
 _date = CaselessKeyword('DATE')
+_text = CaselessKeyword('TEXT')
 _timestamp = CaselessKeyword('TIMESTAMP')
 
 # Create SQL keywords
@@ -59,14 +60,14 @@ pk_check = (_primary_key | _unique)
 
 # Column types
 column_types = _smallint | _integer | _bigint | _decimal | _real | _double
-column_types |= _boolean | _char | _varchar | _date | _timestamp | _int
+column_types |= _boolean | _char | _varchar | _date | _timestamp | _int | _text
 
 # Define a field parser for create table fields or select query fields
 field_parser = Forward()
 subquery = Forward()
 
 # List of characters allowed in the query statements
-special_character = "_-. *`><!+/=%':{}|"
+special_character = "_-. *`><!+/=%':{}|~"
 _word = Word(alphanums + special_character)
 
 # Subqueries allow words and commas in them
