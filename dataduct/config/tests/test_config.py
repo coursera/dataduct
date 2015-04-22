@@ -16,7 +16,6 @@ from ..config import load_yaml
 class TestConfig(TestCase):
     """Tests for config singleton
     """
-
     def setUp(self):
         self.test_yaml_file = '\n'.join([
             'test:',
