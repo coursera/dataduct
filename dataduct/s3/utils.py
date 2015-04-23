@@ -159,7 +159,7 @@ def download_dir_from_s3(s3_path, local_path):
         raise ETLInputError('S3 path must be directory')
 
     bucket = get_s3_bucket(s3_path.bucket)
-    keys = bucket.get_all_keys(prefix=s3_path.key + '/')
+    keys = bucket.get_all_keys(prefix=s3_path.key)
 
     # Download each file individually
     for key in keys:
