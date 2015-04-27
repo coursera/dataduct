@@ -150,6 +150,8 @@ Properties
 -  ``output_path``: Save the script's output to the specified S3 path.
 -  ``no_output``: If ``true``, step will produce no extractable output.
    Default: ``false``
+-  ``resource_type``: If ``ec2``, run step on the EC2 resource. If ``emr``, run
+   step on the EMR resource. Default: ``ec2``
 
 One of: (Required)
 
