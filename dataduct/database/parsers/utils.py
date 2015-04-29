@@ -9,18 +9,22 @@ from pyparsing import Word
 from pyparsing import alphanums
 from pyparsing import nums
 
+# Intermediate parsers
+_varchar_names = (CaselessKeyword('VARCHAR') | CaselessKeyword('TEXT'))
+_varchar_names |= CaselessKeyword('NVARCHAR')
 
 # Data types
-_smallint = CaselessKeyword('SMALLINT')
-_int = CaselessKeyword('INT')
+_smallint = (CaselessKeyword('SMALLINT') | CaselessKeyword('INT2'))
 _integer = CaselessKeyword('INTEGER')
-_bigint = CaselessKeyword('BIGINT')
-_decimal = Combine(CaselessKeyword('DECIMAL') + '(' + Word(nums + ',') + ')')
-_real = (CaselessKeyword('REAL') | CaselessKeyword('FLOAT'))
-_double = CaselessKeyword('DOUBLE')
+_integer |= CaselessKeyword('INT') | CaselessKeyword('INT4')
+_bigint = (CaselessKeyword('BIGINT') | CaselessKeyword('INT8'))
+_decimal = Combine((CaselessKeyword('DECIMAL') | CaselessKeyword('NUMERIC')) + '(' + Word(nums + ' ,') + ')')  # noqa
+_real = (CaselessKeyword('REAL') | CaselessKeyword('FLOAT4'))
+_double = (CaselessKeyword('DOUBLE') | CaselessKeyword('FLOAT') | CaselessKeyword('FLOAT8'))  # noqa
 _boolean = CaselessKeyword('BOOLEAN')
-_char = CaselessKeyword('CHAR')
-_varchar = Combine(CaselessKeyword('VARCHAR') + '(' + Word(alphanums) + ')')
+_char = (CaselessKeyword('CHAR') | CaselessKeyword('CHARACTER'))
+_char |= (CaselessKeyword('NCHAR') | CaselessKeyword('BPCHAR'))
+_varchar = Combine(_varchar_names + '(' + Word(alphanums) + ')')
 _date = CaselessKeyword('DATE')
 _text = CaselessKeyword('TEXT')
 _timestamp = CaselessKeyword('TIMESTAMP')
@@ -60,7 +64,7 @@ pk_check = (_primary_key | _unique)
 
 # Column types
 column_types = _smallint | _integer | _bigint | _decimal | _real | _double
-column_types |= _boolean | _char | _varchar | _date | _timestamp | _int | _text
+column_types |= _boolean | _char | _varchar | _date | _timestamp | _text
 
 # Define a field parser for create table fields or select query fields
 field_parser = Forward()
