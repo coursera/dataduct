@@ -29,6 +29,8 @@ Example:
     emr_cluster_config:
         num_instances: 1
         instance_size: m1.xlarge
+        bootstrap:
+            string: "s3://elasticmapreduce/bootstrap-actions/configure-hadoop,--yarn-key-value, yarn.scheduler.maximum-allocation-mb=9500"
 
     # DESCRIPTION
     description : Example for the emr_streaming step
@@ -94,6 +96,10 @@ instances, and instance types:
     emr_cluster_config:
         num_instances: 1
         instance_size: m1.xlarge
+        bootstrap:
+            string: "s3://elasticmapreduce/bootstrap-actions/configure-hadoop,--yarn-key-value, yarn.scheduler.maximum-allocation-mb=9500"
+
+*Note: Arguments in the bootstrap step are delimited by commas, not spaces.*
 
 Description
 ^^^^^^^^^^^
