@@ -34,6 +34,7 @@ import sys
 import time
 from datetime import datetime
 
+from boto.sns import SNSConnection
 from dataduct.pipeline.utils import list_pipelines
 from dataduct.pipeline.utils import list_pipeline_instances
 
@@ -102,6 +103,7 @@ def main():
         '--dependencies', type=str, nargs='+', default=None)
     parser.add_argument('--refresh_rate', dest='refresh_rate', default='900')
     parser.add_argument('--start_date', dest='start_date')
+    parser.add_argument('--ignore_dependencies', dest='ignore_dependencies', default='0')
 
     args = parser.parse_args()
 
@@ -120,7 +122,17 @@ def main():
     # Check if all dependencies are valid pipelines
     for dependency in dependencies:
         if dependency not in pipeline_name_to_id:
-            raise Exception('Pipeline not found: %s.' % dependency)
+            if not float(ignore_dependencies):
+                raise Exception('Pipeline not found: %s.' % dependency)
+            # if ignoring dependencies, send message through SNS
+            else:
+                sns_topic_arn = config.sns.get('AMAZON_RESOURCE_NAME', '')
+                if sns_topic_arn:
+                    message = 'Pipeline not found: {0}'.format(dependency)
+                    subject = 'Dependency error'
+                    SNSConnection().publish(sns_topic_arn, message, subject)
+                else:
+                    raise Exception('ARN for SNS topic not specified in config')
 
     # Map from pipeline object to pipeline ID
     dependencies = [pipeline_name_to_id[dependency]
