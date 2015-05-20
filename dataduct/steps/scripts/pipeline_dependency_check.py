@@ -49,12 +49,13 @@ START_TIME = '@scheduledStartTime'
 FINISHED = 'FINISHED'
 
 
-def check_dependencies_ready(dependencies, start_date):
+def check_dependencies_ready(dependencies, start_date, return_pipelines=False):
     """Checks if every dependent pipeline has completed
 
     Args:
         dependencies(list of str): list of pipeline name that it depends on
         start_date(str): string representing the start date of the pipeline
+        return_pipelines(bool): return the failed/unfinished pipelines if true
     """
 
     print 'Checking dependency at ', str(datetime.now())
@@ -67,6 +68,8 @@ def check_dependencies_ready(dependencies, start_date):
     for pipeline in dependencies:
         # Get instances of each pipeline
         instances = list_pipeline_instances(pipeline)
+        failures = []
+        unfinished = []
 
         # Collect all pipeline instances that are scheduled for today
         instances_today = []
@@ -82,15 +85,23 @@ def check_dependencies_ready(dependencies, start_date):
         for instance in instances_today:
             # One of the dependency failed/cancelled
             if instance[STATUS] in FAILED_STATUSES:
-                raise Exception(
-                    'Pipeline %s has bad status: %s'
-                    % (pipeline, instance[STATUS])
-                )
+                if not return_pipelines:
+                    raise Exception(
+                        'Pipeline %s has bad status: %s'
+                        % (pipeline, instance[STATUS])
+                    )
+                else:
+                    failures.append(pipeline)
             # Dependency is still running
             elif instance[STATUS] != FINISHED:
+                if return_pipelines:
+                    unfinished.append(pipeline)
                 dependency_ready = False
 
     # All dependencies are done
+    if return_pipelines:
+        return dependency_ready, failures, unfinished
+
     return dependency_ready
 
 
@@ -122,17 +133,7 @@ def main():
     # Check if all dependencies are valid pipelines
     for dependency in dependencies:
         if dependency not in pipeline_name_to_id:
-            if not float(ignore_dependencies):
-                raise Exception('Pipeline not found: %s.' % dependency)
-            # if ignoring dependencies, send message through SNS
-            else:
-                sns_topic_arn = config.sns.get('AMAZON_RESOURCE_NAME', '')
-                if sns_topic_arn:
-                    message = 'Pipeline not found: {0}'.format(dependency)
-                    subject = 'Dependency error'
-                    SNSConnection().publish(sns_topic_arn, message, subject)
-                else:
-                    raise Exception('ARN for SNS topic not specified in config')
+            raise Exception('Pipeline not found: %s.' % dependency)
 
     # Map from pipeline object to pipeline ID
     dependencies = [pipeline_name_to_id[dependency]
@@ -141,10 +142,27 @@ def main():
     print 'Start checking for dependencies'
     start_time = datetime.now()
 
+    dependencies_ready, failures, unfinished = check_dependencies_ready(dependencies,
+                                                                        args.start_date,
+                                                                        return_pipelines=True)
+
+
+    # if ignoring dependencies, send message through SNS
+    if not dependencies_ready and float(ignore_dependencies):
+        sns_topic_arn = config.sns.get('AMAZON_RESOURCE_NAME', '')
+        if sns_topic_arn:
+            message = 'Failed dependencies: %s.' % ', '.join(failures)
+            message += '\n Unfinished dependencies: %s.' % ', '.join(unfinished)
+            subject = 'Dependency error'
+            SNSConnection().publish(sns_topic_arn, message, subject)
+        else:
+            raise Exception('ARN for SNS topic not specified in config')
+
     # Loop until all dependent pipelines have finished
-    while not check_dependencies_ready(dependencies, args.start_date):
-        print 'checking'
-        time.sleep(float(args.refresh_rate))
+    while not dependencies_ready:
+            print 'checking'
+            time.sleep(float(args.refresh_rate))
+            dependencies_ready = check_dependencies_ready(dependencies, args.start_date):
 
     print 'Finished checking for dependencies. Total time spent: ',
     print (datetime.now() - start_time).total_seconds(), ' seconds'
