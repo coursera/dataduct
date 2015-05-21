@@ -38,7 +38,6 @@ from boto.sns import SNSConnection
 from dataduct.pipeline.utils import list_pipelines
 from dataduct.pipeline.utils import list_pipeline_instances
 
-
 # Docs and API spelling of "CANCELED" don't match
 FAILED_STATUSES = set(['CANCELED', 'CANCELLED', 'TIMEDOUT', 'FAILED',
                        'CASCADE_FAILED'])
@@ -67,7 +66,7 @@ def check_dependencies_ready(dependencies, start_date, return_pipelines=False):
 
     for pipeline in dependencies:
         # Get instances of each pipeline
-        instances = list_pipeline_instances(pipeline)
+        instances = list_pipeline_instances(pipeline['id'])
         failures = []
         unfinished = []
 
@@ -88,14 +87,14 @@ def check_dependencies_ready(dependencies, start_date, return_pipelines=False):
                 if not return_pipelines:
                     raise Exception(
                         'Pipeline %s has bad status: %s'
-                        % (pipeline, instance[STATUS])
+                        % (pipeline['id'], instance[STATUS])
                     )
                 else:
-                    failures.append(pipeline)
+                    failures.append(pipeline['name'])
             # Dependency is still running
             elif instance[STATUS] != FINISHED:
                 if return_pipelines:
-                    unfinished.append(pipeline)
+                    unfinished.append(pipeline['name'])
                 dependency_ready = False
 
     # All dependencies are done
@@ -112,9 +111,11 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         '--dependencies', type=str, nargs='+', default=None)
+    parser.add_argument('--pipeline_name', dest='pipeline_name')
     parser.add_argument('--refresh_rate', dest='refresh_rate', default='900')
     parser.add_argument('--start_date', dest='start_date')
     parser.add_argument('--ignore_dependencies', dest='ignore_dependencies', default='0')
+    parser.add_argument('--sns_topic_arn', dest="sns_topic_arn")
 
     args = parser.parse_args()
 
@@ -136,7 +137,7 @@ def main():
             raise Exception('Pipeline not found: %s.' % dependency)
 
     # Map from pipeline object to pipeline ID
-    dependencies = [pipeline_name_to_id[dependency]
+    dependencies = [{'name': dependency, 'id': pipeline_name_to_id[dependency]}
                     for dependency in dependencies]
 
     print 'Start checking for dependencies'
@@ -148,24 +149,27 @@ def main():
 
 
     # if ignoring dependencies, send message through SNS
-    if not dependencies_ready and float(ignore_dependencies):
-        sns_topic_arn = config.sns.get('AMAZON_RESOURCE_NAME', '')
-        if sns_topic_arn:
-            message = 'Failed dependencies: %s.' % ', '.join(failures)
-            message += '\n Unfinished dependencies: %s.' % ', '.join(unfinished)
-            subject = 'Dependency error'
-            SNSConnection().publish(sns_topic_arn, message, subject)
+    if (failures or unfinished) and float(args.ignore_dependencies):
+        if args.sns_topic_arn:
+            message = ''
+            if failures:
+                message += 'Failed dependencies: %s.' % ', '.join(set(failures))
+            if unfinished:
+                message += '\nUnfinished dependencies: %s.' % ', '.join(set(unfinished))
+            subject = 'Dependency error for pipeline: %s.' % args.pipeline_name
+            SNSConnection().publish(args.sns_topic_arn, message, subject)
         else:
-            raise Exception('ARN for SNS topic not specified in config')
+            raise Exception('ARN for SNS topic not specified in ETL config')
 
     # Loop until all dependent pipelines have finished
-    while not dependencies_ready:
-            print 'checking'
-            time.sleep(float(args.refresh_rate))
-            dependencies_ready = check_dependencies_ready(dependencies, args.start_date):
+    if not float(args.ignore_dependencies):
+        while not dependencies_ready:
+                print 'checking'
+                time.sleep(float(args.refresh_rate))
+                dependencies_ready = check_dependencies_ready(dependencies, args.start_date)
 
-    print 'Finished checking for dependencies. Total time spent: ',
-    print (datetime.now() - start_time).total_seconds(), ' seconds'
+        print 'Finished checking for dependencies. Total time spent: ',
+        print (datetime.now() - start_time).total_seconds(), ' seconds'
 
 
 if __name__ == '__main__':

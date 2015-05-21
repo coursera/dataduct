@@ -10,6 +10,7 @@ from ..config import Config
 config = Config()
 NAME_PREFIX = config.etl.get('NAME_PREFIX', '')
 DEPENDENCY_OVERRIDE = config.etl.get('DEPENDENCY_OVERRIDE', False)
+SNS_TOPIC_ARN = config.etl.get('SNS_TOPIC_ARN_FAILURE', None)
 
 
 class PipelineDependenciesStep(TransformStep):
@@ -19,6 +20,7 @@ class PipelineDependenciesStep(TransformStep):
 
     def __init__(self,
                  id,
+                 pipeline_name,
                  dependent_pipelines=None,
                  refresh_rate=300,
                  start_date=None,
@@ -49,14 +51,16 @@ class PipelineDependenciesStep(TransformStep):
 
             script_arguments.extend(
                 [
+                    '--pipeline_name=%s' % pipeline_name,
                     '--start_date=%s' % start_date,
                     '--refresh_rate=%s' % str(refresh_rate),
+                    '--sns_topic_arn=%s' % SNS_TOPIC_ARN,
                     '--dependencies',
                 ]
             )
             script_arguments.extend([
                 pipeline if not NAME_PREFIX else NAME_PREFIX + '_' + pipeline
-                for pipeline in  dependent_pipelines
+                for pipeline in dependent_pipelines
             ])
 
             steps_path = os.path.abspath(os.path.dirname(__file__))
@@ -83,5 +87,6 @@ class PipelineDependenciesStep(TransformStep):
         input_args = cls.pop_inputs(input_args)
         step_args = cls.base_arguments_processor(etl, input_args)
         step_args['resource'] = etl.ec2_resource
+        step_args['pipeline_name'] = etl.name
 
         return step_args
