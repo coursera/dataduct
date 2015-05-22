@@ -58,10 +58,28 @@ class PipelineDependenciesStep(TransformStep):
                     '--dependencies',
                 ]
             )
-            script_arguments.extend([
-                pipeline if not NAME_PREFIX else NAME_PREFIX + '_' + pipeline
-                for pipeline in dependent_pipelines
-            ])
+
+            # if pipelines are set to terminate or continue on fail
+            if isinstance(dependent_pipelines[0], dict):
+                terminate_or_continue = [dependent_pipelines[0][pipeline]
+                                    for pipeline in dependent_pipelines[0].keys()]
+                
+                if any(val != 'terminate_on_fail' and val != 'continue_on_fail'
+                        for val in terminate_or_continue):
+                    raise ValueError('Invalid failure value for dependant pipeline')
+
+                script_arguments.extend([
+                    pipeline if not NAME_PREFIX else NAME_PREFIX + '_' + pipeline
+                    for pipeline in dependent_pipelines[0].keys()
+                ])
+
+                script_arguments.append('--terminate_or_continue')
+                script_arguments.extend(terminate_or_continue)
+            else:
+                script_arguments.extend([
+                    pipeline if not NAME_PREFIX else NAME_PREFIX + '_' + pipeline
+                    for pipeline in dependent_pipelines
+                ])
 
             steps_path = os.path.abspath(os.path.dirname(__file__))
             script = os.path.join(steps_path, const.DEPENDENCY_SCRIPT_PATH)

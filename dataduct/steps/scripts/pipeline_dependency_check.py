@@ -48,7 +48,7 @@ START_TIME = '@scheduledStartTime'
 FINISHED = 'FINISHED'
 
 
-def check_dependencies_ready(dependencies, start_date, return_pipelines=False):
+def check_dependencies_ready(dependencies, start_date, dependencies_to_ignore):
     """Checks if every dependent pipeline has completed
 
     Args:
@@ -68,7 +68,6 @@ def check_dependencies_ready(dependencies, start_date, return_pipelines=False):
         # Get instances of each pipeline
         instances = list_pipeline_instances(pipeline['id'])
         failures = []
-        unfinished = []
 
         # Collect all pipeline instances that are scheduled for today
         instances_today = []
@@ -84,7 +83,7 @@ def check_dependencies_ready(dependencies, start_date, return_pipelines=False):
         for instance in instances_today:
             # One of the dependency failed/cancelled
             if instance[STATUS] in FAILED_STATUSES:
-                if not return_pipelines:
+                if pipeline['name'] not in dependencies_to_ignore:
                     raise Exception(
                         'Pipeline %s has bad status: %s'
                         % (pipeline['id'], instance[STATUS])
@@ -93,15 +92,9 @@ def check_dependencies_ready(dependencies, start_date, return_pipelines=False):
                     failures.append(pipeline['name'])
             # Dependency is still running
             elif instance[STATUS] != FINISHED:
-                if return_pipelines:
-                    unfinished.append(pipeline['name'])
                 dependency_ready = False
 
-    # All dependencies are done
-    if return_pipelines:
-        return dependency_ready, failures, unfinished
-
-    return dependency_ready
+    return dependency_ready, failures
 
 
 def main():
@@ -111,10 +104,11 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         '--dependencies', type=str, nargs='+', default=None)
+    parser.add_argument(
+        '--terminate_or_continue', type=str, nargs='+', default=None)
     parser.add_argument('--pipeline_name', dest='pipeline_name')
     parser.add_argument('--refresh_rate', dest='refresh_rate', default='900')
     parser.add_argument('--start_date', dest='start_date')
-    parser.add_argument('--ignore_dependencies', dest='ignore_dependencies', default='0')
     parser.add_argument('--sns_topic_arn', dest="sns_topic_arn")
 
     args = parser.parse_args()
@@ -128,8 +122,15 @@ def main():
         (pipeline['name'], pipeline['id']) for pipeline in list_pipelines()
     )
 
-    # Remove whitespace from dependency list
+    # Remove whitespace from dependency names
     dependencies = map(str.strip, args.dependencies)
+
+    dependencies_to_ignore = []
+
+    if args.terminate_or_continue is not None:
+        # Ignore dependencies if their value is set to 'continue_on_fail'
+        dependencies_to_ignore = [d for i, d in enumerate(dependencies) 
+                                    if args.terminate_or_continue[i] == 'continue_on_fail']
 
     # Check if all dependencies are valid pipelines
     for dependency in dependencies:
@@ -143,33 +144,29 @@ def main():
     print 'Start checking for dependencies'
     start_time = datetime.now()
 
-    dependencies_ready, failures, unfinished = check_dependencies_ready(dependencies,
-                                                                        args.start_date,
-                                                                        return_pipelines=True)
+    failures = []
+    dependencies_ready = False
 
+    # Loop until all dependent pipelines have finished or failed    
+    while not dependencies_ready:
+        print 'checking'
+        time.sleep(float(args.refresh_rate))
+        dependencies_ready, new_failures = check_dependencies_ready(dependencies, 
+                                                        args.start_date,
+                                                        dependencies_to_ignore)
+        failures.extend(new_failures)
 
-    # if ignoring dependencies, send message through SNS
-    if (failures or unfinished) and float(args.ignore_dependencies):
+    # Send message through SNS if there are failures
+    if failures:
         if args.sns_topic_arn:
-            message = ''
-            if failures:
-                message += 'Failed dependencies: %s.' % ', '.join(set(failures))
-            if unfinished:
-                message += '\nUnfinished dependencies: %s.' % ', '.join(set(unfinished))
+            message = 'Failed dependencies: %s.' % ', '.join(set(failures))
             subject = 'Dependency error for pipeline: %s.' % args.pipeline_name
             SNSConnection().publish(args.sns_topic_arn, message, subject)
         else:
             raise Exception('ARN for SNS topic not specified in ETL config')
 
-    # Loop until all dependent pipelines have finished
-    if not float(args.ignore_dependencies):
-        while not dependencies_ready:
-                print 'checking'
-                time.sleep(float(args.refresh_rate))
-                dependencies_ready = check_dependencies_ready(dependencies, args.start_date)
-
-        print 'Finished checking for dependencies. Total time spent: ',
-        print (datetime.now() - start_time).total_seconds(), ' seconds'
+    print 'Finished checking for dependencies. Total time spent: ',
+    print (datetime.now() - start_time).total_seconds(), ' seconds'
 
 
 if __name__ == '__main__':
