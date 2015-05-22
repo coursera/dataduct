@@ -38,6 +38,7 @@ from boto.sns import SNSConnection
 from dataduct.pipeline.utils import list_pipelines
 from dataduct.pipeline.utils import list_pipeline_instances
 
+
 # Docs and API spelling of "CANCELED" don't match
 FAILED_STATUSES = set(['CANCELED', 'CANCELLED', 'TIMEDOUT', 'FAILED',
                        'CASCADE_FAILED'])
@@ -122,7 +123,7 @@ def main():
         (pipeline['name'], pipeline['id']) for pipeline in list_pipelines()
     )
 
-    # Remove whitespace from dependency names
+    # Remove whitespace from dependency list
     dependencies = map(str.strip, args.dependencies)
 
     dependencies_to_ignore = []
