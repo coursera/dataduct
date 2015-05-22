@@ -55,7 +55,7 @@ def check_dependencies_ready(dependencies, start_date, dependencies_to_ignore):
     Args:
         dependencies(list of str): list of pipeline name that it depends on
         start_date(str): string representing the start date of the pipeline
-        return_pipelines(bool): return the failed/unfinished pipelines if true
+        dependencies_to_ignore(list of str): dependencies to ignore if failed
     """
 
     print 'Checking dependency at ', str(datetime.now())
@@ -131,7 +131,8 @@ def main():
     if args.terminate_or_continue is not None:
         # Ignore dependencies if their value is set to 'continue_on_fail'
         dependencies_to_ignore = [d for i, d in enumerate(dependencies) 
-                                    if args.terminate_or_continue[i] == 'continue_on_fail']
+                                    if args.terminate_or_continue[i] 
+                                    == 'continue_on_fail']
 
     # Check if all dependencies are valid pipelines
     for dependency in dependencies:
