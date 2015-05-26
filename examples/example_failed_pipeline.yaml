@@ -6,3 +6,4 @@ steps:
 -    step_type: transform
      name: failure_step
      command: this is going to fail
+     
