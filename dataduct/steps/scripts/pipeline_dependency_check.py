@@ -53,21 +53,24 @@ def check_dependencies_ready(dependencies, start_date, dependencies_to_ignore):
     """Checks if every dependent pipeline has completed
 
     Args:
-        dependencies(list of str): list of pipeline name that it depends on
+        dependencies(dict): dict from id to name of pipelines it depends on
         start_date(str): string representing the start date of the pipeline
         dependencies_to_ignore(list of str): dependencies to ignore if failed
     """
 
     print 'Checking dependency at ', str(datetime.now())
 
+    print dependencies
+    print dependencies_to_ignore
+
     dependency_ready = True
 
     # Convert date string to datetime object
     start_date = datetime.strptime(start_date, '%Y-%m-%d')
 
-    for pipeline in dependencies:
+    for pipeline in dependencies.keys():
         # Get instances of each pipeline
-        instances = list_pipeline_instances(pipeline['id'])
+        instances = list_pipeline_instances(pipeline)
         failures = []
 
         # Collect all pipeline instances that are scheduled for today
@@ -84,13 +87,13 @@ def check_dependencies_ready(dependencies, start_date, dependencies_to_ignore):
         for instance in instances_today:
             # One of the dependency failed/cancelled
             if instance[STATUS] in FAILED_STATUSES:
-                if pipeline['name'] not in dependencies_to_ignore:
+                if dependencies[pipeline] not in dependencies_to_ignore:
                     raise Exception(
                         'Pipeline %s has bad status: %s'
-                        % (pipeline['id'], instance[STATUS])
+                        % (pipeline, instance[STATUS])
                     )
                 else:
-                    failures.append(pipeline['name'])
+                    failures.append(dependencies[pipeline])
             # Dependency is still running
             elif instance[STATUS] != FINISHED:
                 dependency_ready = False
@@ -104,9 +107,9 @@ def main():
     """
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        '--dependencies', type=str, nargs='+', default=None)
+        '--dependencies', type=str, nargs='+', default=[])
     parser.add_argument(
-        '--terminate_or_continue', type=str, nargs='+', default=None)
+        '--dependencies_ok_to_fail', type=str, nargs='+', default=[])
     parser.add_argument('--pipeline_name', dest='pipeline_name')
     parser.add_argument('--refresh_rate', dest='refresh_rate', default='900')
     parser.add_argument('--start_date', dest='start_date')
@@ -115,7 +118,7 @@ def main():
     args = parser.parse_args()
 
     # Exit if there are no dependencies
-    if not args.dependencies:
+    if not args.dependencies and not args.dependencies_ok_to_fail:
         sys.exit()
 
     # Create mapping from pipeline name to id
@@ -123,25 +126,20 @@ def main():
         (pipeline['name'], pipeline['id']) for pipeline in list_pipelines()
     )
 
-    # Remove whitespace from dependency list
+    # Remove whitespace from dependency lists
     dependencies = map(str.strip, args.dependencies)
+    dependencies_to_ignore = map(str.strip, args.dependencies_ok_to_fail)
 
-    dependencies_to_ignore = []
-
-    if args.terminate_or_continue is not None:
-        # Ignore dependencies if their value is set to 'continue_on_fail'
-        dependencies_to_ignore = [d for i, d in enumerate(dependencies) 
-                                    if args.terminate_or_continue[i] 
-                                    == 'continue_on_fail']
+    # Add the dependencies which can fail to the list of dependencies
+    dependencies.extend(dependencies_to_ignore)
 
     # Check if all dependencies are valid pipelines
     for dependency in dependencies:
         if dependency not in pipeline_name_to_id:
             raise Exception('Pipeline not found: %s.' % dependency)
 
-    # Map from pipeline object to pipeline ID
-    dependencies = [{'name': dependency, 'id': pipeline_name_to_id[dependency]}
-                    for dependency in dependencies]
+    # Map from dependency id to name
+    dependencies = {pipeline_name_to_id[dep]: dep for dep in dependencies}
 
     print 'Start checking for dependencies'
     start_time = datetime.now()
@@ -156,6 +154,8 @@ def main():
         dependencies_ready, new_failures = check_dependencies_ready(dependencies, 
                                                         args.start_date,
                                                         dependencies_to_ignore)
+        print dependencies_ready
+        print new_failures
         failures.extend(new_failures)
 
     # Send message through SNS if there are failures

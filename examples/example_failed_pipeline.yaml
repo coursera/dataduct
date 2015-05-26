@@ -1,0 +1,8 @@
+name: example_failed_pipeline
+frequency: one-time
+load_time: 01:00  # Hour:Min in UTC
+
+steps:
+-    step_type: transform
+     name: failure_step
+     command: this is going to fail

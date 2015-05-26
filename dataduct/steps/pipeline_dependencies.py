@@ -22,6 +22,7 @@ class PipelineDependenciesStep(TransformStep):
                  id,
                  pipeline_name,
                  dependent_pipelines=None,
+                 dependent_pipelines_ok_to_fail=None,
                  refresh_rate=300,
                  start_date=None,
                  script_arguments=None,
@@ -37,7 +38,7 @@ class PipelineDependenciesStep(TransformStep):
         if script_arguments is None:
             script_arguments = list()
 
-        if dependent_pipelines is None:
+        if dependent_pipelines is None and dependent_pipelines_ok_to_fail is None:
             raise ValueError('Must have some dependencies for dependency step')
 
         if DEPENDENCY_OVERRIDE:
@@ -55,30 +56,21 @@ class PipelineDependenciesStep(TransformStep):
                     '--start_date=%s' % start_date,
                     '--refresh_rate=%s' % str(refresh_rate),
                     '--sns_topic_arn=%s' % SNS_TOPIC_ARN,
-                    '--dependencies',
                 ]
             )
 
-            # if pipelines are set to terminate or continue on fail
-            if isinstance(dependent_pipelines[0], dict):
-                terminate_or_continue = [dependent_pipelines[0][pipeline]
-                                    for pipeline in dependent_pipelines[0].keys()]
-                
-                if any(val != 'terminate_on_fail' and val != 'continue_on_fail'
-                        for val in terminate_or_continue):
-                    raise ValueError('Invalid failure value for dependant pipeline')
-
-                script_arguments.extend([
-                    pipeline if not NAME_PREFIX else NAME_PREFIX + '_' + pipeline
-                    for pipeline in dependent_pipelines[0].keys()
-                ])
-
-                script_arguments.append('--terminate_or_continue')
-                script_arguments.extend(terminate_or_continue)
-            else:
+            if dependent_pipelines:
+                script_arguments.append('--dependencies')
                 script_arguments.extend([
                     pipeline if not NAME_PREFIX else NAME_PREFIX + '_' + pipeline
                     for pipeline in dependent_pipelines
+                ])
+
+            if dependent_pipelines_ok_to_fail:
+                script_arguments.append('--dependencies_ok_to_fail')
+                script_arguments.extend([
+                    pipeline if not NAME_PREFIX else NAME_PREFIX + '_' + pipeline
+                    for pipeline in dependent_pipelines_ok_to_fail
                 ])
 
             steps_path = os.path.abspath(os.path.dirname(__file__))
