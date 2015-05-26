@@ -60,9 +60,6 @@ def check_dependencies_ready(dependencies, start_date, dependencies_to_ignore):
 
     print 'Checking dependency at ', str(datetime.now())
 
-    print dependencies
-    print dependencies_to_ignore
-
     dependency_ready = True
 
     # Convert date string to datetime object
@@ -154,8 +151,6 @@ def main():
         dependencies_ready, new_failures = check_dependencies_ready(dependencies, 
                                                         args.start_date,
                                                         dependencies_to_ignore)
-        print dependencies_ready
-        print new_failures
         failures.extend(new_failures)
 
     # Send message through SNS if there are failures
