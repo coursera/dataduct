@@ -1,8 +1,8 @@
 """Create SQL parser
 """
-from pyparsing import restOfLine
 from pyparsing import ParseException
 from pyparsing import ZeroOrMore
+from pyparsing import restOfLine
 
 from .utils import _all
 from .utils import _create
@@ -65,8 +65,8 @@ def get_base_parser():
         table_definition(pyparsing): Parser for create table statements
     """
     table_def = get_definition_start() + \
-                paranthesis_list('raw_fields', field_parser) + \
-                get_attributes_parser()
+        paranthesis_list('raw_fields', field_parser) + \
+        get_attributes_parser()
 
     return table_def
 
@@ -129,7 +129,7 @@ def parse_create_table(string):
         string(sql): SQL string from a SQL Statement
 
     Returns:
-        table_data(dict): table_data dictionary for instantiating a table object
+        table_data(dict): table_data dictionary for instantiating a table
     """
     # Parse the base table definitions
     table_data = to_dict(get_base_parser().parseString(string))
@@ -174,4 +174,3 @@ def create_exists_clone(string):
     return template.format(temp='TEMP' if result['temporary'] else '',
                            table_name=result['full_name'],
                            definition=result['definition'])
-
