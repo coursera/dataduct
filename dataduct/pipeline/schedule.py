@@ -6,9 +6,12 @@ from datetime import timedelta
 from pytimeparse import parse
 
 from ..config import Config
-from .pipeline_object import PipelineObject
 from ..utils import constants as const
 from ..utils.exceptions import ETLInputError
+from .pipeline_object import PipelineObject
+
+import logging
+logger = logging.getLogger(__name__)
 
 config = Config()
 DAILY_LOAD_TIME = config.etl.get('DAILY_LOAD_TIME', const.ONE)
@@ -58,18 +61,18 @@ class Schedule(PipelineObject):
         elif isinstance(time_delta, int):
             time_delta = timedelta(days=time_delta)
         elif not isinstance(time_delta, timedelta):
-            raise ETLInputError('time_delta must be an instance of timedelta or int')
+            raise ETLInputError(
+                'Time_delta must be an instance of timedelta or int')
 
         if frequency in FEQUENCY_PERIOD_CONVERTION:
             period, occurrences = FEQUENCY_PERIOD_CONVERTION[frequency]
         else:
             raise ETLInputError(
-                'Frequency for the pipeline must be daily, hourly and one-time')
+                'Frequency %s not supported' % frequency)
 
         # Calculate the start time of the pipeline
         start_time = current_time.replace(minute=load_minutes)
-        if frequency == 'daily':
-            start_time = start_time.replace(hour=load_hour)
+        start_time = start_time.replace(hour=load_hour, second=0)
 
         if current_time.hour < load_hour:
             if frequency == 'one-time':
@@ -78,11 +81,13 @@ class Schedule(PipelineObject):
                 time_delta -= timedelta(seconds=parse(period))
 
         start_time += time_delta
+        start_time_str = start_time.strftime('%Y-%m-%dT%H:%M:%S')
+        logger.info('Pipeline scheduled to start at %s' % start_time_str)
 
         super(Schedule, self).__init__(
             id=id,
             type='Schedule',
-            startDateTime=start_time.strftime('%Y-%m-%dT%H:%M:%S'),
+            startDateTime=start_time_str,
             period=period,
             occurrences=occurrences
         )

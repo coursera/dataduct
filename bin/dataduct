@@ -4,8 +4,8 @@
 """Script that helps create and validate pipelines from command line
 """
 from argparse import ArgumentParser
-from pytimeparse import parse
 from datetime import timedelta
+from pytimeparse import parse
 
 from dataduct.utils.cli import *  # noqa
 
