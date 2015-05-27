@@ -34,6 +34,7 @@ import sys
 import time
 from datetime import datetime
 
+from boto.sns import SNSConnection
 from dataduct.pipeline.utils import list_pipelines
 from dataduct.pipeline.utils import list_pipeline_instances
 
@@ -48,12 +49,13 @@ START_TIME = '@scheduledStartTime'
 FINISHED = 'FINISHED'
 
 
-def check_dependencies_ready(dependencies, start_date):
+def check_dependencies_ready(dependencies, start_date, dependencies_to_ignore):
     """Checks if every dependent pipeline has completed
 
     Args:
-        dependencies(list of str): list of pipeline name that it depends on
+        dependencies(dict): dict from id to name of pipelines it depends on
         start_date(str): string representing the start date of the pipeline
+        dependencies_to_ignore(list of str): dependencies to ignore if failed
     """
 
     print 'Checking dependency at ', str(datetime.now())
@@ -63,9 +65,10 @@ def check_dependencies_ready(dependencies, start_date):
     # Convert date string to datetime object
     start_date = datetime.strptime(start_date, '%Y-%m-%d')
 
-    for pipeline in dependencies:
+    for pipeline in dependencies.keys():
         # Get instances of each pipeline
         instances = list_pipeline_instances(pipeline)
+        failures = []
 
         # Collect all pipeline instances that are scheduled for today
         instances_today = []
@@ -81,16 +84,18 @@ def check_dependencies_ready(dependencies, start_date):
         for instance in instances_today:
             # One of the dependency failed/cancelled
             if instance[STATUS] in FAILED_STATUSES:
-                raise Exception(
-                    'Pipeline %s has bad status: %s'
-                    % (pipeline, instance[STATUS])
-                )
+                if dependencies[pipeline] not in dependencies_to_ignore:
+                    raise Exception(
+                        'Pipeline %s has bad status: %s'
+                        % (pipeline, instance[STATUS])
+                    )
+                else:
+                    failures.append(dependencies[pipeline])
             # Dependency is still running
             elif instance[STATUS] != FINISHED:
                 dependency_ready = False
 
-    # All dependencies are done
-    return dependency_ready
+    return dependency_ready, failures
 
 
 def main():
@@ -99,14 +104,18 @@ def main():
     """
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        '--dependencies', type=str, nargs='+', default=None)
+        '--dependencies', type=str, nargs='+', default=[])
+    parser.add_argument(
+        '--dependencies_ok_to_fail', type=str, nargs='+', default=[])
+    parser.add_argument('--pipeline_name', dest='pipeline_name')
     parser.add_argument('--refresh_rate', dest='refresh_rate', default='900')
     parser.add_argument('--start_date', dest='start_date')
+    parser.add_argument('--sns_topic_arn', dest="sns_topic_arn")
 
     args = parser.parse_args()
 
     # Exit if there are no dependencies
-    if not args.dependencies:
+    if not args.dependencies and not args.dependencies_ok_to_fail:
         sys.exit()
 
     # Create mapping from pipeline name to id
@@ -114,25 +123,44 @@ def main():
         (pipeline['name'], pipeline['id']) for pipeline in list_pipelines()
     )
 
-    # Remove whitespace from dependency list
+    # Remove whitespace from dependency lists
     dependencies = map(str.strip, args.dependencies)
+    dependencies_to_ignore = map(str.strip, args.dependencies_ok_to_fail)
+
+    # Add the dependencies which can fail to the list of dependencies
+    dependencies.extend(dependencies_to_ignore)
 
     # Check if all dependencies are valid pipelines
     for dependency in dependencies:
         if dependency not in pipeline_name_to_id:
             raise Exception('Pipeline not found: %s.' % dependency)
 
-    # Map from pipeline object to pipeline ID
-    dependencies = [pipeline_name_to_id[dependency]
-                    for dependency in dependencies]
+    # Map from dependency id to name
+    dependencies = {pipeline_name_to_id[dep]: dep for dep in dependencies}
 
     print 'Start checking for dependencies'
     start_time = datetime.now()
 
-    # Loop until all dependent pipelines have finished
-    while not check_dependencies_ready(dependencies, args.start_date):
+    failures = []
+    dependencies_ready = False
+
+    # Loop until all dependent pipelines have finished or failed    
+    while not dependencies_ready:
         print 'checking'
         time.sleep(float(args.refresh_rate))
+        dependencies_ready, new_failures = check_dependencies_ready(dependencies, 
+                                                        args.start_date,
+                                                        dependencies_to_ignore)
+        failures.extend(new_failures)
+
+    # Send message through SNS if there are failures
+    if failures:
+        if args.sns_topic_arn:
+            message = 'Failed dependencies: %s.' % ', '.join(set(failures))
+            subject = 'Dependency error for pipeline: %s.' % args.pipeline_name
+            SNSConnection().publish(args.sns_topic_arn, message, subject)
+        else:
+            raise Exception('ARN for SNS topic not specified in ETL config')
 
     print 'Finished checking for dependencies. Total time spent: ',
     print (datetime.now() - start_time).total_seconds(), ' seconds'

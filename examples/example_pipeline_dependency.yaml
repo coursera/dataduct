@@ -8,6 +8,8 @@ steps:
     refresh_rate: 60
     dependent_pipelines:
     -   example_transform
+    dependent_pipelines_ok_to_fail:
+    -   example_failed_pipeline
 
 -   step_type: transform
     depends_on: dependency_step
