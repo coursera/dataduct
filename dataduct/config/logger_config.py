@@ -18,16 +18,18 @@ def logger_configuration():
     """
     config = Config()
 
-    if hasattr(config, 'logging'):
-        log_directory = os.path.expanduser(config.logging.get(
-            'LOG_DIR', '~' + CONFIG_DIR))
-        file_name = config.logging.get(
-            'LOG_FILE', LOG_FILE)
+    if not hasattr(config, 'logging'):
+        raise Exception('logging section is missing in config')
 
-        console_level = config.logging.get(
-            'CONSOLE_DEBUG_LEVEL', logging.INFO)
-        file_level = config.logging.get(
-            'FILE_DEBUG_LEVEL', logging.DEBUG)
+    log_directory = os.path.expanduser(config.logging.get(
+        'LOG_DIR', '~' + CONFIG_DIR))
+    file_name = config.logging.get(
+        'LOG_FILE', LOG_FILE)
+
+    console_level = config.logging.get(
+        'CONSOLE_DEBUG_LEVEL', logging.INFO)
+    file_level = config.logging.get(
+        'FILE_DEBUG_LEVEL', logging.DEBUG)
 
     if not os.path.exists(log_directory):
         os.mkdir(log_directory)
