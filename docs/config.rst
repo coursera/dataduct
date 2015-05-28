@@ -8,7 +8,7 @@ The config file is read from the following places in the specified order
 of priority.
 
 1. ``/etc/dataduct.cfg``
-2. ``~/.dataduct``
+2. ``~/.dataduct/dataduct.cfg``
 3. ``DATADUCT_CONFIG_PATH`` environment variable
 
 Minimum example config:
