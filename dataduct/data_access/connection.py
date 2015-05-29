@@ -25,7 +25,7 @@ def get_redshift_config():
 
 @retry(CONNECTION_RETRIES, 60)
 @hook('connect_to_redshift')
-def redshift_connection(redshift_creds=None, **kwargs):
+def redshift_connection(redshift_creds=None, autocommit=True, **kwargs):
     """Fetch a psql connection object to redshift
     """
     if redshift_creds is None:
@@ -38,6 +38,7 @@ def redshift_connection(redshift_creds=None, **kwargs):
         port=redshift_creds['PORT'],
         database=redshift_creds['DATABASE_NAME'],
         connect_timeout=10,
+        autocommit=autocommit,
         **kwargs)
     return connection
 

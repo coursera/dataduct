@@ -27,6 +27,11 @@ def main():
     # Enable autocommit for non transactional sql execution
     if args.non_transactional:
         connection.autocommit = True
+    else:
+        # connection by default sets autocommit to True, but for
+        # the SQL runner, it should be False to put all SQLs into one
+        # transaction.
+        connection.autocommit = False
 
     table_not_exists = pdsql.read_sql(table.check_not_exists_script().sql(),
                                       connection).loc[0][0]
