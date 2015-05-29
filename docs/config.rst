@@ -162,11 +162,6 @@ ETL
         FREQUENCY_OVERRIDE: one-time
         DEPENDENCY_OVERRIDE: false
         HOOKS_BASE_PATH: ~/dataduct/examples/hooks
-        slack:
-            api_token: FILL_ME_IN
-            channel_name: "#dataduct"
-            username: FILL_ME_IN
-            bot_username: Dataduct Bot
         TAGS:
             env:
                 string: dev
@@ -212,8 +207,6 @@ level. The parameters are explained below:
    true.
 -  ``HOOKS_BASE_PATH``: Path prefix for the hooks directory. For more
    information, see Hooks.
--  ``slack``: Configuration for posting messages on slack whenever a
-   pipeline is run
 -  ``Tags``: Tags to be added to the pipeline. The first key is the Tag
    to be used, the second key is the type. If the type is string the
    value is passed directly. If the type is variable then it looks up
