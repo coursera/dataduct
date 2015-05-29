@@ -38,8 +38,8 @@ def redshift_connection(redshift_creds=None, autocommit=True, **kwargs):
         port=redshift_creds['PORT'],
         database=redshift_creds['DATABASE_NAME'],
         connect_timeout=10,
-        autocommit=autocommit,
         **kwargs)
+    connection.autocommit = autocommit
     return connection
 
 
