@@ -6,6 +6,7 @@ from pyparsing import Combine
 from pyparsing import Forward
 from pyparsing import OneOrMore
 from pyparsing import Word
+from pyparsing import ZeroOrMore
 from pyparsing import alphanums
 from pyparsing import nums
 
@@ -79,4 +80,4 @@ _word_subquery = Word(alphanums + "," + special_character)
 
 # Field / Subquery are either one or more words or subquery
 field_parser << Combine(OneOrMore(_word | subquery))
-subquery << Combine('(' + Combine(OneOrMore(_word_subquery | subquery)) + ')')
+subquery << Combine('(' + Combine(ZeroOrMore(_word_subquery | subquery)) + ')')
