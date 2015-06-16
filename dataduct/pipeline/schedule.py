@@ -16,12 +16,12 @@ logger = logging.getLogger(__name__)
 config = Config()
 DAILY_LOAD_TIME = config.etl.get('DAILY_LOAD_TIME', const.ONE)
 
-
+# Frequency string with occurances and seconds
 FEQUENCY_PERIOD_CONVERTION = {
-    'weekly': ('1 week', None),
-    'daily': ('1 day', None),
-    'hourly': ('1 hour', None),
-    'one-time': ('15 minutes', 1),
+    'weekly': ('1 week', None, 7*24*60*60),
+    'daily': ('1 day', None, 24*60*60),
+    'hourly': ('1 hour', None, 1*60*60),
+    'one-time': ('15 minutes', 0, 0),
 }
 
 
@@ -65,7 +65,7 @@ class Schedule(PipelineObject):
                 'Time_delta must be an instance of timedelta or int')
 
         if frequency in FEQUENCY_PERIOD_CONVERTION:
-            period, occurrences = FEQUENCY_PERIOD_CONVERTION[frequency]
+            period, occurrences, _ = FEQUENCY_PERIOD_CONVERTION[frequency]
         else:
             raise ETLInputError(
                 'Frequency %s not supported' % frequency)
