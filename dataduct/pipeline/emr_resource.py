@@ -81,8 +81,6 @@ class EmrResource(PipelineObject):
         else:
             self.bootstrap = DEFAULT_BOOTSTRAP
 
-        print self.bootstrap
-
         super(EmrResource, self).__init__(
             id=id,
             masterInstanceType=master_instance_size,
