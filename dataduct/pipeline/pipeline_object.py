@@ -3,9 +3,9 @@ Base class for data pipeline objects
 """
 from collections import defaultdict
 
-from ..s3 import S3Path
-from ..s3 import S3File
 from ..s3 import S3Directory
+from ..s3 import S3File
+from ..s3 import S3Path
 from ..utils.exceptions import ETLInputError
 
 
@@ -137,7 +137,7 @@ class PipelineObject(object):
                 elif isinstance(value, S3Path):
                     fields.append({'key': key, 'stringValue': value.uri})
                 elif isinstance(value, S3File) or \
-                     isinstance(value, S3Directory):
+                        isinstance(value, S3Directory):
                     fields.append({'key': key,
                                    'stringValue': value.s3_path.uri})
                 else:

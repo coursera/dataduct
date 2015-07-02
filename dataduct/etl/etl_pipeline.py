@@ -1,34 +1,35 @@
 """
 Class definition for DataPipeline
 """
-from datetime import datetime
-from datetime import timedelta
 import csv
 import os
-from StringIO import StringIO
 import yaml
 
-from .utils import process_steps
-from ..config import Config
+from StringIO import StringIO
+from datetime import datetime
+from datetime import timedelta
 
-from ..pipeline import DefaultObject
+from ..config import Config
+from .utils import process_steps
+
 from ..pipeline import DataPipeline
+from ..pipeline import DefaultObject
 from ..pipeline import Ec2Resource
 from ..pipeline import EmrResource
 from ..pipeline import RedshiftDatabase
 from ..pipeline import S3Node
-from ..pipeline import Schedule
 from ..pipeline import SNSAlarm
-from ..pipeline.utils import list_pipelines
+from ..pipeline import Schedule
 from ..pipeline.utils import list_formatted_instance_details
+from ..pipeline.utils import list_pipelines
 
 from ..s3 import S3File
-from ..s3 import S3Path
 from ..s3 import S3LogPath
+from ..s3 import S3Path
 
+from ..utils import constants as const
 from ..utils.exceptions import ETLInputError
 from ..utils.helpers import get_s3_base_path
-from ..utils import constants as const
 
 import logging
 logger = logging.getLogger(__name__)
@@ -297,14 +298,24 @@ class ETLPipeline(object):
         if not self._emr_cluster:
             # Process the boostrap input
             bootstrap = self.emr_cluster_config.get('bootstrap', None)
-            if bootstrap:
-                if 'string' in bootstrap:
-                    bootstrap = bootstrap['string']
-                elif 'script' in bootstrap:
-                    # Set the S3 Path for the bootstrap script
-                    bootstrap = S3File(path=bootstrap)
-                    bootstrap.s3_path = self.s3_source_dir
-                self.emr_cluster_config['bootstrap'] = bootstrap
+            overall_bootstrap = []
+            if isinstance(bootstrap, dict):
+                for key in bootstrap:
+                    if 'string' in bootstrap:
+                        overall_bootstrap.append(bootstrap[key])
+                    elif 'script' in key:
+                        # Set the S3 Path for the bootstrap script
+                        bootstrap_file = S3File(path=bootstrap[key])
+                        bootstrap_file.s3_path = self.s3_source_dir
+                        overall_bootstrap.append(bootstrap_file)
+            elif isinstance(bootstrap, str):
+                # Set the S3 Path for the bootstrap script
+                bootstrap = S3File(path=bootstrap)
+                bootstrap.s3_path = self.s3_source_dir
+                overall_bootstrap.append(bootstrap)
+            else:
+                overall_bootstrap = bootstrap
+            self.emr_cluster_config['bootstrap'] = overall_bootstrap
 
             self._emr_cluster = self.create_pipeline_object(
                 object_class=EmrResource,
@@ -430,7 +441,7 @@ class ETLPipeline(object):
                 step_class = step_param.pop('step_class')
                 step_args = step_class.arguments_processor(self, step_param)
             except Exception:
-                logger.error('Error creating step with params : %s', step_param)
+                logger.error('Error creating step with params: %s', step_param)
                 raise
 
             try:

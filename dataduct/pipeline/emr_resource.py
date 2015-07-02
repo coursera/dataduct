@@ -3,11 +3,11 @@ Pipeline object class for emr resource
 """
 
 from ..config import Config
-from .pipeline_object import PipelineObject
 from ..s3 import S3LogPath
-from .schedule import Schedule
 from ..utils import constants as const
 from ..utils.exceptions import ETLInputError
+from .pipeline_object import PipelineObject
+from .schedule import Schedule
 
 config = Config()
 NUM_CORE_INSTANCES = config.emr.get('NUM_CORE_INSTANCES', const.NONE)
@@ -20,6 +20,7 @@ HADOOP_VERSION = config.emr.get('HADOOP_VERSION', const.NONE)
 HIVE_VERSION = config.emr.get('HIVE_VERSION', const.NONE)
 PIG_VERSION = config.emr.get('PIG_VERSION', const.NONE)
 CLUSTER_AMI = config.emr.get('CLUSTER_AMI', '2.4.7')
+DEFAULT_BOOTSTRAP = config.emr.get('DEFAULT_BOOTSTRAP', [])
 KEY_PAIR = config.etl.get('KEY_PAIR', const.NONE)
 
 import logging
@@ -54,7 +55,7 @@ class EmrResource(PipelineObject):
             schedule(Schedule): pipeline schedule used for the machine
             num_instances(int): number of core instances used in the cluster
             instance_size(str): type of core instances
-            bootstrap(S3File): S3File for bootstrap action of the cluster
+            bootstrap(list): list for bootstrap action of the cluster
             num_task_instances(int): number of task instances
             task_bid_price(str): bid price for spot task instances
             task_instance_type(str):  type of task instances
@@ -75,6 +76,12 @@ class EmrResource(PipelineObject):
                 's3 log directory must be of type S3LogPath')
 
         self.ami_version = ami_version
+        if bootstrap:
+            self.bootstrap = DEFAULT_BOOTSTRAP + bootstrap
+        else:
+            self.bootstrap = DEFAULT_BOOTSTRAP
+
+        print self.bootstrap
 
         super(EmrResource, self).__init__(
             id=id,
@@ -82,7 +89,7 @@ class EmrResource(PipelineObject):
             coreInstanceCount=num_instances,
             coreInstanceType=instance_size,
             terminateAfter=terminate_after,
-            bootstrapAction=bootstrap,
+            bootstrapAction=self.bootstrap,
             type='EmrCluster',
             schedule=schedule,
             keyPair=KEY_PAIR,
