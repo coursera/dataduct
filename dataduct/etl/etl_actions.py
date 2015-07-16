@@ -2,14 +2,14 @@
 """
 import yaml
 
-from .etl_pipeline import ETLPipeline
 from ..pipeline import Activity
 from ..pipeline import MysqlNode
 from ..pipeline import RedshiftNode
 from ..pipeline import S3Node
 from ..utils.exceptions import ETLInputError
-from ..utils.hook import hook
 from ..utils.helpers import make_pipeline_url
+from ..utils.hook import hook
+from .etl_pipeline import ETLPipeline
 
 import logging
 logger = logging.getLogger(__name__)
@@ -53,6 +53,7 @@ def create_pipeline(definition):
 
     # Add the steps to the pipeline object
     etl.create_steps(steps)
+    etl.create_teardown_step()
     logger.info('Created pipeline. Name: %s', etl.name)
     return etl
 

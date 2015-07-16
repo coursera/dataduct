@@ -6,6 +6,7 @@ import os
 import yaml
 
 from StringIO import StringIO
+from copy import deepcopy
 from datetime import datetime
 from datetime import timedelta
 
@@ -44,6 +45,12 @@ QA_LOG_PATH = config.etl.get('QA_LOG_PATH', const.QA_STR)
 DP_INSTANCE_LOG_PATH = config.etl.get('DP_INSTANCE_LOG_PATH', const.NONE)
 DP_PIPELINE_LOG_PATH = config.etl.get('DP_PIPELINE_LOG_PATH', const.NONE)
 
+DEFAULT_TEARDOWN = {
+    'step_type': 'transform',
+    'command': 'echo Finished Pipeline',
+    'no_output': True
+}
+
 
 class ETLPipeline(object):
     """DataPipeline class with steps and metadata.
@@ -54,7 +61,7 @@ class ETLPipeline(object):
     """
     def __init__(self, name, frequency='one-time', ec2_resource_config=None,
                  time_delta=None, emr_cluster_config=None, load_time=None,
-                 topic_arn=None, max_retries=MAX_RETRIES,
+                 topic_arn=None, max_retries=MAX_RETRIES, teardown=None,
                  bootstrap=None, description=None):
         """Constructor for the pipeline class
 
@@ -94,6 +101,13 @@ class ETLPipeline(object):
             self.bootstrap_definitions = config.bootstrap
         else:
             self.bootstrap_definitions = dict()
+
+        if teardown is not None:
+            self.teardown_definition = teardown
+        elif getattr(config, 'teardown', None):
+            self.teardown_definition = config.teardown
+        else:
+            self.teardown_definition = DEFAULT_TEARDOWN
 
         if emr_cluster_config:
             self.emr_cluster_config = emr_cluster_config
@@ -183,7 +197,6 @@ class ETLPipeline(object):
             )
         self.default = self.create_pipeline_object(
             object_class=DefaultObject,
-            sns=self.sns,
             pipeline_log_uri=self.s3_log_dir,
         )
 
@@ -392,7 +405,7 @@ class ETLPipeline(object):
             output[value] = self.intermediate_nodes[key]
         return output
 
-    def add_step(self, step, is_bootstrap=False):
+    def add_step(self, step, is_bootstrap=False, is_teardown=False):
         """Add a step to the pipeline
 
         Args:
@@ -403,8 +416,13 @@ class ETLPipeline(object):
             raise ETLInputError('Step name %s already taken' % step.id)
         self._steps[step.id] = step
 
-        if self.bootstrap_steps and not is_bootstrap:
+        if self.bootstrap_steps and not is_bootstrap and not is_teardown:
             step.add_required_steps(self.bootstrap_steps)
+
+        if is_teardown:
+            teardown_dependencies = deepcopy(self._steps)
+            teardown_dependencies.pop(step.id)
+            step.add_required_steps(teardown_dependencies.values())
 
         # Update intermediate_nodes dict
         if isinstance(step.output, dict):
@@ -412,7 +430,8 @@ class ETLPipeline(object):
         elif step.output and step.id:
             self.intermediate_nodes[step.id] = step.output
 
-    def create_steps(self, steps_params, is_bootstrap=False):
+    def create_steps(self, steps_params, is_bootstrap=False,
+                     is_teardown=False):
         """Create pipeline steps and add appropriate dependencies
 
         Note:
@@ -422,6 +441,7 @@ class ETLPipeline(object):
         Args:
             steps_params(list of dict): List of dictionary of step params
             is_bootstrap(bool): flag indicating bootstrap steps
+            is_teardown(bool): flag indicating teardown steps
 
         Returns:
             steps(list of ETLStep): list of etl step objects
@@ -436,6 +456,9 @@ class ETLPipeline(object):
                     'input_node' not in step_param and \
                     'input_path' not in step_param:
                 step_param['input_node'] = input_node
+
+            if is_teardown:
+                step_param['sns_object'] = self.sns
 
             try:
                 step_class = step_param.pop('step_class')
@@ -452,10 +475,15 @@ class ETLPipeline(object):
                 raise
 
             # Add the step to the pipeline
-            self.add_step(step, is_bootstrap)
+            self.add_step(step, is_bootstrap, is_teardown)
             input_node = step.output
             steps.append(step)
         return steps
+
+    def create_teardown_step(self):
+        """Create teardown steps for the pipeline
+        """
+        return self.create_steps([self.teardown_definition], is_teardown=True)
 
     def create_bootstrap_steps(self, resource_type):
         """Create the boostrap steps for installation on all machines
