@@ -5,9 +5,9 @@ from ..config import Config
 from ..pipeline import Activity
 from ..pipeline import CopyActivity
 from ..pipeline import S3Node
-from ..s3 import S3Path
 from ..s3 import S3File
 from ..s3 import S3LogPath
+from ..s3 import S3Path
 from ..utils import constants as const
 from ..utils.exceptions import ETLInputError
 
@@ -33,7 +33,7 @@ class ETLStep(object):
     def __init__(self, id, s3_data_dir=None, s3_log_dir=None,
                  s3_source_dir=None, schedule=None, resource=None,
                  input_node=None, input_path=None, required_steps=None,
-                 max_retries=MAX_RETRIES):
+                 max_retries=MAX_RETRIES, sns_object=None):
         """Constructor for the ETLStep object
 
         Args:
@@ -59,6 +59,7 @@ class ETLStep(object):
         self._required_steps = list()
         self._required_activities = list()
         self._input_node = input_node
+        self._sns_object = sns_object
 
         if input_path is not None and input_node is not None:
             raise ETLInputError('Both input_path and input_node specified')
@@ -79,7 +80,8 @@ class ETLStep(object):
 
         if isinstance(input_node, dict):
             # Merge the s3 nodes if there are multiple inputs
-            self._input_node, self._depends_on = self.merge_s3_nodes(input_node)
+            self._input_node, self._depends_on = self.merge_s3_nodes(
+                input_node)
 
         if required_steps:
             self.add_required_steps(required_steps)
@@ -126,6 +128,9 @@ class ETLStep(object):
         if isinstance(new_object, Activity):
             new_object['dependsOn'] = self._required_activities
 
+        if self._sns_object:
+            new_object['onFail'] = self._sns_object
+
         self._objects[object_id] = new_object
         return new_object
 
@@ -142,7 +147,6 @@ class ETLStep(object):
         if s3_object and not (isinstance(s3_object, S3File) or
                               isinstance(s3_object, S3Path)):
             raise ETLInputError('s3_object must of type S3File or S3Path')
-
 
         create_s3_path = False
         if s3_object is None or (isinstance(s3_object, S3File) and
@@ -219,7 +223,8 @@ class ETLStep(object):
         Returns:
             activity(CopyActivity): copy activity object
         """
-        if not(isinstance(input_node, S3Node) and isinstance(dest_uri, S3Path)):
+        if not(isinstance(input_node, S3Node) and
+                isinstance(dest_uri, S3Path)):
             raise ETLInputError('input_node and uri have type mismatch')
 
         # create s3 node for output
@@ -291,7 +296,7 @@ class ETLStep(object):
             result: output node for this etl step
 
         Note:
-            An output S3 node, or multiple s3 nodes. If this step produces no s3
+            An output S3 node, or multiple s3 nodes. If step produces no s3
             nodes, there will be no output. For steps producing s3 output, note
             that they may produce multiple output nodes. These nodes will be
             defined in a list of output directories (specified in the
