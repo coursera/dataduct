@@ -103,7 +103,30 @@ class ETLStep(object):
 
         # Set required_acitivites as depend_on variable of all activities
         for activity in self.activities:
-            activity['dependsOn'] = self._required_activities
+            activity['dependsOn'] = self.find_actual_required_activities()
+
+    def find_actual_required_activities(self):
+        """Find the actual nodes that the activity should depend upon instead
+            of all nodes that are sent as required steps
+        """
+        activity_set = set(self._required_activities)
+        for required_activity in self._required_activities:
+            activity_set -= self.resolve_dependencies(
+                required_activity.depends_on)
+        return list(activity_set)
+
+    def resolve_dependencies(self, dependencies):
+        """Resolve the dependencies of the step recursively
+        """
+        result = set()
+        if isinstance(dependencies, list):
+            result |= set(dependencies)
+            for dependency in dependencies:
+                result |= self.resolve_dependencies(dependency.depends_on)
+        elif isinstance(dependencies, Activity):
+            result.add(dependencies)
+            result |= self.resolve_dependencies(dependencies.depends_on)
+        return result
 
     def create_pipeline_object(self, object_class, **kwargs):
         """Create the pipeline objects associated with the step
