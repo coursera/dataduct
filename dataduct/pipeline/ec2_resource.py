@@ -16,6 +16,8 @@ RESOURCE_ROLE = config.etl['RESOURCE_ROLE']
 INSTANCE_TYPE = config.ec2.get('INSTANCE_TYPE', const.M1_LARGE)
 ETL_AMI = config.ec2.get('ETL_AMI', const.NONE)
 SECURITY_GROUP = config.ec2.get('SECURITY_GROUP', const.NONE)
+SECURITY_GROUP_ID = config.ec2.get('SECURITY_GROUP_ID', const.NONE)
+SUBNET_ID = config.ec2.get('SUBNET_ID', const.NONE)
 KEY_PAIR = config.etl.get('KEY_PAIR', const.NONE)
 RETRY_DELAY = config.etl.get('RETRY_DELAY', const.DEFAULT_DELAY)
 
@@ -32,6 +34,8 @@ class Ec2Resource(PipelineObject):
                  instance_type=INSTANCE_TYPE,
                  ami=ETL_AMI,
                  security_group=SECURITY_GROUP,
+                 security_group_id=SECURITY_GROUP_ID,
+                 subnet_id=SUBNET_ID,
                  **kwargs):
         """Constructor for the Ec2Resource class
 
@@ -66,5 +70,7 @@ class Ec2Resource(PipelineObject):
             resourceRole=RESOURCE_ROLE,
             keyPair=KEY_PAIR,
             retryDelay=RETRY_DELAY,
-            securityGroups=security_group
+            securityGroups=security_group,
+            securityGroupIds=security_group_id,
+            subnetId=subnet_id
         )
