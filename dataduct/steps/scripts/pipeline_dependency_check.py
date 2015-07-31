@@ -86,8 +86,8 @@ def check_dependencies_ready(dependencies, start_date, dependencies_to_ignore):
             if instance[STATUS] in FAILED_STATUSES:
                 if dependencies[pipeline] not in dependencies_to_ignore:
                     raise Exception(
-                        'Pipeline %s has bad status: %s'
-                        % (pipeline, instance[STATUS])
+                        'Pipeline %s (ID: %s) has bad status: %s'
+                        % (dependencies[pipeline], pipeline, instance[STATUS])
                     )
                 else:
                     failures.append(dependencies[pipeline])
