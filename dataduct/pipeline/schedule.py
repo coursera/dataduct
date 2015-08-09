@@ -19,8 +19,20 @@ DAILY_LOAD_TIME = config.etl.get('DAILY_LOAD_TIME', const.ONE)
 
 FEQUENCY_PERIOD_CONVERTION = {
     'weekly': ('1 week', None),
+    'biweekly': ('2 weeks', None),
     'daily': ('1 day', None),
+    '2-daily': ('2 days', None),
+    '3-daily': ('3 days', None),
+    '4-daily': ('4 days', None),
+    '5-daily': ('5 days', None),
+    '6-daily': ('6 days', None),
     'hourly': ('1 hour', None),
+    '2-hourly': ('2 hours', None),
+    '3-hourly': ('3 hours', None),
+    '4-hourly': ('4 hours', None),
+    '6-hourly': ('6 hours', None),
+    '8-hourly': ('8 hours', None),
+    '12-hourly': ('12 hours', None),
     'one-time': ('15 minutes', 1),
 }
 
