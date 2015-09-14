@@ -244,7 +244,7 @@ class ETLPipeline(object):
 
         if data_type == const.DATA_STR:
             # For repeated loads, include load date
-            key.append("#{format(@scheduledStartTime, 'YYYYMMdd-hh-mm-ss')}")
+            key.append("#{format(@scheduledStartTime, 'YYYYMMdd-HH-mm-ss')}")
 
         if data_type == const.LOG_STR:
             return S3LogPath(key, bucket=S3_ETL_BUCKET, is_directory=True)
