@@ -242,7 +242,7 @@ class ETLPipeline(object):
         # Versioning prevents using data from older versions
         key = [S3_BASE_PATH, data_type, self.name, self.version_name]
 
-        if data_type == const.DATA_STR:
+        if data_type == const.DATA_STR and self.frequency != 'one-time':
             # For repeated loads, include load date
             key.append("#{format(@scheduledStartTime, 'YYYYMMdd-HH-mm-ss')}")
 
