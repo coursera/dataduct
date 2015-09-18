@@ -60,7 +60,7 @@ _as = CaselessKeyword('AS')
 _join = CaselessKeyword('JOIN')
 
 # Parsers
-_db_name = Word(alphanums+"_-.")
+_db_name = Word(alphanums+"_-.`")
 pk_check = (_primary_key | _unique)
 
 # Column types
