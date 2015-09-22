@@ -1,15 +1,19 @@
 """
 Shared utility functions
 """
-import time
 import math
 import os
+import time
+
 from sys import stderr
 
 from ..config import Config
 
 RESOURCE_BASE_PATH = 'RESOURCE_BASE_PATH'
 CUSTOM_STEPS_PATH = 'CUSTOM_STEPS_PATH'
+HOOKS_BASE_PATH = 'HOOKS_BASE_PATH'
+
+URL_TEMPLATE = 'https://console.aws.amazon.com/datapipeline/?{region}#ExecutionDetailsPlace:pipelineId={ID}&show=latest'  # noqa
 
 
 def atmost_one(*args):
@@ -70,7 +74,7 @@ def retry(tries, delay=3, backoff=2):
             """
             template = 'Attempt failed with Exception: \n{0}: {1}\n'
             try:
-                r_value = f(*args, **kwargs) # first attempt
+                r_value = f(*args, **kwargs)  # first attempt
                 r_status = True
             except Exception as exp:
                 stderr.write(template.format(type(exp).__name__, exp))
@@ -81,7 +85,7 @@ def retry(tries, delay=3, backoff=2):
 
         def f_retry(*args, **kwargs):
             """True decorator"""
-            m_tries, m_delay = tries, delay # make mutable
+            m_tries, m_delay = tries, delay  # make mutable
 
             r_value, r_status = function_attempt(f, *args, **kwargs)
 
@@ -91,9 +95,9 @@ def retry(tries, delay=3, backoff=2):
                 if r_status is True:
                     return r_value
 
-                m_tries -= 1        # consume an attempt
-                time.sleep(m_delay) # wait...
-                m_delay *= backoff  # make future wait longer
+                m_tries -= 1         # consume an attempt
+                time.sleep(m_delay)  # wait...
+                m_delay *= backoff   # make future wait longer
 
                 # Try again
                 r_value, r_status = function_attempt(f, *args, **kwargs)
@@ -128,14 +132,8 @@ def parse_path(path, path_type=RESOURCE_BASE_PATH):
 
     # Try relative path to specified config
     config = Config()
-    if path_type == RESOURCE_BASE_PATH:
-        if RESOURCE_BASE_PATH in config.etl:
-            return os.path.join(
-                os.path.expanduser(config.etl[RESOURCE_BASE_PATH]), path)
-    else:
-        if CUSTOM_STEPS_PATH in config.etl:
-            return os.path.join(
-                os.path.expanduser(config.etl[CUSTOM_STEPS_PATH]), path)
+    if path_type in config.etl:
+        return os.path.join(os.path.expanduser(config.etl[path_type]), path)
 
     # Return the path as is.
     return path
@@ -148,6 +146,7 @@ def get_s3_base_path():
     return os.path.join('s3://', config.etl.get('S3_ETL_BUCKET', ''),
                         config.etl.get('S3_BASE_PATH', ''))
 
+
 def get_modified_s3_path(path):
     """Modify the s3 path to replace S3_BASE_PATH with config parameter
     """
@@ -155,3 +154,41 @@ def get_modified_s3_path(path):
     if path is None:
         return None
     return path.replace('{S3_BASE_PATH}', config.etl.get('S3_BASE_PATH'))
+
+
+def stringify_credentials(access_key, secret_key, token=None):
+    """Serialize the credentials into a format accepted by redshift
+
+    Args:
+        access_key(str): The public AWS credential
+        secret_key(str): The secret AWS credential
+        token(str): A token needed for temporary AWS credentials
+
+    Returns:
+        A serialized string of the credentials.
+    """
+    creds = 'aws_access_key_id=%s;aws_secret_access_key=%s' % (
+        access_key, secret_key
+    )
+    if token:
+        creds += ';token=%s' % token
+    return creds
+
+
+def make_pipeline_url(pipeline_id):
+    """Creates the DataPipeline url for a particular pipeline
+
+    Args:
+        pipeline_id(str): The id of the pipeline for which to create the url
+        region(str/None): The Amazon region.
+
+    Returns:
+        A string that links to the pipeline in Amazon DataPipeline's console.
+    """
+    config = Config()
+    region = config.etl.get('REGION', None)
+    region_str = 'region=%s' % region if region is not None else ''
+    return URL_TEMPLATE.format(
+        region=region_str,
+        ID=pipeline_id,
+    )

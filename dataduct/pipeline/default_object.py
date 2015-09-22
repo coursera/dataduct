@@ -2,9 +2,9 @@
 Pipeline object class for default metadata
 """
 
-from .pipeline_object import PipelineObject
 from ..config import Config
 from ..utils import constants as const
+from .pipeline_object import PipelineObject
 
 config = Config()
 ROLE = config.etl['ROLE']
@@ -22,7 +22,7 @@ class DefaultObject(PipelineObject):
 
         Args:
             id(str): must be 'Default' for this class
-            sns(int): notify on failure
+            sns(sns): notify on failure
             scheduleType(str): frequency type for the pipeline
             failureAndRerunMode(str): aws input argument for failure mode
             **kwargs(optional): Keyword arguments directly passed to base class

@@ -15,8 +15,12 @@ def get_config_files():
     Note:
         The order of precedence is:
         1. /etc/dataduct.cfg
-        2. ~/.dataduct
-        3. DATADUCT_CONFIG_PATH environment variable
+        2. ~/.dataduct/dataduct.cfg
+        3. DATADUCT_CONFIG_PATH environment variable, if it exists
+
+    Returns:
+        A list of file paths of dataduct config file locations, in ascending
+        order of precedence. There is no guarantee that the files exist.
     """
     dataduct_config_path = join('/etc', CFG_FILE)
     dataduct_user_config_path = join(expanduser('~'), CONFIG_DIR,
@@ -31,15 +35,26 @@ def get_config_files():
     return config_files
 
 
-def load_yaml(configFiles):
+def load_yaml(config_files):
     """Load the config files based on environment settings
+    Will try to load the first file in the list that it can find.
+
+    Args:
+        config_files(list): A list of config files, in the order that they will
+        be checked and loaded.
+
+    Returns:
+        A dict mapping of the yaml file.
+
+    Raises:
+        IOError: No config file can be successfully loaded or found.
     """
-    for configFile in configFiles:
+    for config_file in config_files:
         try:
-            return yaml.load(open(configFile, 'r'))
+            return yaml.load(open(config_file, 'r').read())
         except (OSError, IOError):
             continue
-    raise Exception('Dataduct config file is missing')
+    raise IOError('Dataduct config file is missing')
 
 
 class Config(object):

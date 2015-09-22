@@ -4,8 +4,8 @@
 """Script that helps create and validate pipelines from command line
 """
 from argparse import ArgumentParser
-from pytimeparse import parse
 from datetime import timedelta
+from pytimeparse import parse
 
 from dataduct.utils.cli import *  # noqa
 
@@ -82,10 +82,13 @@ def pipeline_actions(action, pipeline_definitions, force=None, time_delta=None,
             visualize_pipeline(etl, activities_only, filename)
 
 
-def database_actions(action, table_definitions, filename=None, **kwargs):
+def database_actions(action, table_definitions, filename=None, execute=False,
+                     **kwargs):
     """Database related actions are executed in this block
     """
     from dataduct.database import Database
+    from dataduct.data_access import redshift_connection
+    import pandas.io.sql as pdsql
 
     script = None
     database = Database(files=table_definitions)
@@ -103,6 +106,13 @@ def database_actions(action, table_definitions, filename=None, **kwargs):
     # TODO: Build execution options
     if script:
         print script
+
+    if execute:
+        logger.info('Getting redshift connection...')
+        connection = redshift_connection()
+        logger.info('Executing query...')
+        pdsql.execute(script.wrap_transaction().sql(), connection)
+        logger.info('Query executed successfully!')
 
 
 def main():
@@ -229,6 +239,7 @@ def main():
         parents=[
             mode_parser,
             table_definition_parser,
+            execute_sql_parser,
         ],
         help='Create tables',
     )
@@ -238,6 +249,7 @@ def main():
         parents=[
             mode_parser,
             table_definition_parser,
+            execute_sql_parser,
         ],
         help='Drop views and tables',
     )
@@ -247,6 +259,7 @@ def main():
         parents=[
             mode_parser,
             table_definition_parser,
+            execute_sql_parser,
         ],
         help='Grant permissions to neccessary groups',
     )
@@ -256,6 +269,7 @@ def main():
         parents=[
             mode_parser,
             table_definition_parser,
+            execute_sql_parser,
         ],
         help='Recreate tables, load new data, drop old tables',
     )

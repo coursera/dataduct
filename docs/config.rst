@@ -8,7 +8,7 @@ The config file is read from the following places in the specified order
 of priority.
 
 1. ``/etc/dataduct.cfg``
-2. ``~/.dataduct``
+2. ``~/.dataduct/dataduct.cfg``
 3. ``DATADUCT_CONFIG_PATH`` environment variable
 
 Minimum example config:
@@ -161,11 +161,7 @@ ETL
         SNS_TOPIC_ARN_WARNING: null
         FREQUENCY_OVERRIDE: one-time
         DEPENDENCY_OVERRIDE: false
-        slack:
-            api_token: FILL_ME_IN
-            channel_name: "#dataduct"
-            username: FILL_ME_IN
-            bot_username: Dataduct Bot
+        HOOKS_BASE_PATH: ~/dataduct/examples/hooks
         TAGS:
             env:
                 string: dev
@@ -209,8 +205,8 @@ level. The parameters are explained below:
    with this unless overridden by CLI
 -  ``DEPENDENCY_OVERRIDE``: Will ignore the dependency step if set to
    true.
--  ``slack``: Configuration for posting messages on slack whenever a
-   pipeline is run
+-  ``HOOKS_BASE_PATH``: Path prefix for the hooks directory. For more
+   information, see Hooks.
 -  ``Tags``: Tags to be added to the pipeline. The first key is the Tag
    to be used, the second key is the type. If the type is string the
    value is passed directly. If the type is variable then it looks up

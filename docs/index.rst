@@ -36,10 +36,12 @@ Contents:
 
    introduction
    installation
+   commands
    config
    creating_an_etl
    steps
    input_output
+   hooks
    dataduct
 
 Indices and tables

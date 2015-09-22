@@ -9,63 +9,51 @@ from nose.tools import eq_
 from nose.tools import raises
 
 from ..database import Database
-from ..table import Table
-from ..view import View
-from ..sql import SqlScript
+from .helpers import create_table
+from .helpers import create_view
+from .helpers import compare_scripts
 
 
 class TestDatabase(TestCase):
     """Tests for Database
     """
 
-    @staticmethod
-    def _create_table(sql):
-        """Creates a table object from a SQL string
-        """
-        return Table(SqlScript(sql))
-
-    @staticmethod
-    def _create_view(sql):
-        """Creates a view object from a SQL string
-        """
-        return View(SqlScript(sql))
-
     def setUp(self):
         """Setup test fixtures for the database tests
         """
         # A basic table and view
-        self.basic_table = self._create_table(
+        self.basic_table = create_table(
             'CREATE TABLE test_table (id INTEGER);')
-        self.basic_view = self._create_view(
+        self.basic_view = create_view(
             'CREATE VIEW test_view AS (SELECT * FROM test_table);')
 
         # Create tables with dependencies between them
-        self.first_table = self._create_table(
+        self.first_table = create_table(
             """CREATE TABLE first_table (
                 id1 INTEGER,
                 id2 INTEGER
             );""")
-        self.first_table_dependent = self._create_table(
+        self.first_table_dependent = create_table(
             """CREATE TABLE first_table (
                 id1 INTEGER,
                 id2 INTEGER REFERENCES second_table(id2)
             );""")
-        self.second_table = self._create_table(
+        self.second_table = create_table(
             """CREATE TABLE second_table (
                 id1 INTEGER,
                 id2 INTEGER
             );""")
-        self.second_table_dependent = self._create_table(
+        self.second_table_dependent = create_table(
             """CREATE TABLE second_table (
                 id1 INTEGER REFERENCES first_table(id1),
                 id2 INTEGER
             );""")
 
         # Create a template database to test script generation
-        table = self._create_table('CREATE TABLE test_table ( id INTEGER );')
-        view = self._create_view("""CREATE VIEW test_view AS (
-                                         SELECT id FROM test_table
-                                     );""")
+        table = create_table('CREATE TABLE test_table ( id INTEGER );')
+        view = create_view("""CREATE VIEW test_view AS (
+                               SELECT id FROM test_table
+                           );""")
         self.script_database = Database(relations=[table, view])
 
     def test_create(self):
@@ -182,20 +170,12 @@ class TestDatabase(TestCase):
                                        self.second_table_dependent])
         database.sorted_relations()
 
-    @staticmethod
-    def _compare_scripts(actual_script, expected_script):
-        """Validates a SqlScript chain
-        """
-        assert len(actual_script) == len(expected_script)
-        for actual, expected in zip(actual_script, expected_script):
-            eq_(actual.sql(), expected)
-
     def test_database_create_relations_script(self):
         """Creating relations in the database
         """
         result = ['CREATE TABLE test_table ( id INTEGER )',
                   'CREATE VIEW test_view AS ( SELECT id FROM test_table )']
-        self._compare_scripts(
+        compare_scripts(
             self.script_database.create_relations_script(False),
             result)
 
@@ -204,7 +184,7 @@ class TestDatabase(TestCase):
         """
         result = ['DROP TABLE IF EXISTS test_table CASCADE',
                   'DROP VIEW IF EXISTS test_view CASCADE']
-        self._compare_scripts(
+        compare_scripts(
             self.script_database.drop_relations_script(),
             result)
 
@@ -215,14 +195,14 @@ class TestDatabase(TestCase):
                   'CREATE TABLE test_table ( id INTEGER )',
                   'DROP VIEW IF EXISTS test_view CASCADE',
                   'CREATE VIEW test_view AS ( SELECT id FROM test_table )']
-        self._compare_scripts(
+        compare_scripts(
             self.script_database.recreate_relations_script(False),
             result)
 
     def test_database_recreate_table_dependencies(self):
         """Recreating table dependencies
         """
-        view = self._create_view(
+        view = create_view(
             """CREATE VIEW view AS (
                 SELECT id1 FROM second_table
             );""")
@@ -233,7 +213,7 @@ class TestDatabase(TestCase):
                   'REFERENCES second_table (id2)',
                   'DROP VIEW IF EXISTS view CASCADE',
                   'CREATE VIEW view AS ( SELECT id1 FROM second_table )']
-        self._compare_scripts(
+        compare_scripts(
             database.recreate_table_dependencies('second_table', False),
             result)
         eq_(database.recreate_table_dependencies('first_table', False).sql(),

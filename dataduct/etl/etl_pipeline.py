@@ -1,34 +1,36 @@
 """
 Class definition for DataPipeline
 """
-from datetime import datetime
-from datetime import timedelta
 import csv
 import os
-from StringIO import StringIO
 import yaml
 
-from .utils import process_steps
-from ..config import Config
+from StringIO import StringIO
+from copy import deepcopy
+from datetime import datetime
+from datetime import timedelta
 
-from ..pipeline import DefaultObject
+from ..config import Config
+from .utils import process_steps
+
 from ..pipeline import DataPipeline
+from ..pipeline import DefaultObject
 from ..pipeline import Ec2Resource
 from ..pipeline import EmrResource
 from ..pipeline import RedshiftDatabase
 from ..pipeline import S3Node
-from ..pipeline import Schedule
 from ..pipeline import SNSAlarm
-from ..pipeline.utils import list_pipelines
+from ..pipeline import Schedule
 from ..pipeline.utils import list_formatted_instance_details
+from ..pipeline.utils import list_pipelines
 
 from ..s3 import S3File
-from ..s3 import S3Path
 from ..s3 import S3LogPath
+from ..s3 import S3Path
 
+from ..utils import constants as const
 from ..utils.exceptions import ETLInputError
 from ..utils.helpers import get_s3_base_path
-from ..utils import constants as const
 
 import logging
 logger = logging.getLogger(__name__)
@@ -43,6 +45,12 @@ QA_LOG_PATH = config.etl.get('QA_LOG_PATH', const.QA_STR)
 DP_INSTANCE_LOG_PATH = config.etl.get('DP_INSTANCE_LOG_PATH', const.NONE)
 DP_PIPELINE_LOG_PATH = config.etl.get('DP_PIPELINE_LOG_PATH', const.NONE)
 
+DEFAULT_TEARDOWN = {
+    'step_type': 'transform',
+    'command': 'echo Finished Pipeline',
+    'no_output': True
+}
+
 
 class ETLPipeline(object):
     """DataPipeline class with steps and metadata.
@@ -53,7 +61,7 @@ class ETLPipeline(object):
     """
     def __init__(self, name, frequency='one-time', ec2_resource_config=None,
                  time_delta=None, emr_cluster_config=None, load_time=None,
-                 topic_arn=None, max_retries=MAX_RETRIES,
+                 topic_arn=None, max_retries=MAX_RETRIES, teardown=None,
                  bootstrap=None, description=None):
         """Constructor for the pipeline class
 
@@ -93,6 +101,13 @@ class ETLPipeline(object):
             self.bootstrap_definitions = config.bootstrap
         else:
             self.bootstrap_definitions = dict()
+
+        if teardown is not None:
+            self.teardown_definition = teardown
+        elif getattr(config, 'teardown', None):
+            self.teardown_definition = config.teardown
+        else:
+            self.teardown_definition = DEFAULT_TEARDOWN
 
         if emr_cluster_config:
             self.emr_cluster_config = emr_cluster_config
@@ -182,7 +197,6 @@ class ETLPipeline(object):
             )
         self.default = self.create_pipeline_object(
             object_class=DefaultObject,
-            sns=self.sns,
             pipeline_log_uri=self.s3_log_dir,
         )
 
@@ -228,9 +242,9 @@ class ETLPipeline(object):
         # Versioning prevents using data from older versions
         key = [S3_BASE_PATH, data_type, self.name, self.version_name]
 
-        if self.frequency == 'daily' and data_type == const.DATA_STR:
+        if data_type == const.DATA_STR and self.frequency != 'one-time':
             # For repeated loads, include load date
-            key.append("#{format(@scheduledStartTime, 'YYYYMMdd-hh-mm-ss')}")
+            key.append("#{format(@scheduledStartTime, 'YYYYMMdd-HH-mm-ss')}")
 
         if data_type == const.LOG_STR:
             return S3LogPath(key, bucket=S3_ETL_BUCKET, is_directory=True)
@@ -297,14 +311,24 @@ class ETLPipeline(object):
         if not self._emr_cluster:
             # Process the boostrap input
             bootstrap = self.emr_cluster_config.get('bootstrap', None)
-            if bootstrap:
-                if 'string' in bootstrap:
-                    bootstrap = bootstrap['string']
-                elif 'script' in bootstrap:
-                    # Set the S3 Path for the bootstrap script
-                    bootstrap = S3File(path=bootstrap)
-                    bootstrap.s3_path = self.s3_source_dir
-                self.emr_cluster_config['bootstrap'] = bootstrap
+            overall_bootstrap = []
+            if isinstance(bootstrap, dict):
+                for key in bootstrap:
+                    if 'string' in bootstrap:
+                        overall_bootstrap.append(bootstrap[key])
+                    elif 'script' in key:
+                        # Set the S3 Path for the bootstrap script
+                        bootstrap_file = S3File(path=bootstrap[key])
+                        bootstrap_file.s3_path = self.s3_source_dir
+                        overall_bootstrap.append(bootstrap_file)
+            elif isinstance(bootstrap, str):
+                # Set the S3 Path for the bootstrap script
+                bootstrap = S3File(path=bootstrap)
+                bootstrap.s3_path = self.s3_source_dir
+                overall_bootstrap.append(bootstrap)
+            else:
+                overall_bootstrap = bootstrap
+            self.emr_cluster_config['bootstrap'] = overall_bootstrap
 
             self._emr_cluster = self.create_pipeline_object(
                 object_class=EmrResource,
@@ -381,7 +405,7 @@ class ETLPipeline(object):
             output[value] = self.intermediate_nodes[key]
         return output
 
-    def add_step(self, step, is_bootstrap=False):
+    def add_step(self, step, is_bootstrap=False, is_teardown=False):
         """Add a step to the pipeline
 
         Args:
@@ -392,8 +416,13 @@ class ETLPipeline(object):
             raise ETLInputError('Step name %s already taken' % step.id)
         self._steps[step.id] = step
 
-        if self.bootstrap_steps and not is_bootstrap:
+        if self.bootstrap_steps and not is_bootstrap and not is_teardown:
             step.add_required_steps(self.bootstrap_steps)
+
+        if is_teardown:
+            teardown_dependencies = deepcopy(self._steps)
+            teardown_dependencies.pop(step.id)
+            step.add_required_steps(teardown_dependencies.values())
 
         # Update intermediate_nodes dict
         if isinstance(step.output, dict):
@@ -401,7 +430,8 @@ class ETLPipeline(object):
         elif step.output and step.id:
             self.intermediate_nodes[step.id] = step.output
 
-    def create_steps(self, steps_params, is_bootstrap=False):
+    def create_steps(self, steps_params, is_bootstrap=False,
+                     is_teardown=False):
         """Create pipeline steps and add appropriate dependencies
 
         Note:
@@ -411,6 +441,7 @@ class ETLPipeline(object):
         Args:
             steps_params(list of dict): List of dictionary of step params
             is_bootstrap(bool): flag indicating bootstrap steps
+            is_teardown(bool): flag indicating teardown steps
 
         Returns:
             steps(list of ETLStep): list of etl step objects
@@ -426,11 +457,14 @@ class ETLPipeline(object):
                     'input_path' not in step_param:
                 step_param['input_node'] = input_node
 
+            if is_teardown:
+                step_param['sns_object'] = self.sns
+
             try:
                 step_class = step_param.pop('step_class')
                 step_args = step_class.arguments_processor(self, step_param)
             except Exception:
-                logger.error('Error creating step with params : %s', step_param)
+                logger.error('Error creating step with params: %s', step_param)
                 raise
 
             try:
@@ -441,10 +475,15 @@ class ETLPipeline(object):
                 raise
 
             # Add the step to the pipeline
-            self.add_step(step, is_bootstrap)
+            self.add_step(step, is_bootstrap, is_teardown)
             input_node = step.output
             steps.append(step)
         return steps
+
+    def create_teardown_step(self):
+        """Create teardown steps for the pipeline
+        """
+        return self.create_steps([self.teardown_definition], is_teardown=True)
 
     def create_bootstrap_steps(self, resource_type):
         """Create the boostrap steps for installation on all machines

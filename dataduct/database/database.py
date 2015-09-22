@@ -209,11 +209,15 @@ class Database(object):
                                                columns='\n'.join(columns))
         return layout
 
-    def visualize(self, filename=None):
+    def visualize(self, filename=None, tables_to_show=None):
         """Visualize databases and create an er-diagram
 
         Args:
             filename(str): filepath for saving the er-diagram
+            tables_to_show(list): A list of tables to actually visualize.
+                Tables not included in this list will not be visualized,
+                but their foreign keys will be visualize if it refers to a
+                table in this list
         """
         # Import pygraphviz for plotting the graphs
         try:
@@ -230,18 +234,29 @@ class Database(object):
         graph = pygraphviz.AGraph(name='Database', label='Database')
 
         tables = [r for r in self.relations() if isinstance(r, Table)]
+        if tables_to_show is None:
+            tables_to_show = [table.full_name for table in tables]
 
         # Add nodes
         for table in tables:
-            graph.add_node(table.full_name, shape='none',
-                           label=self._make_node_label(table))
+            if table.full_name in tables_to_show:
+                graph.add_node(table.full_name, shape='none',
+                               label=self._make_node_label(table))
 
         # Add edges
         for table in tables:
             for cols, ref_table, ref_cols in table.foreign_key_references():
-                graph.add_edge(ref_table, table.full_name, tailport=ref_cols[0],
-                               headport=cols[0], dir='both', arrowhead='crow',
-                               arrowtail='dot')
+                if table.full_name in tables_to_show or \
+                        ref_table in tables_to_show:
+                    graph.add_edge(
+                        ref_table,
+                        table.full_name,
+                        tailport=ref_cols[0],
+                        headport=cols[0],
+                        dir='both',
+                        arrowhead='crow',
+                        arrowtail='dot',
+                    )
 
         # Plotting the graph with dot layout
         graph.layout(prog='dot')

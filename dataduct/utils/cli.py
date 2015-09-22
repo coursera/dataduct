@@ -1,8 +1,24 @@
 """Helper function for CLI scripts
 """
+import argparse
+import contextlib
+import os
+
 from argparse import ArgumentParser
 from argparse import RawTextHelpFormatter
-import argparse
+
+
+@contextlib.contextmanager
+def chdir(dirname=None):
+    """Get a context to switch to another working directory
+    """
+    curdir = os.getcwd()
+    try:
+        if dirname is not None:
+            os.chdir(dirname)
+        yield
+    finally:
+        os.chdir(curdir)
 
 
 def config_singleton_setup(args):
@@ -140,6 +156,33 @@ table_definition_parser.add_argument(
     help=table_definition_help,
 )
 
+# Execute SQL parser
+execute_sql_parser_help = 'Execute the query'
+execute_sql_parser = ArgumentParser(
+    description=execute_sql_parser_help,
+    add_help=False,
+)
+execute_sql_parser.add_argument(
+    '-e',
+    '--execute',
+    action='store_true',
+    default=False,
+    help='Executes the query',
+)
+
+
+# Single Table definition parser
+single_table_definition_help = 'Path of a table definition'
+single_table_definition_parser = ArgumentParser(
+    description=single_table_definition_help,
+    add_help=False,
+)
+single_table_definition_parser.add_argument(
+    'table_definition',
+    help=single_table_definition_help,
+)
+
+
 # Filepath input parser
 filepath_help = 'Filepath input for storing output of actions'
 file_parser = ArgumentParser(
@@ -149,4 +192,15 @@ file_parser = ArgumentParser(
 file_parser.add_argument(
     dest='filename',
     help='Filename to store output of commands',
+)
+
+# S3 Filepath input parser
+s3_path_help = 'S3 Path'
+s3_path_parser = ArgumentParser(
+    description=s3_path_help,
+    add_help=False,
+)
+s3_path_parser.add_argument(
+    dest='s3_path',
+    help='S3 Path',
 )

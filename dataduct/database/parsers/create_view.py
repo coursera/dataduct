@@ -1,18 +1,19 @@
 """Create SQL parser
 """
 from pyparsing import Group
-from pyparsing import printables
+from pyparsing import Optional
 from pyparsing import StringEnd
 from pyparsing import Word
 from pyparsing import ZeroOrMore
+from pyparsing import printables
 
-from .utils import _create
-from .utils import _view
-from .utils import _db_name
 from .utils import _as
+from .utils import _create
+from .utils import _db_name
+from .utils import _view
 
-from .helpers import to_dict
 from .helpers import replace_check
+from .helpers import to_dict
 
 
 merge = lambda x: ' '.join(x[0])
@@ -21,6 +22,7 @@ merge = lambda x: ' '.join(x[0])
 def rreplace(s, old, new):
     li = s.rsplit(old, 1)
     return new.join(li)
+
 
 def parse_create_view(string):
     """Parse the create view sql query and return metadata
@@ -34,11 +36,11 @@ def parse_create_view(string):
 
     string = rreplace(string, ')', ' )')
 
-    end = ')' + StringEnd()
+    end = Optional(')') + StringEnd()
     select = Group(ZeroOrMore(~end + Word(printables)))
 
     parser = _create + replace_check.setResultsName('replace') + _view
-    parser += _db_name.setResultsName('view_name') + _as + '('
+    parser += _db_name.setResultsName('view_name') + _as + Optional('(')
     parser += select.setParseAction(merge).setResultsName('select_statement')
     parser += end
 

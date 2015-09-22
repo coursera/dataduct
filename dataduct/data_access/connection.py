@@ -9,6 +9,7 @@ from ..config import Config
 from ..utils.helpers import retry
 from ..utils.helpers import exactly_one
 from ..utils.exceptions import ETLConfigError
+from ..utils.hook import hook
 
 config = Config()
 CONNECTION_RETRIES = config.etl.get('CONNECTION_RETRIES', 2)
@@ -23,7 +24,8 @@ def get_redshift_config():
 
 
 @retry(CONNECTION_RETRIES, 60)
-def redshift_connection(redshift_creds=None, **kwargs):
+@hook('connect_to_redshift')
+def redshift_connection(redshift_creds=None, autocommit=True, **kwargs):
     """Fetch a psql connection object to redshift
     """
     if redshift_creds is None:
@@ -37,6 +39,7 @@ def redshift_connection(redshift_creds=None, **kwargs):
         database=redshift_creds['DATABASE_NAME'],
         connect_timeout=10,
         **kwargs)
+    connection.autocommit = autocommit
     return connection
 
 

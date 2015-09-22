@@ -60,6 +60,8 @@ class TransformStep(ETLStep):
                 self.get_output_s3_path(get_modified_s3_path(output_path)))
 
         script_arguments = self.translate_arguments(script_arguments)
+        if script_arguments is None:
+            script_arguments = []
 
         if self.input:
             input_nodes = [self.input]
@@ -137,18 +139,20 @@ class TransformStep(ETLStep):
             result = list()
             for argument in script_arguments:
                 if isinstance(argument, dict):
-                    result.extend([self.input_format(key, value)
-                                   for key, value in argument.iteritems()])
+                    result.extend([
+                        self.input_format(key, get_modified_s3_path(value))
+                        for key, value in argument.iteritems()
+                    ])
                 else:
-                    result.append(str(argument))
+                    result.append(get_modified_s3_path(str(argument)))
             return result
 
         elif isinstance(script_arguments, dict):
-            return [self.input_format(key, value)
+            return [self.input_format(key, get_modified_s3_path(value))
                     for key, value in script_arguments.iteritems()]
 
         elif isinstance(script_arguments, str):
-            return [script_arguments]
+            return [get_modified_s3_path(script_arguments)]
 
         else:
             raise ETLInputError('Script Arguments for unrecognized type')

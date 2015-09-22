@@ -1,12 +1,14 @@
 """
 Setup file for installation of the dataduct code
 """
-from setuptools import setup
 from setuptools import find_packages
+from setuptools import setup
+
+from dataduct import __version__ as version
 
 setup(
     name='dataduct',
-    version='0.2.0',
+    version=version,
     author='Coursera Inc.',
     packages=find_packages(
         exclude=["*.tests", "*.tests.*", "tests.*", "tests"]),
@@ -18,7 +20,7 @@ setup(
     license='Apache License 2.0',
     description='DataPipeline for Humans',
     install_requires=[
-        'boto>=2.34',
+        'boto>=2.38',
         'PyYAML',
         'pandas',
         'psycopg2',

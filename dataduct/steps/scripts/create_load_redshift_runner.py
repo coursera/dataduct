@@ -9,6 +9,7 @@ from dataduct.config import get_aws_credentials
 from dataduct.data_access import redshift_connection
 from dataduct.database import SqlStatement
 from dataduct.database import Table
+from dataduct.utils.helpers import stringify_credentials
 
 
 def load_redshift(table, input_paths, max_error=0,
@@ -21,12 +22,9 @@ def load_redshift(table, input_paths, max_error=0,
 
     # Credentials string
     aws_key, aws_secret, token = get_aws_credentials()
-    creds = 'aws_access_key_id=%s;aws_secret_access_key=%s' % (
-        aws_key, aws_secret)
-    if token:
-        creds += ';token=%s' % token
+    creds = stringify_credentials(aws_key, aws_secret, token)
 
-    delete_statement = 'DELETE FROM %s;' % table_name
+    delete_statement = 'TRUNCATE %s;' % table_name
     error_string = 'MAXERROR %d' % max_error if max_error > 0 else ''
     if replace_invalid_char is not None:
         invalid_char_str = "ACCEPTINVCHARS AS %s" % replace_invalid_char

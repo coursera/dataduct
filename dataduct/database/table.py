@@ -1,11 +1,15 @@
 """Script containing the table class object
 """
-from .parsers import parse_create_table
-from .parsers import create_exists_clone
-from .sql import SqlScript
-from .select_statement import SelectStatement
+from ..utils.helpers import stringify_credentials
 from .column import Column
+from .parsers import create_exists_clone
+from .parsers import parse_create_table
 from .relation import Relation
+from .select_statement import SelectStatement
+from .sql import SqlScript
+
+import logging
+logger = logging.getLogger(__name__)
 
 
 def comma_seperated(elements):
@@ -19,8 +23,16 @@ class Table(Relation):
     """
     def __init__(self, sql):
         """Constructor for Table class
+
+        Args:
+            sql: A SqlScript or a string containing the SQL definition of a
+                 table. If sql is a string, it will be converted into a
+                 SqlScript.
         """
         super(Table, self).__init__()
+
+        if isinstance(sql, str):
+            sql = SqlScript(sql)
 
         if isinstance(sql, SqlScript):
             # Take the first statement and ignore the rest
@@ -131,12 +143,18 @@ class Table(Relation):
         columns = comma_seperated(
             ['%s %s' % (c.column_name, c.column_type) for c in self.columns()])
 
-        sql = """CREATE TEMPORARY TABLE {table_name} (
-                    {columns},
-                    PRIMARY KEY( {primary_keys} )
-              )""".format(table_name=table_name,
-                          columns=columns,
-                          primary_keys=comma_seperated(self.primary_key_names))
+        if self.primary_keys:
+            sql = """CREATE TEMPORARY TABLE {table_name} (
+                        {columns},
+                        PRIMARY KEY( {primary_keys} )
+                  )""".format(
+                  table_name=table_name, columns=columns,
+                  primary_keys=comma_seperated(self.primary_key_names))
+        else:
+            sql = """CREATE TEMPORARY TABLE {table_name} (
+                        {columns}
+                  )""".format(
+                  table_name=table_name, columns=columns)
 
         return SqlScript(sql)
 
@@ -159,12 +177,13 @@ class Table(Relation):
         """Sql script to rename the table
         """
         return SqlScript(
-            'ALTER TABLE %s RENAME TO %s' %(self.full_name, new_name))
+            'ALTER TABLE %s RENAME TO %s' % (self.full_name, new_name))
 
     def delete_script(self, where_condition=''):
         """Sql script to delete from table based on where condition
         """
-        return SqlScript('DELETE FROM %s %s' %(self.full_name, where_condition))
+        return SqlScript(
+            'DELETE FROM %s %s' % (self.full_name, where_condition))
 
     def foreign_key_reference_script(self, source_columns, reference_name,
                                      reference_columns):
@@ -243,8 +262,9 @@ class Table(Relation):
         """De-duplicate the table to enforce primary keys
         """
         if len(self.primary_keys) == 0:
-            raise RuntimeError(
+            logger.error(
                 'Cannot de-duplicate table with no primary keys')
+            return SqlScript()
 
         script = self.temporary_clone_script()
         column_names = [c.name for c in self.columns()]
@@ -312,3 +332,29 @@ class Table(Relation):
                 AND table_name = '%s'
             )
         """ % (self.schema_name, self.table_name))
+
+    def unload_script(self, s3_path, access_key, secret_key, token=None):
+        """Sql script to unload table to S3
+        """
+        script = (
+            "UNLOAD ('{select_script}') TO '{s3_path}' CREDENTIALS '{creds}' "
+            "DELIMITER '\t' ESCAPE NULL AS 'NULL'"
+        ).format(
+            select_script=self.select_script(),
+            s3_path=s3_path,
+            creds=stringify_credentials(access_key, secret_key, token)
+        )
+        return SqlScript(script)
+
+    def load_script(self, s3_path, access_key, secret_key, token=None):
+        """Sql script to load table from S3
+        """
+        script = (
+            "COPY {name} FROM '{s3_path}' CREDENTIALS '{creds}' "
+            "DELIMITER '\t' ESCAPE NULL AS 'NULL'"
+        ).format(
+            name=self.full_name,
+            s3_path=s3_path,
+            creds=stringify_credentials(access_key, secret_key, token)
+        )
+        return SqlScript(script)

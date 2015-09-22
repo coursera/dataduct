@@ -4,8 +4,8 @@ Shared utility functions
 import boto.s3
 import os
 
-from .s3_path import S3Path
 from ..utils.exceptions import ETLInputError
+from .s3_path import S3Path
 
 
 def get_s3_bucket(bucket_name):
@@ -65,6 +65,31 @@ def upload_to_s3(s3_path, file_name=None, file_text=None):
         key.set_contents_from_filename(file_name)
     else:
         key.set_contents_from_string(file_text)
+
+
+def download_from_s3(s3_path, local_path):
+    """Downloads a file from s3
+
+    Args:
+        s3_path(S3Path): Input path of the file to be downloaded
+        local_path(file_path): Output path of the file to be downloaded
+    """
+    if not isinstance(s3_path, S3Path):
+        raise ETLInputError('Input path should be of type S3Path')
+
+    if s3_path.is_directory:
+        raise ETLInputError('S3 path must not be directory')
+
+    bucket = get_s3_bucket(s3_path.bucket)
+    key = bucket.get_key(key_name=s3_path.key)
+
+    # Make sure directories exist
+    if not os.path.isdir(os.path.abspath(local_path)):
+        os.makedirs(local_path)
+
+    # Calculate relative path
+    local_file_path = os.path.join(local_path, s3_path.base_filename)
+    key.get_contents_to_filename(local_file_path)
 
 
 def copy_within_s3(s3_old_path, s3_new_path, raise_when_no_exist=True):
@@ -134,21 +159,20 @@ def download_dir_from_s3(s3_path, local_path):
         raise ETLInputError('S3 path must be directory')
 
     bucket = get_s3_bucket(s3_path.bucket)
-    keys = bucket.get_all_keys(prefix=s3_path.key + '/')
+    keys = bucket.get_all_keys(prefix=s3_path.key)
 
     # Download each file individually
     for key in keys:
         # Calculate relative path
         local_file_path = os.path.join(
-            local_path, str(key.name[len(s3_path.key) + 1:]))
+            local_path, os.path.basename(str(key.name)))
 
         # Make sure directories exist
         local_file_dir = os.path.dirname(local_file_path)
         if not os.path.exists(local_file_dir):
             os.makedirs(local_file_dir)
 
-        with open(local_file_path, 'w') as f:
-            key.get_contents_to_file(f)
+        key.get_contents_to_filename(local_file_path)
 
 
 def delete_dir_from_s3(s3_path):

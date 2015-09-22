@@ -26,6 +26,9 @@ class Activity(PipelineObject):
             **kwargs
         )
 
+    def __str__(self):
+        return "%s with id %s" % tuple(self.id.split(".", 1)[::-1])
+
     @property
     def input(self):
         """Get the input node for the activity

@@ -1,13 +1,12 @@
 """Select SQL parser
 """
-from pyparsing import delimitedList
 from pyparsing import MatchFirst
-from pyparsing import printables
-from pyparsing import restOfLine
+from pyparsing import ParseException
 from pyparsing import Word
 from pyparsing import WordStart
-from pyparsing import ParseException
-from pyparsing import Optional
+from pyparsing import delimitedList
+from pyparsing import printables
+from pyparsing import restOfLine
 
 from .utils import _as
 from .utils import _db_name
@@ -15,8 +14,8 @@ from .utils import _from
 from .utils import _join
 from .utils import _select
 from .utils import _with
-from .utils import subquery
 from .utils import field_parser
+from .utils import subquery
 
 
 def deduplicate_with_order(seq):
@@ -60,7 +59,8 @@ def parse_select_dependencies(string):
         return list()
 
     # Find all dependent tables
-    dep_parse = WordStart() + (_from | _join) + _db_name.setResultsName('table')
+    dep_parse = WordStart() + (_from | _join) +\
+        _db_name.setResultsName('table')
     output = dep_parse.setParseAction(lambda x: x.table).searchString(string)
 
     # Flatten the list before returning
