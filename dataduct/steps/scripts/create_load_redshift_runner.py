@@ -34,15 +34,15 @@ def load_redshift(table, input_paths, max_error=0,
     query = [delete_statement]
 
     template = (
-        "COPY {table} FROM '{path}' WITH CREDENTIALS AS '{creds}' {options} "
-        "COMPUPDATE OFF STATUPDATE OFF;"
+        "COPY {table} FROM '{path}' WITH CREDENTIALS AS '{creds}' "
+        "COMPUPDATE OFF STATUPDATE OFF {options};"
     )
 
     for input_path in input_paths:
         if not command_options:
             command_options = (
                 "DELIMITER '\t' {escape} {gzip} NULL AS 'NULL' TRUNCATECOLUMNS "
-                "{max_error} {invalid_char_str};"
+                "{max_error} {invalid_char_str}"
             ).format(escape='ESCAPE' if not no_escape else '',
                      gzip='GZIP' if gzip else '',
                      max_error=error_string,
