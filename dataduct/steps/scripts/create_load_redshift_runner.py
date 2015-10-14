@@ -33,8 +33,10 @@ def load_redshift(table, input_paths, max_error=0,
 
     query = [delete_statement]
 
-    template = \
-        "COPY {table} FROM '{path}' WITH CREDENTIALS AS '{creds}' {options};"
+    template = (
+        "COPY {table} FROM '{path}' WITH CREDENTIALS AS '{creds}' {options} "
+        "COMPUPDATE OFF STATUPDATE OFF;"
+    )
 
     for input_path in input_paths:
         if not command_options:
