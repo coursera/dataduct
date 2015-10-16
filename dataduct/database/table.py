@@ -205,11 +205,13 @@ class Table(Relation):
         """
         pk_columns = comma_seperated(self.primary_key_names)
         sql = """
-            SELECT {pk_columns}
-                ,COUNT(1) duplicate_count
-            FROM {table_name}
-            GROUP BY {pk_columns}
-            HAVING COUNT(1) > 1
+            SELECT COUNT(1) duplicate_count
+            FROM (
+                SELECT 1
+                FROM {table_name}
+                GROUP BY {pk_columns}
+                HAVING COUNT(1) > 1
+            )
         """.format(table_name=self.full_name,
                    pk_columns=pk_columns)
 
