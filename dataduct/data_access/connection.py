@@ -1,14 +1,14 @@
 """
 Connections to various databases such as RDS and Redshift
 """
-import psycopg2
 import MySQLdb
 import MySQLdb.cursors
+import psycopg2
 
 from ..config import Config
-from ..utils.helpers import retry
-from ..utils.helpers import exactly_one
 from ..utils.exceptions import ETLConfigError
+from ..utils.helpers import exactly_one
+from ..utils.helpers import retry
 from ..utils.hook import hook
 
 config = Config()
@@ -25,7 +25,8 @@ def get_redshift_config():
 
 @retry(CONNECTION_RETRIES, 60)
 @hook('connect_to_redshift')
-def redshift_connection(redshift_creds=None, autocommit=True, **kwargs):
+def redshift_connection(redshift_creds=None, autocommit=True,
+                        connect_timeout=30, **kwargs):
     """Fetch a psql connection object to redshift
     """
     if redshift_creds is None:
@@ -37,7 +38,7 @@ def redshift_connection(redshift_creds=None, autocommit=True, **kwargs):
         password=redshift_creds['PASSWORD'],
         port=redshift_creds['PORT'],
         database=redshift_creds['DATABASE_NAME'],
-        connect_timeout=10,
+        connect_timeout=connect_timeout,
         **kwargs)
     connection.autocommit = autocommit
     return connection

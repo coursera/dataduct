@@ -125,7 +125,7 @@ class ETLStep(object):
             result |= self._resolve_dependencies(dependency.depends_on)
         return result
 
-    def create_pipeline_object(self, object_class, **kwargs):
+    def create_pipeline_object(self, object_class, object_name=None, **kwargs):
         """Create the pipeline objects associated with the step
 
         Args:
@@ -140,8 +140,11 @@ class ETLStep(object):
                               if isinstance(o, object_class)])
 
         # Object name/ids are given by [step_id].[object_class][index]
-        object_id = self.id + "." + object_class.__name__ + \
-            str(instance_count)
+        if object_name is None:
+            object_id = self.id + "." + object_class.__name__ + \
+                str(instance_count)
+        else:
+            object_id = object_name
 
         new_object = object_class(object_id, **kwargs)
 
@@ -154,7 +157,7 @@ class ETLStep(object):
         self._objects[object_id] = new_object
         return new_object
 
-    def create_s3_data_node(self, s3_object=None, **kwargs):
+    def create_s3_data_node(self, s3_object=None, object_name=None, **kwargs):
         """Create an S3 DataNode for s3_file or s3_path
 
         Args:
@@ -180,6 +183,7 @@ class ETLStep(object):
 
         s3_node = self.create_pipeline_object(
             object_class=S3Node,
+            object_name=object_name,
             schedule=self.schedule,
             s3_object=s3_object,
             **kwargs
@@ -295,6 +299,11 @@ class ETLStep(object):
             combined_node.add_dependency_node(copy_activity.output)
 
         return combined_node, depends_on
+
+    def get_name(self, *suffixes):
+        if all(suffixes):
+            return '_'.join((self.id,) + suffixes)
+        return None
 
     @property
     def input(self):
