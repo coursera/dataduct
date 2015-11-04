@@ -5,6 +5,8 @@
 
 import argparse
 import pandas.io.sql as pdsql
+import psycopg2.extras
+from sys import stderr
 from dataduct.config import get_aws_credentials
 from dataduct.data_access import redshift_connection
 from dataduct.database import SqlStatement
@@ -56,6 +58,13 @@ def load_redshift(table, input_paths, max_error=0,
 
     return ' '.join(query)
 
+def create_error_retrieval_query(input_paths):
+    condition = ("filename Like '%{input_path}%'".format(input_path = input_path)
+                for input_path in input_paths)
+    conditions = " OR ".join(condition)
+    queryString = ("SELECT * FROM stl_load_errors "
+                   "WHERE {conditions}").format(conditions=conditions)
+    return queryString
 
 def main():
     """Main Function
@@ -74,7 +83,7 @@ def main():
     print args
 
     table = Table(SqlStatement(args.table_definition))
-    connection = redshift_connection()
+    connection = redshift_connection(cursor_factory=psycopg2.extras.RealDictCursor)
     table_not_exists = pdsql.read_sql(table.check_not_exists_script().sql(),
                                       connection).loc[0][0]
 
@@ -87,8 +96,19 @@ def main():
     load_query = load_redshift(table, args.input_paths, args.max_error,
                                args.replace_invalid_char, args.no_escape,
                                args.gzip, args.command_options)
-    cursor.execute(load_query)
-    cursor.execute('COMMIT')
+    try:
+        cursor.execute(load_query)
+        cursor.execute('COMMIT')
+    except Exception as e:
+        error_query = create_error_retrieval_query(args.input_paths)
+        cursor.execute(error_query)
+        separator = "-" * 50 + "\n"
+        stderr.write("Error while loading data into redshift \n\n{}".format(separator))
+        for item in cursor.fetchall():
+            for key in item:
+                stderr.write("{}: {}\n".format(key, str(item[key]).strip()))
+            stderr.write(separator)
+        raise e
     cursor.close()
     connection.close()
 
