@@ -12,7 +12,7 @@ from dataduct.data_access import redshift_connection
 from dataduct.database import SqlStatement
 from dataduct.database import Table
 from dataduct.utils.helpers import stringify_credentials
-
+from dataduct.utils import constants
 
 def load_redshift(table, input_paths, max_error=0,
                   replace_invalid_char=None, no_escape=False, gzip=False,
@@ -62,9 +62,24 @@ def create_error_retrieval_query(input_paths):
     condition = ("filename Like '%{input_path}%'".format(input_path = input_path)
                 for input_path in input_paths)
     conditions = " OR ".join(condition)
-    queryString = ("SELECT * FROM stl_load_errors "
+    query = ("SELECT * FROM stl_load_errors "
                    "WHERE {conditions}").format(conditions=conditions)
-    return queryString
+    return query
+
+def get_redshift_table_colunms(table, cursor):
+    table_name = table.table_name
+    schema_name = table.schema_name
+
+    schema_list = constants.MANAGED_SCHEMAS
+    set_search_path_query = "SET search_path TO {schemas}".format(schemas = ",".join(schema_list))
+    cursor.execute(set_search_path_query)
+    query = ("SELECT def.column FROM pg_table_def def "
+             "WHERE schemaname = '{schema_name}' "
+                 "AND tablename = '{table_name}'").format(schema_name=schema_name,
+                                                          table_name=table_name)
+    cursor.execute(query)
+    columns = sorted([row["column"] for row in cursor.fetchall()])
+    return columns
 
 def main():
     """Main Function
@@ -91,6 +106,11 @@ def main():
     # Create table in redshift, this is safe due to the if exists condition
     if table_not_exists:
         cursor.execute(table.create_script().sql())
+    else:
+        columns = sorted([column.column_name for column in table.columns()])
+        redshift_table_columns = get_redshift_table_colunms(table, cursor)
+        if columns != redshift_table_columns:
+            raise Exception("Table schema mismatch: {table}".format(table=table.full_name))
 
     # Load data into redshift
     load_query = load_redshift(table, args.input_paths, args.max_error,
