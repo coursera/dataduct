@@ -12,7 +12,6 @@ from dataduct.data_access import redshift_connection
 from dataduct.database import SqlStatement
 from dataduct.database import Table
 from dataduct.utils.helpers import stringify_credentials
-from dataduct.utils import constants
 
 def load_redshift(table, input_paths, max_error=0,
                   replace_invalid_char=None, no_escape=False, gzip=False,
@@ -70,8 +69,7 @@ def get_redshift_table_colunms(table, cursor):
     table_name = table.table_name
     schema_name = table.schema_name
 
-    schema_list = constants.MANAGED_SCHEMAS
-    set_search_path_query = "SET search_path TO {schemas}".format(schemas = ",".join(schema_list))
+    set_search_path_query = "SET search_path TO {schema}".format(schema = schema_name)
     cursor.execute(set_search_path_query)
     query = ("SELECT def.column FROM pg_table_def def "
              "WHERE schemaname = '{schema_name}' "

@@ -37,7 +37,3 @@ CREATE_LOAD_SCRIPT_PATH = os.path.join(
     SCRIPTS_DIRECTORY, 'create_load_redshift_runner.py')
 SQL_RUNNER_SCRIPT_PATH = os.path.join(
     SCRIPTS_DIRECTORY, 'sql_runner.py')
-
-#pg_table_def search paths
-MANAGED_SCHEMAS = ["prod", "bi", "scratch", "staging", "dev", "devbi", "devstaging", "hist",
-    "edw_test", "devhist", "devmaster", "biv", "prodv"]
