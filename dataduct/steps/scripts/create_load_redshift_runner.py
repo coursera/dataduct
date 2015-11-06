@@ -57,6 +57,7 @@ def load_redshift(table, input_paths, max_error=0,
 
     return ' '.join(query)
 
+
 def create_error_retrieval_query(input_paths):
     condition = ("filename Like '%{input_path}%'".format(input_path=input_path)
                  for input_path in input_paths)
@@ -64,6 +65,7 @@ def create_error_retrieval_query(input_paths):
     query = ("SELECT * FROM stl_load_errors "
              "WHERE {conditions}").format(conditions=conditions)
     return query
+
 
 def get_redshift_table_colunms(table, cursor):
     table_name = table.table_name
@@ -78,6 +80,7 @@ def get_redshift_table_colunms(table, cursor):
     cursor.execute(query)
     columns = sorted([row["column"] for row in cursor.fetchall()])
     return columns
+
 
 def main():
     """Main Function
