@@ -58,23 +58,23 @@ def load_redshift(table, input_paths, max_error=0,
     return ' '.join(query)
 
 def create_error_retrieval_query(input_paths):
-    condition = ("filename Like '%{input_path}%'".format(input_path = input_path)
-                for input_path in input_paths)
+    condition = ("filename Like '%{input_path}%'".format(input_path=input_path)
+                 for input_path in input_paths)
     conditions = " OR ".join(condition)
     query = ("SELECT * FROM stl_load_errors "
-                   "WHERE {conditions}").format(conditions=conditions)
+             "WHERE {conditions}").format(conditions=conditions)
     return query
 
 def get_redshift_table_colunms(table, cursor):
     table_name = table.table_name
     schema_name = table.schema_name
 
-    set_search_path_query = "SET search_path TO {schema}".format(schema = schema_name)
+    set_search_path_query = "SET search_path TO {schema}".format(schema=schema_name)
     cursor.execute(set_search_path_query)
     query = ("SELECT def.column FROM pg_table_def def "
              "WHERE schemaname = '{schema_name}' "
-                 "AND tablename = '{table_name}'").format(schema_name=schema_name,
-                                                          table_name=table_name)
+             "AND tablename = '{table_name}'").format(schema_name=schema_name,
+                                                      table_name=table_name)
     cursor.execute(query)
     columns = sorted([row["column"] for row in cursor.fetchall()])
     return columns
@@ -117,7 +117,7 @@ def main():
     try:
         cursor.execute(load_query)
         cursor.execute('COMMIT')
-    except Exception as e:
+    except Exception as error:
         error_query = create_error_retrieval_query(args.input_paths)
         cursor.execute(error_query)
         separator = "-" * 50 + "\n"
@@ -126,7 +126,7 @@ def main():
             for key in item:
                 stderr.write("{}: {}\n".format(key, str(item[key]).strip()))
             stderr.write(separator)
-        raise e
+        raise error
     cursor.close()
     connection.close()
 
