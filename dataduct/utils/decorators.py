@@ -16,8 +16,8 @@ def timeit(method):
         te = datetime.now()
         print 'End time for Method %r is %s' % (method.__name__, te)
 
-        print 'Method %r with arguments (%r, %r) took %2.2f secs' % \
-            (method.__name__, args, kw, (te-ts).total_seconds())
+        print 'Method %r with arguments (%r, %r) took %s time' % \
+            (method.__name__, args, kw, te - ts)
         return result
 
     return timed
