@@ -95,6 +95,7 @@ def main():
     parser.add_argument('--gzip', action='store_true', default=False)
     parser.add_argument('--command_options', dest='command_options', default=None)
     parser.add_argument('--s3_input_paths', dest='input_paths', nargs='+')
+    parser.add_argument('--force_drop_table', dest='force_drop_table', default=False)
     args = parser.parse_args()
     print args
 
@@ -111,7 +112,13 @@ def main():
         columns = sorted([column.column_name for column in table.columns()])
         redshift_table_columns = get_redshift_table_colunms(table, cursor)
         if columns != redshift_table_columns:
-            raise Exception("Table schema mismatch: {table}".format(table=table.full_name))
+            error_string = ("Table schema mismatch: {table}\n"
+                            "Columns for existing table: {columns}\n"
+                            "Columns for new table: {redshift_table_columns}").format(
+                                table=table.full_name,
+                                columns=", ".join(columns),
+                                redshift_table_columns=", ".join(redshift_table_columns))
+            raise Exception(error_string)
 
     # Load data into redshift
     load_query = load_redshift(table, args.input_paths, args.max_error,
