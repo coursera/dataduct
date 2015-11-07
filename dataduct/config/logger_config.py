@@ -22,7 +22,7 @@ def logger_configuration():
         raise Exception('logging section is missing in config')
 
     log_directory = os.path.expanduser(config.logging.get(
-        'LOG_DIR', '~' + CONFIG_DIR))
+        'LOG_DIR', os.path.join('~', CONFIG_DIR)))
     file_name = config.logging.get(
         'LOG_FILE', LOG_FILE)
 
