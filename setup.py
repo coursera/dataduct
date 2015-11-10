@@ -20,7 +20,7 @@ setup(
     license='Apache License 2.0',
     description='DataPipeline for Humans',
     install_requires=[
-        'boto>=2.33',
+        'boto>=2.38',
         'MySQL-python>=1.2.5',
         'pandas>=0.16.2',
         'psycopg2>=2.6',
