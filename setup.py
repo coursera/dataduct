@@ -23,7 +23,7 @@ setup(
         'boto>=2.38',
         'PyYAML',
         'pandas',
-        'psycopg2',
+        'psycopg2>=2.5',
         'pytimeparse',
         'MySQL-python',
         'pyparsing',
