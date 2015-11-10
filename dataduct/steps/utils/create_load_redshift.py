@@ -1,6 +1,7 @@
 """Replacement for the load step to use the redshift COPY command instead
 """
 
+import argparse
 import pandas.io.sql as pdsql
 import psycopg2.extras
 from sys import stderr
@@ -9,6 +10,7 @@ from dataduct.data_access import redshift_connection
 from dataduct.database import SqlStatement
 from dataduct.database import Table
 from dataduct.utils.helpers import stringify_credentials
+
 
 def load_redshift(table, input_paths, max_error=0,
                   replace_invalid_char=None, no_escape=False, gzip=False,
@@ -79,8 +81,22 @@ def get_redshift_table_colunms(table, cursor):
     return columns
 
 
-def create_load_redshift_runner(**args):
-    table = Table(SqlStatement(args.table_definition))
+def create_load_redshift_runner():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--table_definition', dest='table_definition',
+                        required=True)
+    parser.add_argument('--max_error', dest='max_error', default=0, type=int)
+    parser.add_argument('--replace_invalid_char', dest='replace_invalid_char',
+                        default=None)
+    parser.add_argument('--no_escape', action='store_true', default=False)
+    parser.add_argument('--gzip', action='store_true', default=False)
+    parser.add_argument('--command_options', dest='command_options', default=None)
+    parser.add_argument('--s3_input_paths', dest='input_paths', nargs='+')
+    parser.add_argument('--force_drop_table', dest='force_drop_table', default=False)
+    script_arguments = parser.parse_args()
+    print script_arguments
+
+    table = Table(SqlStatement(script_arguments.table_definition))
     connection = redshift_connection(cursor_factory=psycopg2.extras.RealDictCursor)
     table_not_exists = pdsql.read_sql(table.check_not_exists_script().sql(),
                                       connection).loc[0][0]
@@ -102,14 +118,14 @@ def create_load_redshift_runner(**args):
             raise Exception(error_string)
 
     # Load data into redshift
-    load_query = load_redshift(table, args.input_paths, args.max_error,
-                               args.replace_invalid_char, args.no_escape,
-                               args.gzip, args.command_options)
+    load_query = load_redshift(table, script_arguments.input_paths, script_arguments.max_error,
+                               script_arguments.replace_invalid_char, script_arguments.no_escape,
+                               script_arguments.gzip, script_arguments.command_options)
     try:
         cursor.execute(load_query)
         cursor.execute('COMMIT')
     except Exception as error:
-        error_query = create_error_retrieval_query(args.input_paths)
+        error_query = create_error_retrieval_query(script_arguments.input_paths)
         cursor.execute(error_query)
         separator = "-" * 50 + "\n"
         stderr.write("Error while loading data into redshift \n\n{}".format(separator))
