@@ -61,6 +61,7 @@ def get_sql_config(database_name):
 
 
 @retry(CONNECTION_RETRIES, 60)
+@hook('connect_to_mysql')
 def rds_connection(database_name=None, sql_creds=None,
                    cursorclass=MySQLdb.cursors.SSCursor, **kwargs):
     """Fetch a mysql connection object to rds databases
