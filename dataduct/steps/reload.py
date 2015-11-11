@@ -16,7 +16,7 @@ class ReloadStep(UpsertStep):
 
         # Do not enforce pkey for reload so we can surface data quality issues.
         if 'enforce_primary_key' not in kwargs:
-            kwargs['enforce_primary_key'] = False
+            kwargs['enforce_primary_key'] = True
         super(ReloadStep, self).__init__(**kwargs)
 
     @classmethod
