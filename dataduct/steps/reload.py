@@ -14,7 +14,7 @@ class ReloadStep(UpsertStep):
             **kwargs(optional): Keyword arguments directly passed to base class
         """
 
-        # Do not enforce pkey for reload so we can surface data quality issues.
+        # Enforce PK by default.
         if 'enforce_primary_key' not in kwargs:
             kwargs['enforce_primary_key'] = True
         super(ReloadStep, self).__init__(**kwargs)
