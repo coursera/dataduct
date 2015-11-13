@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from dataduct.steps.utils.dependency_check import dependency_check
+from dataduct.steps.executors.dependency_check import dependency_check
 
 def main():
     dependency_check()

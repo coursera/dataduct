@@ -4,7 +4,7 @@
 with the correct values
 """
 
-from dataduct.steps.utils.column_check import column_check
+from dataduct.steps.executors.column_check import column_check
 
 def main():
     column_check()

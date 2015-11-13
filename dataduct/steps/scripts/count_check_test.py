@@ -4,7 +4,7 @@
 number of rows in the destination table
 """
 
-from dataduct.steps.utils.count_check import count_check
+from dataduct.steps.executors.count_check import count_check
 
 def main():
     count_check()

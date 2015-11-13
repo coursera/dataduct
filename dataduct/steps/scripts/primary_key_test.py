@@ -3,7 +3,7 @@
 """Script that checks for primary key violations on the input table
 """
 
-from dataduct.steps.utils.primary_key_check import primary_key_check
+from dataduct.steps.executors.primary_key_check import primary_key_check
 
 
 def main():

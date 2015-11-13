@@ -4,7 +4,7 @@ This script initiates the different calls needed when running
 a transform step with the script_directory argument
 """
 
-from dataduct.steps.utils.runner import script_runner
+from dataduct.steps.executors.runner import script_runner
 
 def main():
     script_runner()
