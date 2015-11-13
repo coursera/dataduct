@@ -23,7 +23,6 @@ STEP_CLASSES = {
     'primary-key-check': PrimaryKeyCheckStep,
     'qa-transform': QATransformStep,
     'reload': ReloadStep,
-    'safe-create-load': SafeCreateAndLoadStep,
     'sql-command': SqlCommandStep,
     'transform': TransformStep,
     'upsert': UpsertStep,

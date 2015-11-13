@@ -15,7 +15,6 @@ from .pipeline_dependencies import PipelineDependenciesStep
 from .primary_key_check import PrimaryKeyCheckStep
 from .qa_transform import QATransformStep
 from .reload import ReloadStep
-from .safe_create_load import SafeCreateAndLoadStep
 from .sql_command import SqlCommandStep
 from .transform import TransformStep
 from .upsert import UpsertStep
