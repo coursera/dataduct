@@ -15,15 +15,15 @@ from ..utils.helpers import parse_path
 config = Config()
 
 
-class SafeCreateAndLoadStep(ETLStep):
-    """SafeCreateAndLoadStep Step class that creates table if needed and loads data
+class LoadReloadAndPrimaryKeyStep(ETLStep):
+    """LoadReloadAndPrimaryKeyStep Step class that creates table if needed and loads data
     """
 
     def __init__(self, id, input_node, intermediate_table_definition,
-                 table_definition, pipeline_name, script_arguments=None,
+                 table_definition, pipeline_name,
                  analyze_table=True, non_transactional=False,
                  log_to_s3=False, **kwargs):
-        """Constructor for the SafeCreateAndLoadStep class
+        """Constructor for the LoadReloadAndPrimaryKeyStep class
 
         Args:
             input_node: A S3 data node as input
@@ -31,18 +31,13 @@ class SafeCreateAndLoadStep(ETLStep):
                 intermediate table schema to store the data
             table_definition(filepath):
                 schema file for the table to be reloaded into
-            script_arguments(list of str): list of arguments to the script
             **kwargs(optional): Keyword arguments directly passed to base class
         """
-
-        super(SafeCreateAndLoadStep, self).__init__(id=id, **kwargs)
-        if script_arguments is None:
-            script_arguments = list()
+        super(LoadReloadAndPrimaryKeyStep, self).__init__(id=id, **kwargs)
 
         create_and_load_pipeline_object = self.create_and_load_redshift(
             table_definition=intermediate_table_definition,
-            input_node=input_node,
-            script_arguments=script_arguments
+            input_node=input_node
         )
 
         reload_pipeline_object = self.reload(
@@ -50,26 +45,23 @@ class SafeCreateAndLoadStep(ETLStep):
             destination=table_definition,
             depends_on=[create_and_load_pipeline_object],
             analyze_table=analyze_table,
-            non_transactional=non_transactional,
-            script_arguments=script_arguments
+            non_transactional=non_transactional
         )
 
         primary_key_check_object = self.primary_key_check(
             table_definition=table_definition,
             pipeline_name=pipeline_name,
             depends_on=[reload_pipeline_object],
-            script_arguments=script_arguments,
             log_to_s3=log_to_s3
         )
 
 
     def primary_key_check(self, table_definition, pipeline_name, depends_on,
-                          script_arguments, log_to_s3):
-
+                          log_to_s3):
         table = self.get_table_from_def(table_definition)
 
         # We initialize the table object to check valid strings
-        script_arguments.append('--table=%s' % table.sql())
+        script_arguments = ['--table=%s' % table.sql()]
 
         if log_to_s3:
             script_arguments.append('--log_to_s3')
@@ -97,11 +89,10 @@ class SafeCreateAndLoadStep(ETLStep):
             max_retries=self.max_retries,
             depends_on=depends_on
         )
-
         return primary_key_check_pipeline_object
 
 
-    def reload(self, source, destination, depends_on, script_arguments,
+    def reload(self, source, destination, depends_on,
                analyze_table, non_transactional):
         source_table = parse_path(source)
         destination_table = parse_path(destination)
@@ -110,16 +101,16 @@ class SafeCreateAndLoadStep(ETLStep):
         destination_relation = Table(SqlScript(filename=destination_table))
 
         # Reload specific config
-        enforce_primary_key = False
+        enforce_primary_key = True
         delete_existing = True
         sql_script = destination_relation.upsert_script(
             source_relation, enforce_primary_key, delete_existing)
 
         update_script = SqlScript(sql_script.sql())
-        script_arguments.extend([
+        script_arguments = [
             '--table_definition=%s' % destination_relation.sql(),
             '--sql=%s' % update_script.sql()
-        ])
+        ]
 
         if analyze_table:
             script_arguments.append('--analyze')
@@ -143,12 +134,10 @@ class SafeCreateAndLoadStep(ETLStep):
             max_retries=self.max_retries,
             depends_on=depends_on
         )
-
         return reload_pipeline_object
 
 
-    def create_and_load_redshift(self, table_definition, input_node,
-                                 script_arguments):
+    def create_and_load_redshift(self, table_definition, input_node):
         table = self.get_table_from_def(table_definition)
 
         if isinstance(input_node, dict):
@@ -156,9 +145,11 @@ class SafeCreateAndLoadStep(ETLStep):
         else:
             input_paths = [input_node.path().uri]
 
-        script_arguments.extend([
+        script_arguments = [
             '--table_definition=%s' % table.sql().sql(),
-            '--s3_input_paths'] + input_paths)
+            '--s3_input_paths'
+        ]
+        script_arguments.extend(input_paths)
 
         steps_path = os.path.abspath(os.path.dirname(__file__))
         script = os.path.join(steps_path, const.CREATE_LOAD_SCRIPT_PATH)
@@ -179,7 +170,6 @@ class SafeCreateAndLoadStep(ETLStep):
             max_retries=self.max_retries,
             depends_on=self.depends_on
         )
-
         return create_and_load_pipeline_object
 
 
