@@ -18,6 +18,7 @@ STEP_CLASSES = {
     'extract-redshift': ExtractRedshiftStep,
     'extract-s3': ExtractS3Step,
     'load-redshift': LoadRedshiftStep,
+    'load-reload-pk': LoadReloadAndPrimaryKeyStep,
     'pipeline-dependencies': PipelineDependenciesStep,
     'primary-key-check': PrimaryKeyCheckStep,
     'qa-transform': QATransformStep,

@@ -1,0 +1,13 @@
+name: example_load_reload_primary_key_check
+frequency: one-time
+load_time: 01:00  # Hour:Min in UTC
+
+description: Example for the load-reload-pk step
+
+steps:
+-   step_type: extract-local
+    path: data/test_table1.tsv
+
+-   step_type: load-reload-pk
+    staging_table_definition: tables/dev.test_table.sql
+    production_table_definition: tables/dev.test_table_2.sql
