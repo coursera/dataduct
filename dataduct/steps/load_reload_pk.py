@@ -19,37 +19,39 @@ class LoadReloadAndPrimaryKeyStep(ETLStep):
     """LoadReloadAndPrimaryKeyStep Step class that creates table if needed and loads data
     """
 
-    def __init__(self, id, input_node, intermediate_table_definition,
-                 table_definition, pipeline_name,
+    def __init__(self, id, input_node, staging_table_definition,
+                 production_table_definition, pipeline_name,
                  analyze_table=True, non_transactional=False,
                  log_to_s3=False, **kwargs):
         """Constructor for the LoadReloadAndPrimaryKeyStep class
 
         Args:
             input_node: A S3 data node as input
-            intermediate_table_definition(filepath):
-                intermediate table schema to store the data
-            table_definition(filepath):
+            staging_table_definition(filepath):
+                staging table schema to store the data
+            production_table_definition(filepath):
                 schema file for the table to be reloaded into
             **kwargs(optional): Keyword arguments directly passed to base class
         """
         super(LoadReloadAndPrimaryKeyStep, self).__init__(id=id, **kwargs)
 
+        # TODO: Move the following three steps into lib after
+        # they support all the parameters
         create_and_load_pipeline_object = self.create_and_load_redshift(
-            table_definition=intermediate_table_definition,
+            table_definition=staging_table_definition,
             input_node=input_node
         )
 
         reload_pipeline_object = self.reload(
-            source=intermediate_table_definition,
-            destination=table_definition,
+            source=staging_table_definition,
+            destination=production_table_definition,
             depends_on=[create_and_load_pipeline_object],
             analyze_table=analyze_table,
             non_transactional=non_transactional
         )
 
         primary_key_check_object = self.primary_key_check(
-            table_definition=table_definition,
+            table_definition=production_table_definition,
             pipeline_name=pipeline_name,
             depends_on=[reload_pipeline_object],
             log_to_s3=log_to_s3
