@@ -1,13 +1,15 @@
 """ETL step wrapper for sql command for inserting into tables
 """
 import os
-from .transform import TransformStep
+
 from ..database import SqlScript
 from ..database import Table
+from ..s3 import S3File
 from ..utils import constants as const
+from ..utils.exceptions import ETLInputError
 from ..utils.helpers import exactly_one
 from ..utils.helpers import parse_path
-from ..utils.exceptions import ETLInputError
+from .transform import TransformStep
 
 
 class CreateUpdateSqlStep(TransformStep):
@@ -44,7 +46,7 @@ class CreateUpdateSqlStep(TransformStep):
 
         arguments = [
             '--table_definition=%s' % dest.sql().sql(),
-            '--sql=%s' % update_script.sql()
+            '--sql=%s' % self.create_script(S3File(text=update_script))
         ]
 
         if analyze_table:
