@@ -307,6 +307,46 @@ Example
     -   step_type: create-load-redshift
         table_definition: tables/dev.example_table.sql
 
+Load, Reload, Primary Key Check
+----------------------------------
+
+Combine ``create-load-redshift``, ``reload`` and ``primary-key-check`` into one single step.
+
+Properties
+^^^^^^^^^^
+
+-  ``staging_table_definition``: Intermidiate staging schema file for the table to be loaded into.
+   (Required)
+-  ``production_table_definition``: Production schema file for the table to be reloaded into.
+   (Required)
+-  ``script_arguments``: Arguments for the runner.
+
+   -  ``--max_error``: The maximum number of errors to be ignored during
+      the load. Usage: ``--max_error=5``
+   -  ``--replace_invalid_char``: Character the replace non-utf8
+      characters with. Usage: ``--replace_invalid_char='?'``
+   -  ``--no_escape``: If passed, does not escape special characters.
+      Usage: ``--no_escape``
+   -  ``--gzip``: If passed, compresses the output with gzip. Usage:
+      ``--gzip``
+   -  ``--command_options``: A custom SQL string as the options for the
+      copy command. Usage: ``--command_options="DELIMITER '\t'"``
+
+      -  Note: If ``--command_options`` is passed, script arguments
+         ``--max_error``, ``--replace_invalid_char``, ``--no_escape``,
+         and ``--gzip`` have no effect.
+
+Example
+^^^^^^^
+
+::
+
+    -   step_type: load-reload-pk
+        staging_table_definition: tables/staging.example_table.sql
+        production_table_definition: tables/dev.example_table.sql
+        script_arguments:
+        -   "--foo=bar"
+
 Upsert
 -------------------------
 

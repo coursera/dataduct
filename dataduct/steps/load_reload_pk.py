@@ -21,8 +21,8 @@ class LoadReloadAndPrimaryKeyStep(ETLStep):
 
     def __init__(self, id, input_node, staging_table_definition,
                  production_table_definition, pipeline_name,
-                 analyze_table=True, non_transactional=False,
-                 log_to_s3=False, **kwargs):
+                 script_arguments=None, analyze_table=True,
+                 non_transactional=False, log_to_s3=False, **kwargs):
         """Constructor for the LoadReloadAndPrimaryKeyStep class
 
         Args:
@@ -39,7 +39,8 @@ class LoadReloadAndPrimaryKeyStep(ETLStep):
         # they support all the parameters
         create_and_load_pipeline_object = self.create_and_load_redshift(
             table_definition=staging_table_definition,
-            input_node=input_node
+            input_node=input_node,
+            script_arguments=script_arguments
         )
 
         reload_pipeline_object = self.reload(
@@ -139,7 +140,10 @@ class LoadReloadAndPrimaryKeyStep(ETLStep):
         return reload_pipeline_object
 
 
-    def create_and_load_redshift(self, table_definition, input_node):
+    def create_and_load_redshift(self, table_definition,
+                                 input_node, script_arguments):
+        if not script_arguments:
+            script_arguments = list()
         table = self.get_table_from_def(table_definition)
 
         if isinstance(input_node, dict):
@@ -147,10 +151,10 @@ class LoadReloadAndPrimaryKeyStep(ETLStep):
         else:
             input_paths = [input_node.path().uri]
 
-        script_arguments = [
+        script_arguments.extend([
             '--table_definition=%s' % table.sql().sql(),
             '--s3_input_paths'
-        ]
+        ])
         script_arguments.extend(input_paths)
 
         steps_path = os.path.abspath(os.path.dirname(__file__))
