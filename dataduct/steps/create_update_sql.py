@@ -38,6 +38,7 @@ class CreateUpdateSqlStep(TransformStep):
             update_script = SqlScript(filename=parse_path(script))
         else:
             update_script = SqlScript(command)
+        self.s3_source_dir = kwargs['s3_source_dir']
         sql_script = self.create_script(S3File(text=update_script.sql()))
         sql_script.upload_to_s3()
 
