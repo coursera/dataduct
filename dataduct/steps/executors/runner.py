@@ -68,7 +68,7 @@ def sql_runner():
 
     sql_query = args.sql
     if sql_query.startswith('s3://'):
-        sql_query = S3File(s3_path=S3Path(uri=args.sql)).text()
+        sql_query = S3File(s3_path=S3Path(uri=args.sql)).text
 
     table = Table(SqlStatement(args.table_definition))
     connection = redshift_connection()

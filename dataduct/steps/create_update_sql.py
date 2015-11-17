@@ -38,6 +38,8 @@ class CreateUpdateSqlStep(TransformStep):
             update_script = SqlScript(filename=parse_path(script))
         else:
             update_script = SqlScript(command)
+        sql_script = self.create_script(S3File(text=update_script.sql()))
+        sql_script.upload_to_s3()
 
         dest = Table(SqlScript(filename=parse_path(table_definition)))
 
@@ -46,7 +48,7 @@ class CreateUpdateSqlStep(TransformStep):
 
         arguments = [
             '--table_definition=%s' % dest.sql().sql(),
-            '--sql=%s' % self.create_script(S3File(text=update_script))
+            '--sql=%s' % sql_script.s3_path.uri
         ]
 
         if analyze_table:
