@@ -47,7 +47,7 @@ class CreateAndLoadStep(TransformStep):
         script = os.path.join(steps_path, const.CREATE_LOAD_SCRIPT_PATH)
 
         super(CreateAndLoadStep, self).__init__(
-            id=id, script=script, input_node=input_node,
+            id=id, script=script, input_node=None,
             script_arguments=script_arguments, **kwargs)
 
     @classmethod
