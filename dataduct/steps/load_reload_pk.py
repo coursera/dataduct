@@ -151,10 +151,10 @@ class LoadReloadAndPrimaryKeyStep(ETLStep):
         else:
             input_paths = [input_node.path().uri]
 
-        script_arguments = [
+        script_arguments.extend([
             '--table_definition=%s' % table.sql().sql(),
             '--s3_input_paths'
-        ]
+        ])
         script_arguments.extend(input_paths)
 
         steps_path = os.path.abspath(os.path.dirname(__file__))
