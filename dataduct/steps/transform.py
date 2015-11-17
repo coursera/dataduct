@@ -21,7 +21,7 @@ SCRIPT_ARGUMENT_TYPE_SQL = 'sql'
 
 
 class TransformStep(ETLStep):
-    """Transform Step class that helps run scripts on resouces
+    """Transform Step class that helps run scripts on resources
     """
 
     def __init__(self,
@@ -29,11 +29,12 @@ class TransformStep(ETLStep):
                  script=None,
                  script_directory=None,
                  script_name=None,
-                 output_node=None,
                  script_arguments=None,
                  additional_s3_files=None,
+                 output_node=None,
                  output_path=None,
                  no_output=False,
+                 no_input=False,
                  **kwargs):
         """Constructor for the TransformStep class
 
@@ -42,9 +43,12 @@ class TransformStep(ETLStep):
             script(path): local path to the script that should executed
             script_directory(path): local path to the script directory
             script_name(str): script to be executed in the directory
-            output_node(dict): output data nodes from the transform
             script_arguments(list of str): list of arguments to the script
             additional_s3_files(list of S3File): additional files used
+            output_node(dict): output data nodes from the transform
+            output_path(str): the S3 path to output data
+            no_output(bool): whether we output anything at all.
+            no_input(bool): whether the script takes any inputs
             **kwargs(optional): Keyword arguments directly passed to base class
         """
         super(TransformStep, self).__init__(**kwargs)
@@ -63,10 +67,10 @@ class TransformStep(ETLStep):
         if script_arguments is None:
             script_arguments = []
 
-        if self.input:
+        if self.input and not no_input:
             input_nodes = [self.input]
         else:
-            input_nodes = list()
+            input_nodes = []
 
         if script_directory:
             # The script to be run with the directory
@@ -98,7 +102,7 @@ class TransformStep(ETLStep):
         if script:
             script = self.create_script(S3File(path=script))
 
-        # Translate output nodes if output map provided
+        # Translate output nodes if output path provided
         if output_node:
             self._output = self.create_output_nodes(
                 base_output_node, output_node)

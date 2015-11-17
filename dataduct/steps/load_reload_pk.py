@@ -58,7 +58,6 @@ class LoadReloadAndPrimaryKeyStep(ETLStep):
             log_to_s3=log_to_s3
         )
 
-
     def primary_key_check(self, table_definition, pipeline_name, depends_on,
                           log_to_s3):
         table = self.get_table_from_def(table_definition)
@@ -83,7 +82,7 @@ class LoadReloadAndPrimaryKeyStep(ETLStep):
         primary_key_check_pipeline_object = self.create_pipeline_object(
             object_class=ShellCommandActivity,
             object_name=step_name,
-            input_node=[],
+            input_node=None,
             output_node=None,
             resource=self.resource,
             schedule=self.schedule,
@@ -93,7 +92,6 @@ class LoadReloadAndPrimaryKeyStep(ETLStep):
             depends_on=depends_on
         )
         return primary_key_check_pipeline_object
-
 
     def reload(self, source, destination, depends_on,
                analyze_table, non_transactional):
@@ -128,7 +126,7 @@ class LoadReloadAndPrimaryKeyStep(ETLStep):
         reload_pipeline_object = self.create_pipeline_object(
             object_class=ShellCommandActivity,
             object_name=self.get_name("reload"),
-            input_node=[],
+            input_node=None,
             output_node=None,
             resource=self.resource,
             schedule=self.schedule,
@@ -161,14 +159,11 @@ class LoadReloadAndPrimaryKeyStep(ETLStep):
         script = os.path.join(steps_path, const.CREATE_LOAD_SCRIPT_PATH)
         script = self.create_script(S3File(path=script))
 
-        # Create output_node based on output_path
-        base_output_node = self.create_s3_data_node()
-
         create_and_load_pipeline_object = self.create_pipeline_object(
             object_class=ShellCommandActivity,
             object_name=self.get_name("create_and_load"),
-            input_node=[input_node],
-            output_node=base_output_node,
+            input_node=None,
+            output_node=None,
             resource=self.resource,
             schedule=self.schedule,
             script_uri=script,
@@ -179,7 +174,8 @@ class LoadReloadAndPrimaryKeyStep(ETLStep):
         return create_and_load_pipeline_object
 
 
-    def get_table_from_def(self, table_definition):
+    @classmethod
+    def get_table_from_def(cls, table_definition):
         with open(parse_path(table_definition)) as f:
             table_def_string = f.read()
 

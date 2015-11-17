@@ -16,7 +16,7 @@ class CreateAndLoadStep(TransformStep):
     """CreateAndLoad Step class that creates table if needed and loads data
     """
 
-    def __init__(self, id, table_definition, input_node=None,
+    def __init__(self, id, table_definition, input_node,
                  script_arguments=None, **kwargs):
         """Constructor for the CreateAndLoadStep class
 
@@ -47,8 +47,8 @@ class CreateAndLoadStep(TransformStep):
         script = os.path.join(steps_path, const.CREATE_LOAD_SCRIPT_PATH)
 
         super(CreateAndLoadStep, self).__init__(
-            id=id, script=script, input_node=input_node,
-            script_arguments=script_arguments, **kwargs)
+            id=id, script=script, script_arguments=script_arguments,
+            no_input=True, no_output=True, **kwargs)
 
     @classmethod
     def arguments_processor(cls, etl, input_args):

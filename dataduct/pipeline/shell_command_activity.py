@@ -58,6 +58,8 @@ class ShellCommandActivity(Activity):
             depends_on = []
         if max_retries is None:
             max_retries = MAX_RETRIES
+        # Set stage to true if we use either input or output node
+        stage = 'true' if input_node or output_node else 'false'
 
         super(ShellCommandActivity, self).__init__(
             id=id,
@@ -65,7 +67,7 @@ class ShellCommandActivity(Activity):
             type='ShellCommandActivity',
             maximumRetries=max_retries,
             dependsOn=depends_on,
-            stage='true',
+            stage=stage,
             input=input_node,
             output=output_node,
             runsOn=resource,
