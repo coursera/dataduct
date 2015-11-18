@@ -6,7 +6,6 @@ logger = logging.getLogger(__name__)
 
 @hook('connect_to_redshift')
 def open_psql_shell(redshift_creds, **kwargs):
-    print 'redshift_creds: {}'.format(redshift_creds)
     command = [
         "psql",
         "-h", redshift_creds["HOST"],
