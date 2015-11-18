@@ -3,13 +3,16 @@ Base class for data pipeline instance
 """
 
 from .pipeline_object import PipelineObject
+from ..utils.helpers import exactly_one
+from ..utils.exceptions import ETLInputError
 
 
 class Activity(PipelineObject):
     """Base class for pipeline activities
     """
 
-    def __init__(self, dependsOn, maximumRetries, **kwargs):
+    def __init__(self, dependsOn, maximumRetries, runsOn,
+                 workerGroup, **kwargs):
         """Constructor for the activity class
 
         Args:
@@ -20,6 +23,14 @@ class Activity(PipelineObject):
         Note:
             dependsOn and maximum retries are required fields for any activity
         """
+        if not exactly_one(runsOn, workerGroup):
+            raise ETLInputError(
+                'Exactly one of runsOn or workerGroup allowed!')
+
+        if runsOn:
+            kwargs['runsOn'] = runsOn
+        else:
+            kwargs['workerGroup'] = workerGroup
         super(Activity, self).__init__(
             dependsOn=dependsOn,
             maximumRetries=maximumRetries,

@@ -117,6 +117,7 @@ class TransformStep(ETLStep):
             input_node=input_nodes,
             output_node=output_node,
             resource=self.resource,
+            worker_group=self.worker_group,
             schedule=self.schedule,
             script_uri=script,
             script_arguments=script_arguments,
@@ -175,10 +176,11 @@ class TransformStep(ETLStep):
             etl(ETLPipeline): Pipeline object containing resources and steps
             step_args(dict): Dictionary of the step arguments for the class
         """
-        step_args = cls.base_arguments_processor(etl, input_args)
-        if step_args.pop('resource_type', None) == const.EMR_CLUSTER_STR:
-            step_args['resource'] = etl.emr_cluster
+        if input_args.pop('resource_type', None) == const.EMR_CLUSTER_STR:
+            resource_type = const.EMR_CLUSTER_STR
         else:
-            step_args['resource'] = etl.ec2_resource
+            resource_type = const.EC2_RESOURCE_STR
+        step_args = cls.base_arguments_processor(
+            etl, input_args, resource_type=resource_type)
 
         return step_args

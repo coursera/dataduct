@@ -59,5 +59,5 @@ class CreateAndLoadStep(TransformStep):
             step_args(dict): Dictionary of the step arguments for the class
         """
         step_args = cls.base_arguments_processor(etl, input_args)
-        step_args['resource'] = etl.ec2_resource
+
         return step_args

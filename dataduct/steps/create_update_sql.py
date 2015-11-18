@@ -78,5 +78,5 @@ class CreateUpdateSqlStep(TransformStep):
         """
         step_args = cls.base_arguments_processor(etl, input_args)
         cls.pop_inputs(step_args)
-        step_args['resource'] = etl.ec2_resource
+
         return step_args
