@@ -47,7 +47,7 @@ class TransformStep(ETLStep):
             additional_s3_files(list of S3File): additional files used
             output_node(dict): output data nodes from the transform
             output_path(str): the S3 path to output data
-            no_output(bool): whether we output anything at all.
+            no_output(bool): whether the script outputs anything to s3
             no_input(bool): whether the script takes any inputs
             **kwargs(optional): Keyword arguments directly passed to base class
         """
@@ -57,11 +57,9 @@ class TransformStep(ETLStep):
             raise ETLInputError(
                 'Only one of script, command and directory allowed')
 
-        base_output_node = None
-        if not no_output:
-            # Create output_node based on output_path
-            base_output_node = self.create_s3_data_node(
-                self.get_output_s3_path(get_modified_s3_path(output_path)))
+        # Create output_node based on output_path
+        base_output_node = self.create_s3_data_node(
+            self.get_output_s3_path(get_modified_s3_path(output_path)))
 
         script_arguments = self.translate_arguments(script_arguments)
         if script_arguments is None:
@@ -102,7 +100,7 @@ class TransformStep(ETLStep):
         if script:
             script = self.create_script(S3File(path=script))
 
-        # Translate output nodes if output path provided
+        # Translate output nodes if output path is provided
         if output_node:
             self._output = self.create_output_nodes(
                 base_output_node, output_node)
@@ -112,10 +110,12 @@ class TransformStep(ETLStep):
         logger.debug('Script Arguments:')
         logger.debug(script_arguments)
 
+        output_node = None if no_output else base_output_node
+
         self.create_pipeline_object(
             object_class=ShellCommandActivity,
             input_node=input_nodes,
-            output_node=base_output_node,
+            output_node=output_node,
             resource=self.resource,
             schedule=self.schedule,
             script_uri=script,
