@@ -77,6 +77,9 @@ class TestCreateTableStatement(TestCase):
         result = get_column_parser().parseString("test_column DOUBLE")
         eq_(result['column_type'], 'DOUBLE')
 
+        result = get_column_parser().parseString("test_column DOUBLE PRECISION")
+        eq_(result['column_type'], 'DOUBLE PRECISION')
+
         result = get_column_parser().parseString("test_column FLOAT8")
         eq_(result['column_type'], 'FLOAT8')
 
