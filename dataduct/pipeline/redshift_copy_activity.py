@@ -20,11 +20,12 @@ class RedshiftCopyActivity(Activity):
 
     def __init__(self,
                  id,
-                 resource,
                  schedule,
                  input_node,
                  output_node,
                  insert_mode,
+                 resource=None,
+                 worker_group=None,
                  command_options=None,
                  max_retries=None,
                  depends_on=None):
@@ -32,10 +33,11 @@ class RedshiftCopyActivity(Activity):
 
         Args:
             id(str): id of the object
-            resource(Ec2Resource / EMRResource): resource to run the activity on
             schedule(Schedule): schedule of the pipeline
             input_node(S3Node / RedshiftNode): input data node
             output_node(S3Node / RedshiftNode): output data node
+            resource(Ec2Resource / EMRResource): resource to run the activity on
+            worker_group(str): the worker group to run the activity on
             command_options(list of str): command options for the activity
             max_retries(int): number of retries for the activity
             depends_on(list of activities): dependendent pipelines steps
@@ -60,6 +62,7 @@ class RedshiftCopyActivity(Activity):
             'input': input_node,
             'output': output_node,
             'runsOn': resource,
+            'workerGroup': worker_group,
             'insertMode': insert_mode,
             'schedule': schedule,
             'dependsOn': depends_on,

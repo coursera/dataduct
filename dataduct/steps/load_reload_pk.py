@@ -85,6 +85,7 @@ class LoadReloadAndPrimaryKeyStep(ETLStep):
             input_node=None,
             output_node=None,
             resource=self.resource,
+            worker_group=self.worker_group,
             schedule=self.schedule,
             script_uri=script,
             script_arguments=script_arguments,
@@ -129,6 +130,7 @@ class LoadReloadAndPrimaryKeyStep(ETLStep):
             input_node=None,
             output_node=None,
             resource=self.resource,
+            worker_group=self.worker_group,
             schedule=self.schedule,
             script_uri=script,
             script_arguments=script_arguments,
@@ -165,6 +167,7 @@ class LoadReloadAndPrimaryKeyStep(ETLStep):
             input_node=None,
             output_node=None,
             resource=self.resource,
+            worker_group=self.worker_group,
             schedule=self.schedule,
             script_uri=script,
             script_arguments=script_arguments,
@@ -192,6 +195,6 @@ class LoadReloadAndPrimaryKeyStep(ETLStep):
             step_args(dict): Dictionary of the step arguments for the class
         """
         step_args = cls.base_arguments_processor(etl, input_args)
-        step_args['resource'] = etl.ec2_resource
         step_args['pipeline_name'] = etl.name
+
         return step_args

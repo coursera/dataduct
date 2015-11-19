@@ -3,6 +3,7 @@ ETL step wrapper for EmrActivity can be executed on EMR Cluster
 """
 from .etl_step import ETLStep
 from ..pipeline import EmrActivity
+from ..utils import constants as const
 
 
 class EMRJobStep(ETLStep):
@@ -27,6 +28,7 @@ class EMRJobStep(ETLStep):
         self.activity = self.create_pipeline_object(
             object_class=EmrActivity,
             resource=self.resource,
+            worker_group=self.worker_group,
             input_node=self.input,
             schedule=self.schedule,
             emr_step_string=step_string,
@@ -43,7 +45,7 @@ class EMRJobStep(ETLStep):
             etl(ETLPipeline): Pipeline object containing resources and steps
             step_args(dict): Dictionary of the step arguments for the class
         """
-        step_args = cls.base_arguments_processor(etl, input_args)
-        step_args['resource'] = etl.emr_cluster
+        step_args = cls.base_arguments_processor(
+            etl, input_args, resource_type=const.EMR_CLUSTER_STR)
 
         return step_args

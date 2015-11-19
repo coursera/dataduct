@@ -20,10 +20,11 @@ class SqlActivity(Activity):
 
     def __init__(self,
                  id,
-                 resource,
                  schedule,
                  script,
                  database,
+                 resource=None,
+                 worker_group=None,
                  script_arguments=None,
                  queue=None,
                  max_retries=None,
@@ -32,11 +33,11 @@ class SqlActivity(Activity):
 
         Args:
             id(str): id of the object
-            resource(Ec2Resource / EMRResource): resource to run the activity on
             schedule(Schedule): schedule of the pipeline
             script(S3File): s3 uri of the script
-            script_arguments(list of str): command line arguments to the script
             database(RedshiftDatabase): database to execute commands on
+            resource(Ec2Resource / EMRResource): resource to run the activity on
+            worker_group(str): the worker group to run the activity on
             queue(str): queue in which the query should be executed
             max_retries(int): number of retries for the activity
             depends_on(list of activities): dependendent pipelines steps
@@ -63,6 +64,7 @@ class SqlActivity(Activity):
             maximumRetries=max_retries,
             dependsOn=depends_on,
             runsOn=resource,
+            workerGroup=worker_group,
             schedule=schedule,
             scriptUri=script,
             scriptArgument=script_arguments,

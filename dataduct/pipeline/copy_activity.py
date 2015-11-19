@@ -22,8 +22,9 @@ class CopyActivity(Activity):
                  id,
                  input_node,
                  output_node,
-                 resource,
                  schedule,
+                 resource=None,
+                 worker_group=None,
                  max_retries=None,
                  depends_on=None,
                  **kwargs):
@@ -33,8 +34,9 @@ class CopyActivity(Activity):
             id(str): id of the object
             input_node(S3Node / list of S3Nodes): input nodes for the activity
             output_node(S3Node / list of S3Nodes): output nodes for activity
-            resource(Ec2Resource / EmrResource): resource to run the activity on
             schedule(Schedule): schedule of the pipeline
+            resource(Ec2Resource / EmrResource): resource to run the activity on
+            worker_group(str): the worker group to run the activity on
             max_retries(int): number of retries for the activity
             depends_on(list of activities): dependendent pipelines steps
             **kwargs(optional): Keyword arguments directly passed to base class
@@ -60,5 +62,6 @@ class CopyActivity(Activity):
             input=input_node,
             output=output_node,
             runsOn=resource,
+            workerGroup=worker_group,
             schedule=schedule,
         )

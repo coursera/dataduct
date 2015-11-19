@@ -103,6 +103,11 @@ executed.
 EC2
 ~~~
 
+Either Datapipeline can be used for instance management, or you can use an existing
+Worker Group. Worker groups have priority over Datapipeline instance management.
+
+Using Datapipeline for instance management:
+
 ::
 
     ec2:
@@ -114,8 +119,20 @@ The ec2 config controls the configuration for the ec2-resource started
 by the datapipeline. You can override these with ``ec2_resouce_config``
 in your pipeline definition for specific pipelines.
 
+Using Worker Groups:
+
+::
+
+    ec2:
+        WORKER_GROUP: MY_EC2_WORKER_GROUP_NAME
+
 EMR
 ~~~
+
+Either Datapipeline can be used for cluster management, or you can use an existing
+Worker Group. Worker groups have priority over Datapipeline cluster management.
+
+Using Datapipeline for cluster management:
 
 ::
 
@@ -133,6 +150,13 @@ EMR
 
 The emr config controls the configuration for the emr-resource started
 by the datapipeline.
+
+Using Worker Groups:
+
+::
+
+    emr:
+        WORKER_GROUP: MY_EMR_WORKER_GROUP_NAME
 
 ETL
 ~~~

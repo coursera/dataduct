@@ -55,6 +55,7 @@ class LoadRedshiftStep(ETLStep):
             output_node=self.output,
             insert_mode=insert_mode,
             resource=self.resource,
+            worker_group=self.worker_group,
             schedule=self.schedule,
             depends_on=self.depends_on,
             command_options=command_options,
@@ -70,6 +71,5 @@ class LoadRedshiftStep(ETLStep):
         """
         step_args = cls.base_arguments_processor(etl, input_args)
         step_args['redshift_database'] = etl.redshift_database
-        step_args['resource'] = etl.ec2_resource
 
         return step_args
