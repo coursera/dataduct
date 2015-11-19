@@ -1,22 +1,20 @@
 """ETL step wrapper for loading into redshift with the COPY command
 """
-import os
-
 from ..config import Config
-from ..database import Table
-from ..database import SqlStatement
 from ..database import SqlScript
-from .etl_step import ETLStep
+from ..database import SqlStatement
+from ..database import Table
 from ..pipeline import ShellCommandActivity
-from ..s3 import S3File
 from ..utils import constants as const
 from ..utils.helpers import parse_path
+from .etl_step import ETLStep
 
 config = Config()
 
 
 class LoadReloadAndPrimaryKeyStep(ETLStep):
-    """LoadReloadAndPrimaryKeyStep Step class that creates table if needed and loads data
+    """LoadReloadAndPrimaryKeyStep Step class that creates table if needed
+       and loads data
     """
 
     def __init__(self, id, input_node, staging_table_definition,
@@ -51,7 +49,7 @@ class LoadReloadAndPrimaryKeyStep(ETLStep):
             non_transactional=non_transactional
         )
 
-        primary_key_check_object = self.primary_key_check(
+        self.primary_key_check(
             table_definition=production_table_definition,
             pipeline_name=pipeline_name,
             depends_on=[reload_pipeline_object],
@@ -68,12 +66,9 @@ class LoadReloadAndPrimaryKeyStep(ETLStep):
         if log_to_s3:
             script_arguments.append('--log_to_s3')
 
-        steps_path = os.path.abspath(os.path.dirname(__file__))
-        script = os.path.join(steps_path, const.PK_CHECK_SCRIPT_PATH)
-        script = self.create_script(S3File(path=script))
-
         step_name = self.get_name("primary_key_check")
-        script_arguments.append('--test_name=%s' % (pipeline_name + "." + step_name))
+        script_arguments.append(
+            '--test_name=%s' % (pipeline_name + "." + step_name))
 
         sns_topic_arn = config.etl.get('SNS_TOPIC_ARN_WARNING', None)
         if sns_topic_arn:
@@ -87,7 +82,7 @@ class LoadReloadAndPrimaryKeyStep(ETLStep):
             resource=self.resource,
             worker_group=self.worker_group,
             schedule=self.schedule,
-            script_uri=script,
+            command=const.PK_CHECK_COMMAND,
             script_arguments=script_arguments,
             max_retries=self.max_retries,
             depends_on=depends_on
@@ -120,10 +115,6 @@ class LoadReloadAndPrimaryKeyStep(ETLStep):
         if non_transactional:
             script_arguments.append('--non_transactional')
 
-        steps_path = os.path.abspath(os.path.dirname(__file__))
-        script = os.path.join(steps_path, const.SQL_RUNNER_SCRIPT_PATH)
-        script = self.create_script(S3File(path=script))
-
         reload_pipeline_object = self.create_pipeline_object(
             object_class=ShellCommandActivity,
             object_name=self.get_name("reload"),
@@ -132,13 +123,12 @@ class LoadReloadAndPrimaryKeyStep(ETLStep):
             resource=self.resource,
             worker_group=self.worker_group,
             schedule=self.schedule,
-            script_uri=script,
+            script_uri=const.SQL_RUNNER_COMMAND,
             script_arguments=script_arguments,
             max_retries=self.max_retries,
             depends_on=depends_on
         )
         return reload_pipeline_object
-
 
     def create_and_load_redshift(self, table_definition,
                                  input_node, script_arguments):
@@ -157,10 +147,6 @@ class LoadReloadAndPrimaryKeyStep(ETLStep):
         ])
         script_arguments.extend(input_paths)
 
-        steps_path = os.path.abspath(os.path.dirname(__file__))
-        script = os.path.join(steps_path, const.CREATE_LOAD_SCRIPT_PATH)
-        script = self.create_script(S3File(path=script))
-
         create_and_load_pipeline_object = self.create_pipeline_object(
             object_class=ShellCommandActivity,
             object_name=self.get_name("create_and_load"),
@@ -169,13 +155,12 @@ class LoadReloadAndPrimaryKeyStep(ETLStep):
             resource=self.resource,
             worker_group=self.worker_group,
             schedule=self.schedule,
-            script_uri=script,
+            command=const.LOAD_COMMAND,
             script_arguments=script_arguments,
             max_retries=self.max_retries,
             depends_on=self.depends_on
         )
         return create_and_load_pipeline_object
-
 
     @classmethod
     def get_table_from_def(cls, table_definition):
@@ -184,7 +169,6 @@ class LoadReloadAndPrimaryKeyStep(ETLStep):
 
         table = Table(SqlStatement(table_def_string))
         return table
-
 
     @classmethod
     def arguments_processor(cls, etl, input_args):
