@@ -1,9 +1,9 @@
 """
 ETL step wrapper for creating an S3 node for input from local files
 """
-from .etl_step import ETLStep
 from ..s3 import S3File
 from ..utils.exceptions import ETLInputError
+from .etl_step import ETLStep
 
 
 class ExtractLocalStep(ETLStep):
@@ -32,7 +32,8 @@ class ExtractLocalStep(ETLStep):
         input_args = cls.pop_inputs(input_args)
         step_args = cls.base_arguments_processor(etl, input_args)
 
-        step_args.pop('resource')
+        step_args.pop('resource', None)
+        step_args.pop('worker_group', None)
         if etl.frequency != 'one-time':
             raise ETLInputError(
                 'Extract Local can be used for one-time pipelines only')
