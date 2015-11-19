@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """Script that checks if the rows of the destination table has been populated
 with the correct values
 """
@@ -17,7 +15,7 @@ pandas.options.display.max_colwidth = 1000
 pandas.options.display.max_rows = 1000
 
 
-def _get_source_data(sql, hostname, sample_size):
+def get_source_data(sql, hostname, sample_size):
     """Gets the DataFrame containing all the rows of the table
     The DataFrame will be indexed by the table's primary key(s)
 
@@ -41,7 +39,7 @@ def _get_source_data(sql, hostname, sample_size):
     return data.set_index(list(data.columns[:-1]))
 
 
-def _get_destination_data(sql, primary_keys):
+def get_destination_data(sql, primary_keys):
     """Gets the DataFrame containing all the rows of the table
     The DataFrame will be indexed by the table's primary key(s)
 
@@ -87,10 +85,8 @@ def _get_destination_data(sql, primary_keys):
     return data.set_index(list(data.columns[:-1]))
 
 
-def main():
-    """Main function
-
-    Args (taken in through argparse):
+def column_check():
+    """Args (taken in through argparse):
         source_sql: SQL script of the source data
         destination_sql: SQL script of the destination data
     """
@@ -112,11 +108,11 @@ def main():
     args = parser.parse_args()
 
     # Open up a connection and read the source and destination tables
-    source_data = _get_source_data(args.source_sql, args.source_host,
+    source_data = get_source_data(args.source_sql, args.source_host,
                                    args.sample_size)
     print source_data.to_string().encode('utf-8')
 
-    destination_data = _get_destination_data(args.destination_sql,
+    destination_data = get_destination_data(args.destination_sql,
                                              list(source_data.index))
     print destination_data.to_string().encode('utf-8')
 
@@ -127,7 +123,3 @@ def main():
 
     check.publish(args.log_to_s3, dest_sql=args.destination_sql,
                   path_suffix=args.path_suffix)
-
-
-if __name__ == '__main__':
-    main()

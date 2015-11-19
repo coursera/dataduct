@@ -62,6 +62,7 @@ class SqlCommandStep(ETLStep):
             object_class=SqlActivity,
             max_retries=self.max_retries,
             resource=self.resource,
+            worker_group=self.worker_group,
             schedule=self.schedule,
             database=redshift_database,
             script_arguments=script_arguments,
@@ -81,5 +82,5 @@ class SqlCommandStep(ETLStep):
         input_args = cls.pop_inputs(input_args)
         step_args = cls.base_arguments_processor(etl, input_args)
         step_args['redshift_database'] = etl.redshift_database
-        step_args['resource'] = etl.ec2_resource
+
         return step_args

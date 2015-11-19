@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """Script that compares the number of rows in the source select script with the
 number of rows in the destination table
 """
@@ -46,10 +44,8 @@ def _get_destination_data(sql):
     return data.iloc[0][0]
 
 
-def main():
-    """Main function
-
-    Args (taken in through argparse):
+def count_check():
+    """Args (taken in through argparse):
         source_sql: SQL script of the source data
         destination_sql: SQL script of the destination data
     """
@@ -79,7 +75,3 @@ def main():
 
     check.publish(args.log_to_s3, dest_sql=args.destination_sql,
                   path_suffix=args.path_suffix)
-
-
-if __name__ == '__main__':
-    main()

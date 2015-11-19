@@ -146,3 +146,39 @@ Arguments:
 -  ``-h, --help``: Show help message and exit.
 -  ``-m MODE, --mode MODE``: Mode or config variables to use. e.g. ``-m production``
 -  ``filename``: The filename for saving the config file.
+
+SQL Shell Commands
+----------------------
+
+Commands used to connect to either MySQL or Redshift via the terminal.
+
+MySQL
+^^^^^^^^^^
+Connects to a MySQL database using a host alias.
+
+Usage:
+
+::
+
+    dataduct sql_shell mysql [-h] [-m MODE] host_alias
+
+Arguments:
+
+-  ``-h, --help``: Show help message and exit.
+-  ``-m MODE, --mode MODE``: Mode or config variables to use. e.g. ``-m production``
+-  ``host_alias``: The host alias of the database to connect to.
+
+Redshift
+^^^^^^^^^^
+Connects to the Redshift database specified in Dataduct configs.
+
+Usage:
+
+::
+
+    dataduct sql_shell redshift [-h] [-m MODE]
+
+Arguments:
+
+-  ``-h, --help``: Show help message and exit.
+-  ``-m MODE, --mode MODE``: Mode or config variables to use. e.g. ``-m production``

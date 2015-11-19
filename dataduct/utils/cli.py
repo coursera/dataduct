@@ -71,6 +71,23 @@ class DataductHelpAction(argparse._HelpAction):
         parser.exit()
 
 
+def open_sql_shell(database_type, host_alias=None, **kwargs):
+    """Opens a sql shell for MySQL or Redshift
+    """
+
+    # late import because we need the Singleton config to be loaded in
+    # the dataduct main
+    from dataduct.data_access import open_shell
+    from dataduct.config import Config
+    config = Config()
+    if database_type == 'redshift':
+        open_shell.open_psql_shell()
+    else:
+        assert config.mysql.get(host_alias), \
+            'host_alias "{}" does not exist in config'.format(host_alias)
+        open_shell.open_mysql_shell(sql_creds=config.mysql[host_alias])
+
+
 # Change the width of the output format
 formatter_class = lambda prog: RawTextHelpFormatter(prog, max_help_position=50)
 
@@ -203,4 +220,15 @@ s3_path_parser = ArgumentParser(
 s3_path_parser.add_argument(
     dest='s3_path',
     help='S3 Path',
+)
+
+# database parser
+host_alias_help = 'MySQL Host Alias'
+host_alias_parser = ArgumentParser(
+    description=host_alias_help,
+    add_help=False,
+)
+host_alias_parser.add_argument(
+    dest='host_alias',
+    help='MySQL Host Alias'
 )

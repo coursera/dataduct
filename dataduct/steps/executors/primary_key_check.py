@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """Script that checks for primary key violations on the input table
 """
 
@@ -11,9 +9,7 @@ from dataduct.database import Table
 from dataduct.qa import PrimaryKeyCheck
 
 
-def main():
-    """Main function
-    """
+def primary_key_check():
     parser = argparse.ArgumentParser()
 
     parser.add_argument('--table', dest='table', required=True)
@@ -33,7 +29,3 @@ def main():
     check.publish(args.log_to_s3, table=table.full_name,
                   path_suffix=args.path_suffix)
     connection.close()
-
-
-if __name__ == '__main__':
-    main()

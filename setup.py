@@ -21,14 +21,13 @@ setup(
     description='DataPipeline for Humans',
     install_requires=[
         'boto>=2.38',
-        'PyYAML',
-        'pandas',
-        'psycopg2',
-        'pytimeparse',
-        'MySQL-python',
-        'pyparsing',
-        'testfixtures',
-        'sphinx_rtd_theme'
+        'MySQL-python>=1.2.3',
+        'pandas>=0.14',
+        'psycopg2>=2.6',
+        'pyparsing>=1.5.6',
+        'pytimeparse>=1.1.4',
+        'PyYAML>=3.11',
+        'testfixtures>=4.1.2'
     ],
     scripts=['bin/dataduct'],
     classifiers=[

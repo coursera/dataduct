@@ -1,11 +1,9 @@
 """
 ETL step for pipeline dependencies using transform step
 """
-import os
-
-from .transform import TransformStep
-from ..utils import constants as const
 from ..config import Config
+from ..utils import constants as const
+from .transform import TransformStep
 
 config = Config()
 NAME_PREFIX = config.etl.get('NAME_PREFIX', '')
@@ -38,15 +36,18 @@ class PipelineDependenciesStep(TransformStep):
         if script_arguments is None:
             script_arguments = list()
 
-        if dependent_pipelines is None and dependent_pipelines_ok_to_fail is None:
+        if (dependent_pipelines is None and
+                dependent_pipelines_ok_to_fail is None):
             raise ValueError('Must have some dependencies for dependency step')
+
+        prefix_func = lambda p: p if not NAME_PREFIX else NAME_PREFIX + '_' + p
+        argument_func = lambda x: [prefix_func(p) for p in x]
 
         if DEPENDENCY_OVERRIDE:
             command = 'ls'
-            script = None
             script_arguments = None
         else:
-            command = None
+            command = const.DEPENDENCY_COMMAND
             if start_date is None:
                 start_date = "#{format(@scheduledStartTime,'YYYY-MM-dd')}"
 
@@ -61,24 +62,15 @@ class PipelineDependenciesStep(TransformStep):
 
             if dependent_pipelines:
                 script_arguments.append('--dependencies')
-                script_arguments.extend([
-                    pipeline if not NAME_PREFIX else NAME_PREFIX + '_' + pipeline
-                    for pipeline in dependent_pipelines
-                ])
+                script_arguments.extend(argument_func(dependent_pipelines))
 
             if dependent_pipelines_ok_to_fail:
                 script_arguments.append('--dependencies_ok_to_fail')
-                script_arguments.extend([
-                    pipeline if not NAME_PREFIX else NAME_PREFIX + '_' + pipeline
-                    for pipeline in dependent_pipelines_ok_to_fail
-                ])
-
-            steps_path = os.path.abspath(os.path.dirname(__file__))
-            script = os.path.join(steps_path, const.DEPENDENCY_SCRIPT_PATH)
+                script_arguments.extend(
+                    argument_func(dependent_pipelines_ok_to_fail))
 
         super(PipelineDependenciesStep, self).__init__(
             id=id,
-            script=script,
             command=command,
             script_arguments=script_arguments,
             no_output=True,
@@ -96,7 +88,6 @@ class PipelineDependenciesStep(TransformStep):
         """
         input_args = cls.pop_inputs(input_args)
         step_args = cls.base_arguments_processor(etl, input_args)
-        step_args['resource'] = etl.ec2_resource
         step_args['pipeline_name'] = etl.name
 
         return step_args

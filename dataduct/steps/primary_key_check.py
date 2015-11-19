@@ -1,14 +1,12 @@
 """
 ETL step wrapper for PK check step can be executed on Ec2 resource
 """
-import os
-
-from .qa_transform import QATransformStep
-from ..database import Table
-from ..database import SqlStatement
 from ..config import Config
+from ..database import SqlStatement
+from ..database import Table
 from ..utils import constants as const
 from ..utils.helpers import parse_path
+from .qa_transform import QATransformStep
 
 config = Config()
 
@@ -38,8 +36,6 @@ class PrimaryKeyCheckStep(QATransformStep):
         if log_to_s3:
             script_arguments.append('--log_to_s3')
 
-        steps_path = os.path.abspath(os.path.dirname(__file__))
-        script = os.path.join(steps_path, const.PK_CHECK_SCRIPT_PATH)
-
         super(PrimaryKeyCheckStep, self).__init__(
-            id=id, script=script, script_arguments=script_arguments, **kwargs)
+            id=id, command=const.PK_CHECK_COMMAND,
+            script_arguments=script_arguments, **kwargs)

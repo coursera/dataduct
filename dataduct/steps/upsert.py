@@ -1,12 +1,12 @@
 """ETL step wrapper for Upsert SQL script
 """
-from .create_update_sql import CreateUpdateSqlStep
-from ..database import Table
-from ..database import SqlScript
-from ..database import SelectStatement
 from ..database import HistoryTable
-from ..utils.helpers import parse_path
+from ..database import SelectStatement
+from ..database import SqlScript
+from ..database import Table
 from ..utils.helpers import exactly_one
+from ..utils.helpers import parse_path
+from .create_update_sql import CreateUpdateSqlStep
 
 
 class UpsertStep(CreateUpdateSqlStep):
@@ -21,6 +21,7 @@ class UpsertStep(CreateUpdateSqlStep):
         Args:
             **kwargs(optional): Keyword arguments directly passed to base class
         """
+        self.s3_source_dir = kwargs['s3_source_dir']
         assert exactly_one(sql, source, script), 'One of sql/source/script'
 
         # Input formatting

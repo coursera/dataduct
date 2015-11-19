@@ -1,16 +1,14 @@
 """ETL step wrapper for column check step can be executed on Ec2 resource
 """
-import os
-
-from .qa_transform import QATransformStep
 from ..config import Config
+from ..database import SelectStatement
 from ..database import SqlScript
 from ..database import Table
-from ..database import SelectStatement
 from ..utils import constants as const
-from ..utils.helpers import parse_path
-from ..utils.helpers import exactly_one
 from ..utils.exceptions import ETLInputError
+from ..utils.helpers import exactly_one
+from ..utils.helpers import parse_path
+from .qa_transform import QATransformStep
 
 config = Config()
 COLUMN_TEMPLATE = "COALESCE(CONCAT({column_name}, ''), '')"
@@ -62,12 +60,11 @@ class ColumnCheckStep(QATransformStep):
         if log_to_s3:
             script_arguments.append('--log_to_s3')
 
-        if script is None:
-            steps_path = os.path.abspath(os.path.dirname(__file__))
-            script = os.path.join(steps_path, const.COLUMN_CHECK_SCRIPT_PATH)
+        command = None if script else const.COLUMN_CHECK_COMMAND
 
         super(ColumnCheckStep, self).__init__(
-            id=id, script=script, script_arguments=script_arguments, **kwargs)
+            id=id, script=script, command=command,
+            script_arguments=script_arguments, **kwargs)
 
     @staticmethod
     def convert_destination_to_column_sql(destination_table_definition=None,
@@ -94,11 +91,11 @@ class ColumnCheckStep(QATransformStep):
             concatenated_column = '( {columns} )'.format(columns=column_string)
 
             destination_sql = '''SELECT {primary_keys}, {concat_column}
-                                 FROM {table_name}
-                                 WHERE ({primary_keys}) IN PRIMARY_KEY_SET
-                              '''.format(primary_keys=','.join(primary_keys),
-                                         concat_column=concatenated_column,
-                                         table_name=destination_table.full_name)
+                 FROM {table_name}
+                 WHERE ({primary_keys}) IN PRIMARY_KEY_SET
+            '''.format(primary_keys=','.join(primary_keys),
+                       concat_column=concatenated_column,
+                       table_name=destination_table.full_name)
 
         elif destination_sql is not None:
             select_stmnt = SelectStatement(destination_sql)

@@ -3,8 +3,8 @@ Pipeline object class for sns
 """
 
 from ..config import Config
-from .pipeline_object import PipelineObject
 from ..utils import constants as const
+from .pipeline_object import PipelineObject
 
 config = Config()
 SNS_TOPIC_ARN_FAILURE = config.etl.get('SNS_TOPIC_ARN_FAILURE', const.NONE)
@@ -42,6 +42,8 @@ class SNSAlarm(PipelineObject):
                 'Error Stack Trace: #{node.errorStackTrace}'
             ])
 
+        subject = 'Data Pipeline %s failed' % pipeline_name
+
         if topic_arn is None:
             topic_arn = SNS_TOPIC_ARN_FAILURE
 
@@ -50,6 +52,6 @@ class SNSAlarm(PipelineObject):
             type='SnsAlarm',
             topicArn=topic_arn,
             role=ROLE,
-            subject='Data Pipeline Failure',
+            subject=subject,
             message=failure_message,
         )

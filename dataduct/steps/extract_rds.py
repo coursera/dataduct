@@ -76,6 +76,7 @@ class ExtractRdsStep(ETLStep):
             object_class=CopyActivity,
             schedule=self.schedule,
             resource=self.resource,
+            worker_group=self.worker_group,
             input_node=input_node,
             output_node=intermediate_node,
             depends_on=self.depends_on,
@@ -101,6 +102,7 @@ class ExtractRdsStep(ETLStep):
             command=command,
             max_retries=self.max_retries,
             resource=self.resource,
+            worker_group=self.worker_group,
             schedule=self.schedule,
         )
 
@@ -114,6 +116,5 @@ class ExtractRdsStep(ETLStep):
         """
         input_args = cls.pop_inputs(input_args)
         step_args = cls.base_arguments_processor(etl, input_args)
-        step_args['resource'] = etl.ec2_resource
 
         return step_args

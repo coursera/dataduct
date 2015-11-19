@@ -1,16 +1,14 @@
 """ETL step wrapper for count check step can be executed on the Ec2 resource
 """
-import os
-
-from .qa_transform import QATransformStep
 from ..config import Config
 from ..database import SqlScript
 from ..database import SqlStatement
 from ..database import Table
 from ..utils import constants as const
+from ..utils.exceptions import ETLInputError
 from ..utils.helpers import exactly_one
 from ..utils.helpers import parse_path
-from ..utils.exceptions import ETLInputError
+from .qa_transform import QATransformStep
 
 config = Config()
 
@@ -20,10 +18,11 @@ class CountCheckStep(QATransformStep):
        select script with the number of rows in the destination table
     """
 
-    def __init__(self, id, source_host, source_sql=None, source_table_name=None,
-                 destination_table_name=None, destination_table_definition=None,
-                 destination_sql=None, tolerance=1.0, script_arguments=None,
-                 log_to_s3=False, script=None, source_count_sql=None, **kwargs):
+    def __init__(self, id, source_host, source_sql=None,
+                 source_table_name=None, destination_table_name=None,
+                 destination_table_definition=None, destination_sql=None,
+                 tolerance=1.0, script_arguments=None, log_to_s3=False,
+                 script=None, source_count_sql=None, **kwargs):
         """Constructor for the CountCheckStep class
 
         Args:
@@ -38,8 +37,8 @@ class CountCheckStep(QATransformStep):
                 'One of dest table name/schema or dest sql needed')
 
         if not exactly_one(source_sql, source_table_name, source_count_sql):
-            raise ETLInputError(
-                'One of source table name or source sql or source count needed')
+            raise ETLInputError('One of source table name or source sql ' +
+                                'or source count needed')
 
         if script_arguments is None:
             script_arguments = list()
@@ -67,20 +66,19 @@ class CountCheckStep(QATransformStep):
         if log_to_s3:
             script_arguments.append('--log_to_s3')
 
-        if script is None:
-            steps_path = os.path.abspath(os.path.dirname(__file__))
-            script = os.path.join(steps_path, const.COUNT_CHECK_SCRIPT_PATH)
+        command = None if script else const.COUNT_CHECK_COMMAND
 
         super(CountCheckStep, self).__init__(
-            id=id, script=script, script_arguments=script_arguments, **kwargs)
+            id=id, command=command, script=script,
+            script_arguments=script_arguments, **kwargs)
 
     @staticmethod
-    def convert_destination_to_count_sql(destination_table_name=None,
+    def convert_destination_to_count_sql(destination_table=None,
                                          destination_sql=None):
         """Convert the destination query into generic structure to compare
         """
-        if destination_table_name is not None:
-            destination_sql = "SELECT COUNT(1) FROM %s" % destination_table_name
+        if destination_table is not None:
+            destination_sql = "SELECT COUNT(1) FROM %s" % destination_table
         else:
             dest_sql = SqlStatement(destination_sql)
             destination_sql = "SELECT COUNT(1) FROM (%s)a" % dest_sql.sql()

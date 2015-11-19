@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 Allows pipeline to have dependencies with other pipelines
 
@@ -98,10 +97,7 @@ def check_dependencies_ready(dependencies, start_date, dependencies_to_ignore):
     return dependency_ready, failures
 
 
-def main():
-    """
-    Main Function
-    """
+def dependency_check():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         '--dependencies', type=str, nargs='+', default=[])
@@ -144,11 +140,11 @@ def main():
     failures = []
     dependencies_ready = False
 
-    # Loop until all dependent pipelines have finished or failed    
+    # Loop until all dependent pipelines have finished or failed
     while not dependencies_ready:
         print 'checking'
         time.sleep(float(args.refresh_rate))
-        dependencies_ready, new_failures = check_dependencies_ready(dependencies, 
+        dependencies_ready, new_failures = check_dependencies_ready(dependencies,
                                                         args.start_date,
                                                         dependencies_to_ignore)
         failures.extend(new_failures)
@@ -164,7 +160,3 @@ def main():
 
     print 'Finished checking for dependencies. Total time spent: ',
     print (datetime.now() - start_time).total_seconds(), ' seconds'
-
-
-if __name__ == '__main__':
-    main()
