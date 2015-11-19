@@ -1,5 +1,25 @@
 # Changes in dataduct
 
+### 0.4.0
+- Support for starting database shell from dataduct cli
+- Fix bug in logger configuration
+- More performance tuning for analyze and vacumm
+- Improved subject line for SNS messages
+- More informed logging for load errors
+- Improvements to decorators
+- PK enforcement changes
+- New load-reload-pk step
+- Support for worker groups
+- Steps to move away from scripts to all code being contained in the library
+
+### 0.3.0
+- More documentation
+- Bug fixes in SQL parser
+- Hooks framework
+- Default bootstrap
+- Teardown
+- Frequency fixes
+
 ### 0.2.0
 - Travis integration for continous builds
 - QA steps and logging to S3
