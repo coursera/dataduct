@@ -1,7 +1,5 @@
 """ETL step wrapper for sql command for inserting into tables
 """
-import os
-
 from ..database import SqlScript
 from ..database import Table
 from ..s3 import S3File
@@ -44,9 +42,6 @@ class CreateUpdateSqlStep(TransformStep):
 
         dest = Table(SqlScript(filename=parse_path(table_definition)))
 
-        steps_path = os.path.abspath(os.path.dirname(__file__))
-        runner_script = os.path.join(steps_path, const.SQL_RUNNER_SCRIPT_PATH)
-
         arguments = [
             '--table_definition=%s' % dest.sql().sql(),
             '--sql=%s' % sql_script.s3_path.uri
@@ -65,7 +60,7 @@ class CreateUpdateSqlStep(TransformStep):
             arguments.extend(script_arguments)
 
         super(CreateUpdateSqlStep, self).__init__(
-            script=runner_script, script_arguments=arguments,
+            command=const.SQL_RUNNER_COMMAND, script_arguments=arguments,
             no_output=True, **kwargs)
 
     @classmethod

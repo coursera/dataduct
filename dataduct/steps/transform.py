@@ -1,17 +1,15 @@
 """
 ETL step wrapper for shell command activity can be executed on Ec2 / EMR
 """
-import os
-
-from .etl_step import ETLStep
-from ..pipeline import ShellCommandActivity
 from ..pipeline import S3Node
-from ..s3 import S3File
+from ..pipeline import ShellCommandActivity
 from ..s3 import S3Directory
+from ..s3 import S3File
+from ..utils import constants as const
+from ..utils.exceptions import ETLInputError
 from ..utils.helpers import exactly_one
 from ..utils.helpers import get_modified_s3_path
-from ..utils.exceptions import ETLInputError
-from ..utils import constants as const
+from .etl_step import ETLStep
 
 import logging
 logger = logging.getLogger(__name__)
@@ -92,9 +90,7 @@ class TransformStep(ETLStep):
                                '--SCRIPT_NAME=%s' % script_name]
 
             script_arguments = additional_args + script_arguments
-
-            steps_path = os.path.abspath(os.path.dirname(__file__))
-            script = os.path.join(steps_path, const.SCRIPT_RUNNER_PATH)
+            command = const.SCRIPT_RUNNER_COMMAND
 
         # Create S3File if script path provided
         if script:
