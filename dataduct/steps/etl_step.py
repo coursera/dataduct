@@ -402,17 +402,17 @@ class ETLStep(object):
             resource_type(str): either const.EMR_CLUSTER_STR
                 or const.EC2_RESOURCE_STR
         """
-        assert (resource_type in [const.EMR_CLUSTER_STR,
-                                  const.EC2_RESOURCE_STR],
-                'resource type must be one of %s or %s' %
-                (const.EC2_RESOURCE_STR, const.EMR_CLUSTER_STR))
+        assert resource_type in [const.EMR_CLUSTER_STR,
+                                  const.EC2_RESOURCE_STR],\
+            'resource type must be one of %s or %s' %\
+            (const.EC2_RESOURCE_STR, const.EMR_CLUSTER_STR)
         resource_or_worker_group = {}
         if resource_type == const.EMR_CLUSTER_STR:
             worker_group = config.emr.get('WORKER_GROUP', None)
             if worker_group:
                 resource_or_worker_group['worker_group'] = worker_group
             else:
-                resource_or_worker_group['resource'] = etl.emr
+                resource_or_worker_group['resource'] = etl.emr_cluster
         else:
             worker_group = config.ec2.get('WORKER_GROUP', None)
             if worker_group:
