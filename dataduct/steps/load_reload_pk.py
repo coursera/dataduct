@@ -123,7 +123,7 @@ class LoadReloadAndPrimaryKeyStep(ETLStep):
             resource=self.resource,
             worker_group=self.worker_group,
             schedule=self.schedule,
-            script_uri=const.SQL_RUNNER_COMMAND,
+            command=const.SQL_RUNNER_COMMAND,
             script_arguments=script_arguments,
             max_retries=self.max_retries,
             depends_on=depends_on
