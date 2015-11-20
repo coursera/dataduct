@@ -6,9 +6,13 @@ import os
 import glob
 import subprocess
 import time
+import uuid
 
 from ..utils.exceptions import ETLInputError
 from .s3_path import S3Path
+
+import logging
+logger = logging.getLogger(__name__)
 
 # 5MB
 CHUNK_SIZE = 5242880
@@ -131,16 +135,21 @@ def upload_dir_to_s3(s3_path, local_path, filter_function=None):
         directory = '/tmp/multipart_upload_{}'.format(username)
         if not os.path.exists(directory):
             os.makedirs(directory)
-        prefix = os.path.join(directory, 'tmp_upload')
+
+        uuid_string = str(uuid.uuid1())
+        prefix = os.path.join(directory, 'tmp_upload_{}'.format(uuid_string))
+
         # split file into parts
-        split = \
-            ["split", "-b%s" % CHUNK_SIZE, local_file_path, prefix]
+        split = ["split",
+                 "-b%s" % CHUNK_SIZE,
+                 local_file_path,
+                 prefix]
         subprocess.check_call(split)
         files = glob.glob('{}*'.format(prefix))
 
         try:
             mpu = bucket.initiate_multipart_upload(key_string)
-            print 'Multipart uploading into {} ...'.format(key_string)
+            logger.info('Multipart uploading into {} ...'.format(key_string))
             start_time = time.time()
             for i, file_part in enumerate(files):
                 with open(file_part, 'r') as part:
@@ -149,14 +158,15 @@ def upload_dir_to_s3(s3_path, local_path, filter_function=None):
             # check all parts are uploaded
             assert len(mpu.get_all_parts()) == len(files)
             time_span = round(time.time() - start_time, 2)
-            print 'Upload takes {} seconds'.format(time_span)
+            logger.info('Upload takes {} seconds'.format(time_span))
             mpu.complete_upload()
         except KeyboardInterrupt:
-            print 'Received KeyboardInterrupt, canceling multipart upload'
+            logger.error(
+                'Received KeyboardInterrupt, canceling multipart upload')
             mpu.cancel_upload()
         except Exception, err:
-            print err
-            print 'Canceling multipart upload'
+            logger.error(err)
+            logger.error('Canceling multipart upload')
             mpu.cancel_upload()
 
     if not isinstance(s3_path, S3Path):
