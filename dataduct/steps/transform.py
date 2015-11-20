@@ -5,6 +5,7 @@ from ..pipeline import S3Node
 from ..pipeline import ShellCommandActivity
 from ..s3 import S3Directory
 from ..s3 import S3File
+from ..s3 import S3Path
 from ..utils import constants as const
 from ..utils.exceptions import ETLInputError
 from ..utils.helpers import exactly_one
@@ -25,6 +26,7 @@ class TransformStep(ETLStep):
     def __init__(self,
                  command=None,
                  script=None,
+                 script_uri=None,
                  script_directory=None,
                  script_name=None,
                  script_arguments=None,
@@ -51,9 +53,9 @@ class TransformStep(ETLStep):
         """
         super(TransformStep, self).__init__(**kwargs)
 
-        if not exactly_one(command, script, script_directory):
-            raise ETLInputError(
-                'Only one of script, command and directory allowed')
+        if not exactly_one(command, script, script_uri, script_directory):
+            raise ETLInputError('Only one of script, script_uri, command' +
+                                ' and directory allowed')
 
         # Create output_node based on output_path
         base_output_node = self.create_s3_data_node(
@@ -95,6 +97,8 @@ class TransformStep(ETLStep):
         # Create S3File if script path provided
         if script:
             script = self.create_script(S3File(path=script))
+        elif script_uri:
+            script = S3File(s3_path=S3Path(uri=script_uri))
 
         # Translate output nodes if output path is provided
         if output_node:
