@@ -126,11 +126,13 @@ def upload_dir_to_s3(s3_path, local_path, filter_function=None):
     def multipart_upload(key_string, local_file_path):
         import glob
         import subprocess
-
+        import time
         username = os.path.basename(os.path.expanduser('~'))
-        prefix = 'tmp_{}_upload'.format(username)
-
-        # split file to be uploaded into parts
+        directory = '/tmp/multipart_upload_{}'.format(username)
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+        prefix = os.path.join(directory, 'tmp_upload')
+        # split file into parts
         split = \
             ["split", "-b%s" % CHUNK_SIZE, local_file_path, prefix]
         subprocess.check_call(split)
@@ -139,12 +141,15 @@ def upload_dir_to_s3(s3_path, local_path, filter_function=None):
         try:
             mpu = bucket.initiate_multipart_upload(key_string)
             print 'Multipart uploading into {} ...'.format(key_string)
-            for i, part_file in enumerate(files):
-                with open(part_file, 'r') as part:
+            start_time = time.time()
+            for i, file_part in enumerate(files):
+                with open(file_part, 'r') as part:
                     mpu.upload_part_from_file(part, i+1)
-                os.remove(part_file)
+                os.remove(file_part)
             # check all parts are uploaded
             assert len(mpu.get_all_parts()) == len(files)
+            time_span = round(time.time() - start_time, 2)
+            print 'Upload takes {} seconds'.format(time_span)
             mpu.complete_upload()
         except KeyboardInterrupt:
             print 'Received KeyboardInterrupt, canceling multipart upload'
