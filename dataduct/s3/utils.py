@@ -3,9 +3,15 @@ Shared utility functions
 """
 import boto.s3
 import os
+import glob
+import subprocess
+import time
 
 from ..utils.exceptions import ETLInputError
 from .s3_path import S3Path
+
+# 5MB
+CHUNK_SIZE = 5242880
 
 
 def get_s3_bucket(bucket_name):
@@ -119,14 +125,8 @@ def upload_dir_to_s3(s3_path, local_path, filter_function=None):
         local_path(file_path): Input path of the file to be uploaded
         filter_function(function): Function to filter out directories
     """
-    # 5MB
-    CHUNK_SIZE = 5242880
-
 
     def multipart_upload(key_string, local_file_path):
-        import glob
-        import subprocess
-        import time
         username = os.path.basename(os.path.expanduser('~'))
         directory = '/tmp/multipart_upload_{}'.format(username)
         if not os.path.exists(directory):
