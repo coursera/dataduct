@@ -54,8 +54,8 @@ class TransformStep(ETLStep):
         super(TransformStep, self).__init__(**kwargs)
 
         if not exactly_one(command, script, script_uri, script_directory):
-            raise ETLInputError(
-                'Only one of script, command and directory allowed')
+            raise ETLInputError('Only one of script, script_uri, command' +
+                                ' and directory allowed')
 
         # Create output_node based on output_path
         base_output_node = self.create_s3_data_node(
