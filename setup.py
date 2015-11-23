@@ -25,6 +25,7 @@ setup(
         'pandas>=0.14',
         'psycopg2>=2.6',
         'pyparsing>=1.5.6',
+        'PyPrind>=2.9.3',
         'pytimeparse>=1.1.4',
         'PyYAML>=3.11',
         'testfixtures>=4.1.2'
