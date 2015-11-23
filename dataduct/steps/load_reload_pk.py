@@ -20,7 +20,8 @@ class LoadReloadAndPrimaryKeyStep(ETLStep):
     def __init__(self, id, input_node, staging_table_definition,
                  production_table_definition, pipeline_name,
                  script_arguments=None, analyze_table=True,
-                 non_transactional=False, log_to_s3=False, **kwargs):
+                 enforce_primary_key=True, non_transactional=False,
+                 log_to_s3=False, **kwargs):
         """Constructor for the LoadReloadAndPrimaryKeyStep class
 
         Args:
@@ -46,7 +47,8 @@ class LoadReloadAndPrimaryKeyStep(ETLStep):
             destination=production_table_definition,
             depends_on=[create_and_load_pipeline_object],
             analyze_table=analyze_table,
-            non_transactional=non_transactional
+            non_transactional=non_transactional,
+            enforce_primary_key=enforce_primary_key
         )
 
         self.primary_key_check(
@@ -90,7 +92,7 @@ class LoadReloadAndPrimaryKeyStep(ETLStep):
         return primary_key_check_pipeline_object
 
     def reload(self, source, destination, depends_on,
-               analyze_table, non_transactional):
+               analyze_table, non_transactional, enforce_primary_key):
         source_table = parse_path(source)
         destination_table = parse_path(destination)
 
@@ -98,7 +100,6 @@ class LoadReloadAndPrimaryKeyStep(ETLStep):
         destination_relation = Table(SqlScript(filename=destination_table))
 
         # Reload specific config
-        enforce_primary_key = True
         delete_existing = True
         sql_script = destination_relation.upsert_script(
             source_relation, enforce_primary_key, delete_existing)
