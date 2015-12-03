@@ -23,7 +23,7 @@ class ColumnCheckStep(QATransformStep):
                  destination_table_definition=None, script=None,
                  destination_sql=None, sql_tail_for_source=None,
                  sample_size=100, tolerance=1.0, script_arguments=None,
-                 log_to_s3=False, **kwargs):
+                 log_to_s3=False, command=None, **kwargs):
         """Constructor for the ColumnCheckStep class
 
         Args:
@@ -60,7 +60,8 @@ class ColumnCheckStep(QATransformStep):
         if log_to_s3:
             script_arguments.append('--log_to_s3')
 
-        command = None if script else const.COLUMN_CHECK_COMMAND
+        if script is None and command is None:
+            command = const.COLUMN_CHECK_COMMAND
 
         super(ColumnCheckStep, self).__init__(
             id=id, script=script, command=command,

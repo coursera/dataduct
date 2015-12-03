@@ -22,7 +22,7 @@ class CountCheckStep(QATransformStep):
                  source_table_name=None, destination_table_name=None,
                  destination_table_definition=None, destination_sql=None,
                  tolerance=1.0, script_arguments=None, log_to_s3=False,
-                 script=None, source_count_sql=None, **kwargs):
+                 script=None, source_count_sql=None, command=None, **kwargs):
         """Constructor for the CountCheckStep class
 
         Args:
@@ -66,7 +66,8 @@ class CountCheckStep(QATransformStep):
         if log_to_s3:
             script_arguments.append('--log_to_s3')
 
-        command = None if script else const.COUNT_CHECK_COMMAND
+        if script is None and command is None:
+            command = const.COUNT_CHECK_COMMAND
 
         super(CountCheckStep, self).__init__(
             id=id, command=command, script=script,
