@@ -67,6 +67,7 @@ class CountCheckStep(QATransformStep):
             script_arguments.append('--log_to_s3')
 
         command = None if script else const.COUNT_CHECK_COMMAND
+        kwargs.pop('command', None)
 
         super(CountCheckStep, self).__init__(
             id=id, command=command, script=script,

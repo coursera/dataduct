@@ -61,6 +61,7 @@ class ColumnCheckStep(QATransformStep):
             script_arguments.append('--log_to_s3')
 
         command = None if script else const.COLUMN_CHECK_COMMAND
+        kwargs.pop('command', None)
 
         super(ColumnCheckStep, self).__init__(
             id=id, script=script, command=command,

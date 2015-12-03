@@ -36,6 +36,8 @@ class PrimaryKeyCheckStep(QATransformStep):
         if log_to_s3:
             script_arguments.append('--log_to_s3')
 
+        kwargs.pop('command', None)
+
         super(PrimaryKeyCheckStep, self).__init__(
             id=id, command=const.PK_CHECK_COMMAND,
             script_arguments=script_arguments, **kwargs)
