@@ -10,6 +10,7 @@ from .s3_path import S3Path
 
 
 CHUNK_SIZE = 5242880
+PROGRESS_SECTIONS = 10
 
 
 def get_s3_bucket(bucket_name):
@@ -57,8 +58,6 @@ def upload_to_s3(s3_path, file_name=None, file_text=None):
 
     if not any([file_name, file_text]):
         raise ETLInputError('File_name or text should be given')
-
-    PROGRESS_SECTIONS = 10
 
     source_size = os.stat(file_name).st_size
     if source_size > CHUNK_SIZE:
