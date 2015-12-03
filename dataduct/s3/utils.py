@@ -59,7 +59,10 @@ def upload_to_s3(s3_path, file_name=None, file_text=None):
     if not any([file_name, file_text]):
         raise ETLInputError('File_name or text should be given')
 
-    source_size = os.stat(file_name).st_size
+    if file_name:
+        source_size = os.stat(file_name).st_size
+    else:
+        source_size = len(file_text)
     if source_size > CHUNK_SIZE:
         bar = pyprind.ProgPercent(
             PROGRESS_SECTIONS, monitor=True, title='Uploading %s' % file_name)
