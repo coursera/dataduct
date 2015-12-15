@@ -17,6 +17,7 @@ CREATE = 'create'
 VALIDATE = 'validate'
 ACTIVATE = 'activate'
 VISUALIZE = 'visualize'
+SQL_SHELL = 'sql_shell'
 
 CONFIG = 'config'
 CONFIG_TO_S3 = 'sync_to_s3'
@@ -26,6 +27,9 @@ DATABASE = 'database'
 DROP = 'drop'
 GRANT = 'grant'
 RECREATE = 'recreate'
+
+REDSHIFT = 'redshift'
+MYSQL = 'mysql'
 
 
 def initialize_etl_objects(pipeline_definitions, time_delta=None,
@@ -284,6 +288,30 @@ def main():
         help='Visualize the database er-diagram',
     )
 
+    # SQL Shell parser
+    sql_shell_parser = subparsers.add_parser(
+        SQL_SHELL,
+        formatter_class=formatter_class,
+        add_help=False,
+        parents=[help_parser]
+    )
+    sql_shell_subparser = sql_shell_parser.add_subparsers(
+        dest='database_type',
+        help='Database Type (MySQL or Redshift)',
+    )
+    sql_shell_subparser.add_parser(
+        REDSHIFT,
+        formatter_class=formatter_class,
+        parents=[mode_parser, help_parser],
+        add_help=False
+    )
+    sql_shell_subparser.add_parser(
+        MYSQL,
+        formatter_class=formatter_class,
+        parents=[mode_parser, help_parser, host_alias_parser],
+        add_help=False
+    )
+
     # Check if autocomplete is possible
     try:
         import argcomplete
@@ -309,6 +337,8 @@ def main():
         pipeline_actions(frequency_override=frequency_override, **arg_vars)
     elif args.command == DATABASE:
         database_actions(**arg_vars)
+    elif args.command == SQL_SHELL:
+        open_sql_shell(**arg_vars)
     else:
         raise ValueError('Unknown argument provided, use dataduct -h')
 

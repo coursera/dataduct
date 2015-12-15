@@ -3,9 +3,14 @@ Shared utility functions
 """
 import boto.s3
 import os
+import pyprind
 
 from ..utils.exceptions import ETLInputError
 from .s3_path import S3Path
+
+
+CHUNK_SIZE = 5242880
+PROGRESS_SECTIONS = 10
 
 
 def get_s3_bucket(bucket_name):
@@ -54,6 +59,20 @@ def upload_to_s3(s3_path, file_name=None, file_text=None):
     if not any([file_name, file_text]):
         raise ETLInputError('File_name or text should be given')
 
+    if file_name:
+        source_size = os.stat(file_name).st_size
+    else:
+        source_size = len(file_text)
+    if source_size > CHUNK_SIZE:
+        bar = pyprind.ProgPercent(
+            PROGRESS_SECTIONS, monitor=True, title='Uploading %s' % file_name)
+        def _callback(current, total):
+            bar.update()
+        cb = _callback
+    else:
+        bar = None
+        cb = None
+
     bucket = get_s3_bucket(s3_path.bucket)
     if s3_path.is_directory:
         key_name = os.path.join(s3_path.key, os.path.basename(file_name))
@@ -62,9 +81,11 @@ def upload_to_s3(s3_path, file_name=None, file_text=None):
 
     key = bucket.new_key(key_name)
     if file_name:
-        key.set_contents_from_filename(file_name)
+        key.set_contents_from_filename(
+            file_name, cb=cb, num_cb=PROGRESS_SECTIONS)
     else:
-        key.set_contents_from_string(file_text)
+        key.set_contents_from_string(
+            file_text, cb=cb, num_cb=PROGRESS_SECTIONS)
 
 
 def download_from_s3(s3_path, local_path):

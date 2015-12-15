@@ -18,7 +18,7 @@ MAX_RETRIES = config.etl.get('MAX_RETRIES', const.ZERO)
 class ETLStep(object):
     """ETL step class with activities and metadata.
 
-    An ETL Step is an abstraction over the set of each database object. It
+    An ETL Step is an abstraction over a unit of work. It
     represents a chunk of objects having the following attributes:
 
     -  input
@@ -32,8 +32,8 @@ class ETLStep(object):
 
     def __init__(self, id, s3_data_dir=None, s3_log_dir=None,
                  s3_source_dir=None, schedule=None, resource=None,
-                 input_node=None, input_path=None, required_steps=None,
-                 max_retries=MAX_RETRIES, sns_object=None):
+                 worker_group=None, input_node=None, input_path=None,
+                 required_steps=None, max_retries=MAX_RETRIES, sns_object=None):
         """Constructor for the ETLStep object
 
         Args:
@@ -52,6 +52,7 @@ class ETLStep(object):
         self.s3_source_dir = s3_source_dir
         self.schedule = schedule
         self.resource = resource
+        self.worker_group = worker_group
         self.max_retries = max_retries
         self._depends_on = list()
         self._output = None
@@ -101,7 +102,7 @@ class ETLStep(object):
         for step in required_steps:
             self._required_activities.extend(step.activities)
 
-        # Set required_acitivites as depend_on variable of all activities
+        # Set required_activities as the depend_on variable of all activities
         for activity in self.activities:
             activity['dependsOn'] = self._find_actual_required_activities()
 
@@ -268,6 +269,7 @@ class ETLStep(object):
             CopyActivity,
             schedule=self.schedule,
             resource=self.resource,
+            worker_group=self.worker_group,
             input_node=new_input_node,
             output_node=output_node,
             max_retries=self.max_retries
@@ -390,20 +392,41 @@ class ETLStep(object):
         return [x for x in self._objects.values() if isinstance(x, Activity)]
 
     @classmethod
-    def base_arguments_processor(cls, etl, input_args):
+    def base_arguments_processor(cls, etl, input_args,
+                                 resource_type=const.EC2_RESOURCE_STR):
         """Process the step arguments according to the ETL pipeline
 
         Args:
             etl(ETLPipeline): Pipeline object containing resources and steps
             input_args(dict): Dictionary of the step arguments from the YAML
+            resource_type(str): either const.EMR_CLUSTER_STR
+                or const.EC2_RESOURCE_STR
         """
+        assert resource_type in [const.EMR_CLUSTER_STR,
+                                  const.EC2_RESOURCE_STR],\
+            'resource type must be one of %s or %s' %\
+            (const.EC2_RESOURCE_STR, const.EMR_CLUSTER_STR)
+        resource_or_worker_group = {}
+        if resource_type == const.EMR_CLUSTER_STR:
+            worker_group = config.emr.get('WORKER_GROUP', None)
+            if worker_group:
+                resource_or_worker_group['worker_group'] = worker_group
+            else:
+                resource_or_worker_group['resource'] = etl.emr_cluster
+        else:
+            worker_group = config.ec2.get('WORKER_GROUP', None)
+            if worker_group:
+                resource_or_worker_group['worker_group'] = worker_group
+            else:
+                resource_or_worker_group['resource'] = etl.ec2_resource
+
         # Base dictionary for every step
         step_args = {
-            'resource': None,
             'schedule': etl.schedule,
             'max_retries': etl.max_retries,
-            'required_steps': list()
+            'required_steps': list(),
         }
+        step_args.update(resource_or_worker_group)
         step_args.update(input_args)
 
         # Description is optional and should not be passed

@@ -6,18 +6,21 @@ a transform step with the script_directory argument
 # imports
 import argparse
 import os
-import subprocess
 import pandas.io.sql as pdsql
+import subprocess
+
 from dataduct.data_access import redshift_connection
 from dataduct.database import SqlStatement
 from dataduct.database import Table
+from dataduct.s3 import S3File
+from dataduct.s3 import S3Path
 
 
 def run_command(arguments):
     """
     Args:
-        arguments(list of str): Arguments to be executed as a command. Arguments
-            are passed as if calling subprocess.call() directly
+        arguments(list of str): Arguments to be executed as a command.
+        Arguments are passed as if calling subprocess.call() directly
     """
     return subprocess.call(arguments)
 
@@ -48,6 +51,7 @@ def script_runner():
     if result != 0:
         raise Exception("Script failed.")
 
+
 def sql_runner():
     """Main Function
     """
@@ -61,6 +65,10 @@ def sql_runner():
 
     args, sql_arguments = parser.parse_known_args()
     print args, sql_arguments
+
+    sql_query = args.sql
+    if sql_query.startswith('s3://'):
+        sql_query = S3File(s3_path=S3Path(uri=args.sql)).text
 
     table = Table(SqlStatement(args.table_definition))
     connection = redshift_connection()
@@ -85,11 +93,11 @@ def sql_runner():
     # If there are sql_arguments, place them along with the query
     # Otherwise, don't include them to avoid having to use %% everytime
     if len(sql_arguments) >= 1:
-        print cursor.mogrify(args.sql, tuple(sql_arguments))
-        cursor.execute(args.sql, tuple(sql_arguments))
+        print cursor.mogrify(sql_query, tuple(sql_arguments))
+        cursor.execute(sql_query, tuple(sql_arguments))
     else:
-        print args.sql
-        cursor.execute(args.sql)
+        print sql_query
+        cursor.execute(sql_query)
     cursor.execute('COMMIT')
 
     # Analyze the table

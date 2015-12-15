@@ -1,6 +1,5 @@
 """Constants shared across dataduct
 """
-import os
 
 # Constants
 ZERO = 0
@@ -21,19 +20,31 @@ DATA_STR = 'data'
 SRC_STR = 'src'
 QA_STR = 'qa'
 
-# Step paths
-SCRIPTS_DIRECTORY = 'scripts'
-SCRIPT_RUNNER_PATH = os.path.join(
-    SCRIPTS_DIRECTORY, 'script_runner.py')
-DEPENDENCY_SCRIPT_PATH = os.path.join(
-    SCRIPTS_DIRECTORY, 'pipeline_dependency_check.py')
-PK_CHECK_SCRIPT_PATH = os.path.join(
-    SCRIPTS_DIRECTORY, 'primary_key_test.py')
-COUNT_CHECK_SCRIPT_PATH = os.path.join(
-    SCRIPTS_DIRECTORY, 'count_check_test.py')
-COLUMN_CHECK_SCRIPT_PATH = os.path.join(
-    SCRIPTS_DIRECTORY, 'column_check_test.py')
-CREATE_LOAD_SCRIPT_PATH = os.path.join(
-    SCRIPTS_DIRECTORY, 'create_load_redshift_runner.py')
-SQL_RUNNER_SCRIPT_PATH = os.path.join(
-    SCRIPTS_DIRECTORY, 'sql_runner.py')
+# Commands
+COMMAND_TEMPLATE = 'python -c "from {file} import {func}; {func}()" "$@"'
+
+COUNT_CHECK_COMMAND = COMMAND_TEMPLATE.format(
+    file='dataduct.steps.executors.count_check',
+    func='count_check')
+
+COLUMN_CHECK_COMMAND = COMMAND_TEMPLATE.format(
+    file='dataduct.steps.executors.column_check',
+    func='column_check')
+
+LOAD_COMMAND = COMMAND_TEMPLATE.format(
+    file='dataduct.steps.executors.create_load_redshift',
+    func='create_load_redshift_runner')
+
+PK_CHECK_COMMAND = COMMAND_TEMPLATE.format(
+    file='dataduct.steps.executors.primary_key_check',
+    func='primary_key_check')
+
+DEPENDENCY_COMMAND = COMMAND_TEMPLATE.format(
+    file='dataduct.steps.executors.dependency_check',
+    func='dependency_check')
+
+SCRIPT_RUNNER_COMMAND = COMMAND_TEMPLATE.format(
+    file='dataduct.steps.executors.runner', func='script_runner')
+
+SQL_RUNNER_COMMAND = COMMAND_TEMPLATE.format(
+    file='dataduct.steps.executors.runner', func='sql_runner')

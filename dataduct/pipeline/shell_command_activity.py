@@ -21,8 +21,9 @@ class ShellCommandActivity(Activity):
                  id,
                  input_node,
                  output_node,
-                 resource,
                  schedule,
+                 resource=None,
+                 worker_group=None,
                  script_uri=None,
                  script_arguments=None,
                  command=None,
@@ -35,8 +36,9 @@ class ShellCommandActivity(Activity):
             id(str): id of the object
             input_node(S3Node / list of S3Nodes): input nodes for the activity
             output_node(S3Node / list of S3Nodes): output nodes for activity
-            resource(Ec2Resource / EMRResource): resource to run the activity on
             schedule(Schedule): schedule of the pipeline
+            resource(Ec2Resource / EMRResource): resource to run the activity on
+            worker_group(str): the worker group to run the activity on
             script_uri(S3File): s3 uri of the script
             script_arguments(list of str): command line arguments to the script
             command(str): command to be run as shell activity
@@ -58,6 +60,8 @@ class ShellCommandActivity(Activity):
             depends_on = []
         if max_retries is None:
             max_retries = MAX_RETRIES
+        # Set stage to true if we use either input or output node
+        stage = 'true' if input_node or output_node else 'false'
 
         super(ShellCommandActivity, self).__init__(
             id=id,
@@ -65,10 +69,11 @@ class ShellCommandActivity(Activity):
             type='ShellCommandActivity',
             maximumRetries=max_retries,
             dependsOn=depends_on,
-            stage='true',
+            stage=stage,
             input=input_node,
             output=output_node,
             runsOn=resource,
+            workerGroup=worker_group,
             schedule=schedule,
             scriptUri=script_uri,
             scriptArgument=script_arguments,

@@ -118,8 +118,8 @@ def create_load_redshift_runner():
         if columns != redshift_table_columns:
             error_string = (
                 "Table schema mismatch: {table}\n"
-                "Columns for existing table: {columns}\n"
-                "Columns for new table: {redshift_table_columns}").format(
+                "Columns for new table: {columns}\n"
+                "Columns for existing table: {redshift_table_columns}").format(
                     table=table.full_name,
                     columns=", ".join(columns),
                     redshift_table_columns=", ".join(redshift_table_columns))

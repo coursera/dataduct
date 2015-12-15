@@ -1,13 +1,11 @@
 """ETL step wrapper for loading into redshift with the COPY command
 """
-import os
-
-from .transform import TransformStep
-from ..database import Table
-from ..database import SqlStatement
 from ..config import Config
+from ..database import SqlStatement
+from ..database import Table
 from ..utils import constants as const
 from ..utils.helpers import parse_path
+from .transform import TransformStep
 
 config = Config()
 
@@ -16,7 +14,7 @@ class CreateAndLoadStep(TransformStep):
     """CreateAndLoad Step class that creates table if needed and loads data
     """
 
-    def __init__(self, id, table_definition, input_node=None,
+    def __init__(self, id, table_definition, input_node,
                  script_arguments=None, **kwargs):
         """Constructor for the CreateAndLoadStep class
 
@@ -35,7 +33,6 @@ class CreateAndLoadStep(TransformStep):
         else:
             input_paths = [input_node.path().uri]
 
-
         if script_arguments is None:
             script_arguments = list()
 
@@ -43,12 +40,10 @@ class CreateAndLoadStep(TransformStep):
             '--table_definition=%s' % table.sql().sql(),
             '--s3_input_paths'] + input_paths)
 
-        steps_path = os.path.abspath(os.path.dirname(__file__))
-        script = os.path.join(steps_path, const.CREATE_LOAD_SCRIPT_PATH)
-
         super(CreateAndLoadStep, self).__init__(
-            id=id, script=script, input_node=input_node,
-            script_arguments=script_arguments, **kwargs)
+            id=id, command=const.LOAD_COMMAND,
+            script_arguments=script_arguments, no_input=True, no_output=True,
+            **kwargs)
 
     @classmethod
     def arguments_processor(cls, etl, input_args):
@@ -59,5 +54,5 @@ class CreateAndLoadStep(TransformStep):
             step_args(dict): Dictionary of the step arguments for the class
         """
         step_args = cls.base_arguments_processor(etl, input_args)
-        step_args['resource'] = etl.ec2_resource
+
         return step_args

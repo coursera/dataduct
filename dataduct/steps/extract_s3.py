@@ -1,11 +1,11 @@
 """
 ETL step wrapper for creating an S3 node for input
 """
-from .etl_step import ETLStep
 from ..s3 import S3Path
-from ..utils.helpers import exactly_one
 from ..utils.exceptions import ETLInputError
+from ..utils.helpers import exactly_one
 from ..utils.helpers import get_modified_s3_path
+from .etl_step import ETLStep
 
 
 class ExtractS3Step(ETLStep):
@@ -43,6 +43,7 @@ class ExtractS3Step(ETLStep):
         """
         input_args = cls.pop_inputs(input_args)
         step_args = cls.base_arguments_processor(etl, input_args)
-        step_args.pop('resource')
+        step_args.pop('resource', None)
+        step_args.pop('worker_group', None)
 
         return step_args

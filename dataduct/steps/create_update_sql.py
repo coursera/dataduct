@@ -1,13 +1,13 @@
 """ETL step wrapper for sql command for inserting into tables
 """
-import os
-from .transform import TransformStep
 from ..database import SqlScript
 from ..database import Table
+from ..s3 import S3File
 from ..utils import constants as const
+from ..utils.exceptions import ETLInputError
 from ..utils.helpers import exactly_one
 from ..utils.helpers import parse_path
-from ..utils.exceptions import ETLInputError
+from .transform import TransformStep
 
 
 class CreateUpdateSqlStep(TransformStep):
@@ -36,15 +36,15 @@ class CreateUpdateSqlStep(TransformStep):
             update_script = SqlScript(filename=parse_path(script))
         else:
             update_script = SqlScript(command)
+        self.s3_source_dir = kwargs['s3_source_dir']
+        sql_script = self.create_script(S3File(text=update_script.sql()))
+        sql_script.upload_to_s3()
 
         dest = Table(SqlScript(filename=parse_path(table_definition)))
 
-        steps_path = os.path.abspath(os.path.dirname(__file__))
-        runner_script = os.path.join(steps_path, const.SQL_RUNNER_SCRIPT_PATH)
-
         arguments = [
             '--table_definition=%s' % dest.sql().sql(),
-            '--sql=%s' % update_script.sql()
+            '--sql=%s' % sql_script.s3_path.uri
         ]
 
         if analyze_table:
@@ -60,7 +60,7 @@ class CreateUpdateSqlStep(TransformStep):
             arguments.extend(script_arguments)
 
         super(CreateUpdateSqlStep, self).__init__(
-            script=runner_script, script_arguments=arguments,
+            command=const.SQL_RUNNER_COMMAND, script_arguments=arguments,
             no_output=True, **kwargs)
 
     @classmethod
@@ -73,5 +73,5 @@ class CreateUpdateSqlStep(TransformStep):
         """
         step_args = cls.base_arguments_processor(etl, input_args)
         cls.pop_inputs(step_args)
-        step_args['resource'] = etl.ec2_resource
+
         return step_args

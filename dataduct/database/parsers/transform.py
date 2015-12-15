@@ -6,11 +6,11 @@ import re
 from pyparsing import CaselessKeyword
 from pyparsing import CharsNotIn
 from pyparsing import Literal
-from pyparsing import nestedExpr
 from pyparsing import OneOrMore
-from pyparsing import replaceWith
 from pyparsing import WordStart
 from pyparsing import ZeroOrMore
+from pyparsing import nestedExpr
+from pyparsing import replaceWith
 
 
 def remove_empty_statements(string, seperator=';'):
@@ -67,7 +67,7 @@ def remove_transactional(string):
         result(str): String with begin and commit trimmed
     """
     transaction = WordStart() + (
-        CaselessKeyword('BEGIN')| CaselessKeyword('COMMIT'))
+        CaselessKeyword('BEGIN') | CaselessKeyword('COMMIT'))
 
     return transaction.suppress().transformString(string)
 
