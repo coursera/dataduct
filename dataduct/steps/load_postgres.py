@@ -53,7 +53,6 @@ class LoadPostgresStep(ETLStep):
             depends_on=self.depends_on,
             max_retries=self.max_retries,
         )
-        )
 
     @classmethod
     def arguments_processor(cls, etl, input_args):

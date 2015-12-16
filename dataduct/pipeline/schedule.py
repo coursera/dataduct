@@ -63,7 +63,6 @@ class Schedule(PipelineObject):
             **kwargs(optional): Keyword arguments directly passed to base class
         """
         current_time = datetime.utcnow()
-
         # Set the defaults for load hour and minutes
         if load_minutes is None:
             load_minutes = 0

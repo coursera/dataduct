@@ -74,13 +74,14 @@ class ETLPipeline(object):
             max_retries(int): number of retries for pipeline activities
             bootstrap(list of steps): bootstrap step definitions for resources
         """
-
         if load_time and isinstance(load_time, str):
             load_hour, load_min = [int(x) for x in load_time.split(':')]
         elif load_time and isinstance(load_time, int):
             load_hour, load_min = (load_time / 60, load_time % 60)
         else:
             load_hour, load_min = [None, None]
+
+
 
         if time_delta is None:
             time_delta = timedelta(seconds=0)
@@ -185,7 +186,7 @@ class ETLPipeline(object):
             frequency=self.frequency,
             time_delta=self.time_delta,
             load_hour=self.load_hour,
-            load_min=self.load_min,
+            load_minutes=self.load_min,
         )
         if self.topic_arn is None and SNS_TOPIC_ARN_FAILURE is None:
             self.sns = None

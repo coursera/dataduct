@@ -5,6 +5,7 @@ from ..config import Config
 from .etl_step import ETLStep
 from ..pipeline import CopyActivity
 from ..pipeline import PostgresNode
+from ..pipeline import PostgresDatabase
 from ..pipeline import PipelineObject
 from ..pipeline import ShellCommandActivity
 from ..utils.helpers import exactly_one
@@ -25,7 +26,6 @@ class ExtractPostgresStep(ETLStep):
     def __init__(self,
                  table=None,
                  sql=None,
-                 database=None,
                  output_path=None,
                  **kwargs):
         """Constructor for the ExtractPostgresStep class
@@ -40,7 +40,7 @@ class ExtractPostgresStep(ETLStep):
         if not exactly_one(table, sql):
             raise ETLInputError('Only one of table, sql needed')
 
-        super(ExtractRdsStep, self).__init__(**kwargs)
+        super(ExtractPostgresStep, self).__init__(**kwargs)
 
         if table:
             sql = 'SELECT * FROM %s;' % table
@@ -49,18 +49,28 @@ class ExtractPostgresStep(ETLStep):
         else:
             raise ETLInputError('Provide a sql statement or a table name')
 
-        host = POSTGRES_CONFIG[host_name]['HOST']
-        user = POSTGRES_CONFIG[host_name]['USERNAME']
-        password = POSTGRES_CONFIG[host_name]['PASSWORD']
+        region = POSTGRES_CONFIG['REGION']
+        rds_instance_id = POSTGRES_CONFIG['RDS_INSTANCE_ID']
+        user = POSTGRES_CONFIG['USERNAME']
+        password = POSTGRES_CONFIG['PASSWORD']
+
+        database_node = self.create_pipeline_object(
+                    object_class=PostgresDatabase,
+                    region=region,
+                    rds_instance_id=rds_instance_id,
+                    username=user,
+                    password=password,
+        )
 
         input_node = self.create_pipeline_object(
             object_class=PostgresNode,
             schedule=self.schedule,
-            database=database,
+            database=database_node,
             table=table,
             username=user,
             password=password,
             sql=sql,
+            host=rds_instance_id,
         )
 
         s3_format = self.create_pipeline_object(

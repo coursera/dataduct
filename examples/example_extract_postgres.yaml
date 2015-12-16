@@ -1,0 +1,10 @@
+name: example_extract_postgres
+frequency: one-time
+load_time: 01:30  # Hour:Min in UTC
+
+description: This example extracts data out of postgres
+
+steps:
+-   step_type: extract-postgres
+    sql: "SELECT * from carmax_test limit 100"
+    output_path: s3://quadanalytix-services-extraction/Dataduct/carmax_test.csv
