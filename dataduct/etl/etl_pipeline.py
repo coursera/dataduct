@@ -185,7 +185,7 @@ class ETLPipeline(object):
             frequency=self.frequency,
             time_delta=self.time_delta,
             load_hour=self.load_hour,
-            load_min=self.load_min,
+            load_min=self.load_minutes,
         )
         if self.topic_arn is None and SNS_TOPIC_ARN_FAILURE is None:
             self.sns = None
