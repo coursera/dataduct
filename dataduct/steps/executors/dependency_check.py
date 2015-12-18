@@ -143,11 +143,12 @@ def dependency_check():
     # Loop until all dependent pipelines have finished or failed
     while not dependencies_ready:
         print 'checking'
-        time.sleep(float(args.refresh_rate))
         dependencies_ready, new_failures = check_dependencies_ready(dependencies,
                                                         args.start_date,
                                                         dependencies_to_ignore)
         failures.extend(new_failures)
+        if not dependencies_ready:
+            time.sleep(float(args.refresh_rate))
 
     # Send message through SNS if there are failures
     if failures:
