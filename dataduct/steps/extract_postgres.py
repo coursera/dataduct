@@ -33,8 +33,8 @@ class ExtractPostgresStep(ETLStep):
         Args:
             schema(str): schema from which table should be extracted
             table(path): table name for extract
-            insert_mode(str): insert mode for redshift copy activity
-            redshift_database(RedshiftDatabase): database to excute the query
+            sql(str): sql query to be executed
+            output_path(str): s3 path where sql output should be saved
             **kwargs(optional): Keyword arguments directly passed to base class
         """
         if not exactly_one(table, sql):
