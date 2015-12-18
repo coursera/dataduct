@@ -31,8 +31,8 @@ def read_pipeline_definition(file_path):
       ETLInputError: If `file_path` extention is not yaml
     """
     extension = file_path.split('.').pop()
-    if extension != 'yaml':
-        raise ETLInputError('Pipeline definition should have a yaml extention')
+    if extension not in ['yml', 'yaml']:
+        raise ETLInputError('Pipeline definition should have a yml or yaml extention')
     with open(file_path) as f:
         definition = yaml.load(f.read())
 
