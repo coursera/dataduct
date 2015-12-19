@@ -5,6 +5,7 @@ from ..config import Config
 from .etl_step import ETLStep
 from ..pipeline import PostgresNode
 from ..pipeline import PostgresDatabase
+from ..pipeline import PipelineObject
 from ..pipeline import CopyActivity
 
 config = Config()
@@ -49,6 +50,23 @@ class LoadPostgresStep(ETLStep):
                     password=password,
         )
 
+        s3_format = self.create_pipeline_object(
+            object_class=PipelineObject,
+            type='TSV'
+        )
+
+        intermediate_node = self.create_s3_data_node(format=s3_format)
+
+        self.create_pipeline_object(
+            object_class=CopyActivity,
+            schedule=self.schedule,
+            resource=self.resource,
+            input_node=self.input,
+            output_node=intermediate_node,
+            depends_on=self.depends_on,
+            max_retries=self.max_retries,
+        )
+
 
         # Create output node
         self._output = self.create_pipeline_object(
@@ -71,11 +89,12 @@ class LoadPostgresStep(ETLStep):
             command_options.append(
                 "ACCEPTINVCHARS AS '%s'" %replace_invalid_char)
 
+
         self.create_pipeline_object(
             object_class=CopyActivity,
             schedule=self.schedule,
             resource=self.resource,
-            input_node=self.input,
+            input_node=intermediate_node,
             output_node=self.output,
             depends_on=self.depends_on,
             max_retries=self.max_retries,

@@ -1,13 +1,13 @@
 name: example_load_postgres
 frequency: one-time
-load_time: 19:19  # Hour:Min in UTC
+load_time: 00:21  # Hour:Min in UTC
 
 description: Example for the load_postgres step
 
 steps:
 -   step_type: extract-s3
-    file_uri: s3://optimus-etl-data/dev/test_table.tsv
+    file_uri: s3://optimus-etl-data/dev/100rows.tsv
 
 -   step_type: load-postgres
-    table: test_table
-    insert_query: 'INSERT INTO test_table (poc_type,week,price,carname,dealername,phone,typeseller,additional_data) VALUES (?,?,?,?,?,?,?,?)'
+    table: promotion_test
+    insert_query: 'INSERT INTO promotion_test ("time", merchant, category, variant, promotion_id, promotion_detail_id, type, amount, text, raw_text, state) VALUES (?,?,?,?,?,?,?,?,?,?,?)'
