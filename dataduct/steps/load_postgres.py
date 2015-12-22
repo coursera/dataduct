@@ -50,23 +50,6 @@ class LoadPostgresStep(ETLStep):
                     password=password,
         )
 
-        s3_format = self.create_pipeline_object(
-            object_class=PipelineObject,
-            type='TSV'
-        )
-
-        intermediate_node = self.create_s3_data_node(format=s3_format)
-
-        self.create_pipeline_object(
-            object_class=CopyActivity,
-            schedule=self.schedule,
-            resource=self.resource,
-            input_node=self.input,
-            output_node=intermediate_node,
-            depends_on=self.depends_on,
-            max_retries=self.max_retries,
-        )
-
 
         # Create output node
         self._output = self.create_pipeline_object(
@@ -81,20 +64,13 @@ class LoadPostgresStep(ETLStep):
             host=rds_instance_id,
         )
 
-        command_options = ["DELIMITER '\t' ESCAPE TRUNCATECOLUMNS"]
-        command_options.append("NULL AS 'NULL' ")
-        if max_errors:
-            command_options.append('MAXERROR %d' % int(max_errors))
-        if replace_invalid_char:
-            command_options.append(
-                "ACCEPTINVCHARS AS '%s'" %replace_invalid_char)
 
 
         self.create_pipeline_object(
             object_class=CopyActivity,
             schedule=self.schedule,
             resource=self.resource,
-            input_node=intermediate_node,
+            input_node=self.input,
             output_node=self.output,
             depends_on=self.depends_on,
             max_retries=self.max_retries,
