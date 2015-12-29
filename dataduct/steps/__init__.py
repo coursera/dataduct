@@ -8,8 +8,10 @@ from .etl_step import ETLStep
 from .extract_local import ExtractLocalStep
 from .extract_rds import ExtractRdsStep
 from .extract_redshift import ExtractRedshiftStep
+from .extract_postgres import ExtractPostgresStep
 from .extract_s3 import ExtractS3Step
 from .load_redshift import LoadRedshiftStep
+from .load_postgres import LoadPostgresStep
 from .load_reload_pk import LoadReloadAndPrimaryKeyStep
 from .pipeline_dependencies import PipelineDependenciesStep
 from .primary_key_check import PrimaryKeyCheckStep

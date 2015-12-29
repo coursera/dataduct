@@ -1,0 +1,13 @@
+name: example_load_postgres
+frequency: one-time
+load_time: 00:01 # Hour:Min in UTC
+
+description: Example for the load_postgres step
+
+steps:
+-   step_type: extract-s3
+    file_uri: s3://somebucket/somedata.csv
+
+-   step_type: load-postgres
+    table: sometable
+    insert_query: "INSERT INTO sometable (col1, col2, col3) VALUES (?,?,?);"

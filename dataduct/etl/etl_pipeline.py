@@ -18,6 +18,7 @@ from ..pipeline import DefaultObject
 from ..pipeline import Ec2Resource
 from ..pipeline import EmrResource
 from ..pipeline import RedshiftDatabase
+from ..pipeline import PostgresDatabase
 from ..pipeline import S3Node
 from ..pipeline import SNSAlarm
 from ..pipeline import Schedule
@@ -74,13 +75,14 @@ class ETLPipeline(object):
             max_retries(int): number of retries for pipeline activities
             bootstrap(list of steps): bootstrap step definitions for resources
         """
-
         if load_time and isinstance(load_time, str):
             load_hour, load_min = [int(x) for x in load_time.split(':')]
         elif load_time and isinstance(load_time, int):
             load_hour, load_min = (load_time / 60, load_time % 60)
         else:
             load_hour, load_min = [None, None]
+
+
 
         if time_delta is None:
             time_delta = timedelta(seconds=0)
@@ -136,6 +138,7 @@ class ETLPipeline(object):
         self.sns = None
         self.default = None
         self._redshift_database = None
+        self._postgres_database = None
         self._ec2_resource = None
         self._emr_cluster = None
         self.create_base_objects()
@@ -185,7 +188,7 @@ class ETLPipeline(object):
             frequency=self.frequency,
             time_delta=self.time_delta,
             load_hour=self.load_hour,
-            load_min=self.load_min,
+            load_minutes=self.load_min,
         )
         if self.topic_arn is None and SNS_TOPIC_ARN_FAILURE is None:
             self.sns = None
@@ -355,6 +358,24 @@ class ETLPipeline(object):
                 object_class=RedshiftDatabase
             )
         return self._redshift_database
+
+
+    @property
+    def postgres_database(self):
+        """Get the postgres database associated with the pipeline
+
+        Note:
+            This will create the object if it doesn't exist
+
+        Returns:
+            postgres_database(Object): lazily-constructed postgres database
+        """
+        if not self._postgres_database:
+            self._postgres_database = self.create_pipeline_object(
+                object_class=PostgresDatabase
+            )
+        return self._postgres_database
+
 
     def step(self, step_id):
         """Fetch a single step from the pipeline
