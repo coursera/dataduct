@@ -23,6 +23,7 @@ def get_redshift_config():
     return config.redshift
 
 
+
 @retry(CONNECTION_RETRIES, 60)
 @hook('connect_to_redshift')
 def redshift_connection(redshift_creds=None, autocommit=True,
@@ -81,4 +82,36 @@ def rds_connection(database_name=None, sql_creds=None,
         charset='utf8',      # Necessary for foreign chars
         cursorclass=cursorclass,
         **kwargs)
+    return connection
+
+
+
+def get_postgres_config():
+    """Get postgres config from config file and return the dictionary
+    """
+    if not hasattr(config,'postgres'):
+	raise ETLConfigError('Postgres config not found')
+    return config.postgres
+
+
+
+
+@retry(CONNECTION_RETRIES, 60)
+@hook('connect_to_postgres')
+def postgres_connection(postgres_creds=None, autocommit=True,
+                        connect_timeout=30, **kwargs):
+    """Fetch a psql connection object to postgres
+    """
+    if postgres_creds is None:
+        postgres_creds = get_postgres_config()
+
+    connection = psycopg2.connect(
+        host=postgres_creds['HOST'],
+        user=postgres_creds['USERNAME'],
+        password=postgres_creds['PASSWORD'],
+        port=postgres_creds['PORT'],
+        database=postgres_creds['DATABASE_NAME'],
+        connect_timeout=connect_timeout,
+        **kwargs)
+    connection.autocommit = autocommit
     return connection
