@@ -12,3 +12,4 @@ testfixtures>=4.1.1
 mock
 pytimeparse
 pyprind
+requests
