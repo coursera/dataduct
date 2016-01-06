@@ -11,7 +11,6 @@ from ..pipeline import CopyActivity
 config = Config()
 if not hasattr(config, 'postgres'):
     raise ETLInputError('Postgres config not specified in ETL')
-
 POSTGRES_CONFIG = config.postgres
 
 
@@ -41,7 +40,6 @@ class LoadPostgresStep(ETLStep):
         rds_instance_id = POSTGRES_CONFIG['RDS_INSTANCE_ID']
         user = POSTGRES_CONFIG['USERNAME']
         password = POSTGRES_CONFIG['PASSWORD']
-
         database_node = self.create_pipeline_object(
                     object_class=PostgresDatabase,
                     region=region,
@@ -49,7 +47,6 @@ class LoadPostgresStep(ETLStep):
                     username=user,
                     password=password,
         )
-
 
         # Create output node
         self._output = self.create_pipeline_object(
@@ -63,8 +60,6 @@ class LoadPostgresStep(ETLStep):
             insert_query=insert_query,
             host=rds_instance_id,
         )
-
-
 
         self.create_pipeline_object(
             object_class=CopyActivity,

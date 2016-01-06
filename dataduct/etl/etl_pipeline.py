@@ -82,8 +82,6 @@ class ETLPipeline(object):
         else:
             load_hour, load_min = [None, None]
 
-
-
         if time_delta is None:
             time_delta = timedelta(seconds=0)
 
