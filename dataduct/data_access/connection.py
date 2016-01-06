@@ -106,10 +106,10 @@ def postgres_connection(postgres_creds=None, autocommit=True,
         postgres_creds = get_postgres_config()
 
     connection = psycopg2.connect(
-        host=postgres_creds['HOST'],
+        rds_instance=postgres_creds['RDS_INSTANCE_ID'],
         user=postgres_creds['USERNAME'],
         password=postgres_creds['PASSWORD'],
-        port=postgres_creds['PORT'],
+        region=postgres_creds['REGION'],
         database=postgres_creds['DATABASE_NAME'],
         connect_timeout=connect_timeout,
         **kwargs)
