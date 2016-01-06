@@ -35,7 +35,7 @@ class LoadPostgresStep(ETLStep):
             **kwargs(optional): Keyword arguments directly passed to base class
         """
         super(LoadPostgresStep, self).__init__(**kwargs)
-        
+
         region = POSTGRES_CONFIG['REGION']
         rds_instance_id = POSTGRES_CONFIG['RDS_INSTANCE_ID']
         user = POSTGRES_CONFIG['USERNAME']
