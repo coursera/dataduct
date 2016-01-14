@@ -2,9 +2,9 @@
 Base class for data pipeline instance
 """
 
-from .pipeline_object import PipelineObject
-from ..utils.helpers import exactly_one
 from ..utils.exceptions import ETLInputError
+from ..utils.helpers import exactly_one
+from .pipeline_object import PipelineObject
 
 
 class Activity(PipelineObject):
@@ -38,7 +38,10 @@ class Activity(PipelineObject):
         )
 
     def __str__(self):
-        return "%s with id %s" % tuple(self.id.split(".", 1)[::-1])
+        try:
+            return "%s with id %s" % tuple(self.id.split(".", 1)[::-1])
+        except:
+            return self.id
 
     @property
     def input(self):
