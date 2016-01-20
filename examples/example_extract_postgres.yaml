@@ -1,0 +1,10 @@
+name: example_extract_postgres
+frequency: one-time
+load_time: 01:00  # Hour:Min in UTC
+
+description: This example extracts data out of postgres
+
+steps:
+-   step_type: extract-postgres
+    sql: "SELECT * from sometable"
+    output_path: s3://somebucket/somedata.csv

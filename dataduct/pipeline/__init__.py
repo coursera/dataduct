@@ -6,6 +6,8 @@ from .ec2_resource import Ec2Resource
 from .emr_resource import EmrResource
 from .emr_activity import EmrActivity
 from .mysql_node import MysqlNode
+from .postgres_node import PostgresNode
+from .postgres_database import PostgresDatabase
 from .pipeline_object import PipelineObject
 from .precondition import Precondition
 from .redshift_copy_activity import RedshiftCopyActivity
