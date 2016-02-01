@@ -11,6 +11,7 @@ STEP_CLASSES = {
     'count-check': CountCheckStep,
     'create-load-redshift': CreateAndLoadStep,
     'create-update-sql': CreateUpdateSqlStep,
+    'delta-load': DeltaLoadStep,
     'emr-step': EMRJobStep,
     'emr-streaming': EMRStreamingStep,
     'extract-local': ExtractLocalStep,

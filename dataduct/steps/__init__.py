@@ -2,6 +2,7 @@ from .column_check import ColumnCheckStep
 from .count_check import CountCheckStep
 from .create_load_redshift import CreateAndLoadStep
 from .create_update_sql import CreateUpdateSqlStep
+from .delta_load import DeltaLoadStep
 from .emr_job import EMRJobStep
 from .emr_streaming import EMRStreamingStep
 from .etl_step import ETLStep
