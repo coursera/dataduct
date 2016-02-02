@@ -43,7 +43,7 @@ def get_aws_credentials_from_iam():
 def get_aws_credentials_from_file(filename=None):
     """Get the AWS credentials from boto config files
 
-    Tries to load from the specified filename, if applicable, then follows what
+    Tries to load from the specified filename, if applicable, else follows what
     boto does by following the order specified at
     http://boto.cloudhackers.com/en/latest/boto_config_tut.html#details
     """
