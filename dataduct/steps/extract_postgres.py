@@ -69,7 +69,8 @@ class ExtractPostgresStep(ETLStep):
             table=table,
             username=user,
             password=password,
-            sql=sql,
+            select_query=sql,
+            insert_query=None,
             host=rds_instance_id,
         )
 
