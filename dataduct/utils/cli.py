@@ -81,7 +81,7 @@ def open_sql_shell(database_type, host_alias=None, **kwargs):
     from dataduct.config import Config
     config = Config()
     if database_type == 'redshift':
-        open_shell.open_psql_shell()
+        open_shell.open_psql_shell(config.redshift)
     else:
         assert config.mysql.get(host_alias), \
             'host_alias "{}" does not exist in config'.format(host_alias)
