@@ -6,7 +6,7 @@ psycopg2
 MySQL-python
 PyYAML
 coverage
-pyparsing>=2
+pyparsing==1.5.6
 pygraphviz
 testfixtures>=4.1.1
 mock
