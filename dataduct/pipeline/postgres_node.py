@@ -2,17 +2,17 @@
 Pipeline object class for SqlNode
 """
 
+from ..utils.exceptions import ETLInputError
 from .pipeline_object import PipelineObject
 from .schedule import Schedule
-from ..utils.exceptions import ETLInputError
 
 
 class PostgresNode(PipelineObject):
     """SQL Data Node class
     """
 
-    def __init__(self, id, schedule, host, database, username, password, select_query, insert_query,
-                 table, depends_on=None):
+    def __init__(self, id, schedule, host, database, username, password,
+                 select_query, insert_query, table, depends_on=None):
         """Constructor for the SqlNode class
 
         Args:
@@ -31,12 +31,11 @@ class PostgresNode(PipelineObject):
         if not depends_on:
             depends_on = list()
 
-
         kwargs = {
             'id': id,
             'type': 'SqlDataNode',
             'schedule': schedule,
-            'database':database,
+            'database': database,
             'selectQuery': select_query,
             'insertQuery': insert_query,
             'table': table,

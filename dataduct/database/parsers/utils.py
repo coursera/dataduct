@@ -72,7 +72,7 @@ field_parser = Forward()
 subquery = Forward()
 
 # List of characters allowed in the query statements
-special_character = "_-. *`><!+/=%':{}|~"
+special_character = "\\_-. *`><!+/=%':{}|~?[]"
 _word = Word(alphanums + special_character)
 
 # Subqueries allow words and commas in them
