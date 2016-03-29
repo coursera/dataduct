@@ -90,7 +90,10 @@ class ExtractRdsStep(ETLStep):
 
         # This shouldn't be necessary but -
         # AWS uses \\n as null, so we need to remove it
-        command = ' '.join(["cat",
+        command = ' '.join(["[[ -z $(find ${INPUT1_STAGING_DIR} -maxdepth 1 ! \
+                           -path ${INPUT1_STAGING_DIR} -name '*' -size +0) ]] \
+                           && touch ${OUTPUT1_STAGING_DIR}/part-0 ",
+                           "|| cat",
                             "${INPUT1_STAGING_DIR}/*",
                             "| sed 's/\\\\\\\\n/NULL/g'",  # replace \\n
                             # get rid of control characters
