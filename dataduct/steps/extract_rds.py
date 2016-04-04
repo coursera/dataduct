@@ -28,6 +28,7 @@ class ExtractRdsStep(ETLStep):
                  host_name=None,
                  database=None,
                  output_path=None,
+                 splits=1,
                  **kwargs):
         """Constructor for the ExtractRdsStep class
 
@@ -35,7 +36,8 @@ class ExtractRdsStep(ETLStep):
             schema(str): schema from which table should be extracted
             table(path): table name for extract
             insert_mode(str): insert mode for redshift copy activity
-            redshift_database(RedshiftDatabase): database to excute the query
+            database(MysqlNode): database to excute the query
+            splits(int): Number of files to split the output to.
             **kwargs(optional): Keyword arguments directly passed to base class
         """
         if not exactly_one(table, sql):
@@ -88,12 +90,18 @@ class ExtractRdsStep(ETLStep):
 
         # This shouldn't be necessary but -
         # AWS uses \\n as null, so we need to remove it
-        command = ' '.join(["cat",
+        command = ' '.join(["[[ -z $(find ${INPUT1_STAGING_DIR} -maxdepth 1 ! \
+                           -path ${INPUT1_STAGING_DIR} -name '*' -size +0) ]] \
+                           && touch ${OUTPUT1_STAGING_DIR}/part-0 ",
+                           "|| cat",
                             "${INPUT1_STAGING_DIR}/*",
                             "| sed 's/\\\\\\\\n/NULL/g'",  # replace \\n
                             # get rid of control characters
                             "| tr -d '\\\\000'",
-                            "> ${OUTPUT1_STAGING_DIR}/part-0"])
+                            # split into `splits` number of equal sized files
+                            ("| split -a 4 -d -l $((($(cat ${{INPUT1_STAGING_DIR}}/* | wc -l) + \
+                            {splits} - 1) / {splits})) - ${{OUTPUT1_STAGING_DIR}}/part-"
+                                .format(splits=splits))])
 
         self.create_pipeline_object(
             object_class=ShellCommandActivity,
