@@ -123,13 +123,22 @@ pipeline_run_options = ArgumentParser(
     description='Specify actions related to running pipelines',
     add_help=False
 )
-pipeline_run_options.add_argument(
+
+group = pipeline_run_options.add_mutually_exclusive_group(required=False)
+group.add_argument(
     '-f',
     '--force',
     action='store_true',
-    default=False,
-    help='Destroy previous versions of this pipeline, if they exist',
+    help='Destroy previous versions of this pipeline, if they exist'
 )
+group.add_argument(
+    '-nf',
+    '--no-force',
+    action='store_false',
+    help='Do not destroy previous versions of this pipeline, if they exist'
+)
+pipeline_run_options.set_defaults(force=True)
+
 pipeline_run_options.add_argument(
     '-t',
     '--time_delta',
