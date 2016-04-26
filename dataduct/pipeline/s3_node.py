@@ -60,7 +60,8 @@ class S3Node(PipelineObject):
         else:
             additional_args['filePath'] = s3_object
 
-        if (compression == "gzip"):
+        ### only gzip and none supported here, per aws s3datanode reqs
+        if compression == "gzip":
             additional_args['compression'] = "gzip"
         else:
             additional_args['compression'] = "none"
