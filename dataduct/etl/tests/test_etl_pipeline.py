@@ -1,13 +1,14 @@
 """Tests for the ETL Pipeline object
 """
 import unittest
+import mock
 from nose.tools import raises
 from nose.tools import eq_
+from nose.tools import assert_not_equal
 
 from datetime import timedelta
 from ..etl_pipeline import ETLPipeline
 from ...utils.exceptions import ETLInputError
-
 
 class EtlPipelineTests(unittest.TestCase):
     """Tests for the ETL Pipeline object
@@ -59,3 +60,16 @@ class EtlPipelineTests(unittest.TestCase):
         _s3_uri is bad
         """
         self.default_pipeline._s3_uri('TEST_DATA_TYPE')
+
+    @staticmethod
+    def test_default_arn_loaded_if_not_in_etl_yaml():
+        with mock.patch('dataduct.etl.etl_pipeline.ETLPipeline.DEFAULT_TOPIC_ARN', 'blah'):
+            result = ETLPipeline('test_pipeline')
+            eq_(result.topic_arn, 'blah')
+
+    @staticmethod
+    def test_arn_loads_if_provided_in_etl_yaml():
+        with mock.patch('dataduct.etl.etl_pipeline.ETLPipeline.DEFAULT_TOPIC_ARN', 'blah'):
+            result = ETLPipeline('test_pipeline', topic_arn="not_blah")
+            eq_(result.topic_arn, "not_blah")
+            assert_not_equal(result.topic_arn, ETLPipeline.DEFAULT_TOPIC_ARN)

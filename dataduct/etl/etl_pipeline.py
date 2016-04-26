@@ -60,6 +60,11 @@ class ETLPipeline(object):
     and has functionality to add steps to the pipeline
 
     """
+
+    # put this here so as not to pollute global namespace. Also makes mocking
+    # easier
+    DEFAULT_TOPIC_ARN = config.etl.get('DEFAULT_TOPIC_ARN', const.NONE)
+
     def __init__(self, name, frequency='one-time', ec2_resource_config=None,
                  time_delta=None, emr_cluster_config=None, load_time=None,
                  topic_arn=None, max_retries=MAX_RETRIES, teardown=None,
@@ -93,7 +98,13 @@ class ETLPipeline(object):
         self.time_delta = time_delta
         self.description = description
         self.max_retries = max_retries
-        self.topic_arn = topic_arn
+
+        if topic_arn is not None:
+            self.topic_arn = topic_arn
+        elif self.DEFAULT_TOPIC_ARN:
+            self.topic_arn = self.DEFAULT_TOPIC_ARN
+        else:
+            self.topic_arn = None
 
         if bootstrap is not None:
             self.bootstrap_definitions = bootstrap
