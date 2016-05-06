@@ -65,7 +65,7 @@ class DataPipeline(object):
         Returns:
             result(list of dict): list of AWS-readable dict of all objects
         """
-        return [x.aws_format() for x in self.objects]
+        return [x.aws_format() for x in self.objects if hasattr(x,'fields')]
 
     def add_object(self, pipeline_object):
         """Add an object to the datapipeline
