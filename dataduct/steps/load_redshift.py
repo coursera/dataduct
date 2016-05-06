@@ -17,6 +17,7 @@ class LoadRedshiftStep(ETLStep):
                  insert_mode="TRUNCATE",
                  max_errors=None,
                  replace_invalid_char=None,
+                 compression=None,
                  **kwargs):
         """Constructor for the LoadRedshiftStep class
 
@@ -42,6 +43,13 @@ class LoadRedshiftStep(ETLStep):
 
         command_options = ["DELIMITER '\t' ESCAPE TRUNCATECOLUMNS"]
         command_options.append("NULL AS 'NULL' ")
+
+        if compression == "gzip":
+          command_options.append("GZIP")
+        elif compression == "bzip2":
+          command_options.append("BZIP2")
+        elif compression == "lzo":
+          command_options.append("lzop")
         if max_errors:
             command_options.append('MAXERROR %d' % int(max_errors))
         if replace_invalid_char:

@@ -235,6 +235,8 @@ Properties
    load
 -  ``replace_invalid_char``: Character to replace non-utf8 characters
    with
+-  ``compression``: accepts one of [gzip, bzip2, lzo]. Allows redshift to
+   load compressed data. Leaving unspecified will load uncompressed data.
 
 Example
 ^^^^^^^
