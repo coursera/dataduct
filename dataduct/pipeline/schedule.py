@@ -37,7 +37,7 @@ FEQUENCY_PERIOD_CONVERTION = {
     '8-hours': ('8 hours', None),
     '12-hours': ('12 hours', None),
     'one-time': ('15 minutes', 1),
-    'on-demand': ('ondemand',None),
+    'on-demand': ('ondemand', None),
     '30-min': ('30 minutes', None),
     '15-min': ('15 minutes', None),
 }
@@ -66,7 +66,7 @@ class Schedule(PipelineObject):
             **kwargs(optional): Keyword arguments directly passed to base class
         """
         if frequency == 'on-demand':
-            logger.debug("Don't create schedule object")
+            logger.debug("On-demand schedule required so don't create schedule object")
             return None
 
         current_time = datetime.utcnow()
