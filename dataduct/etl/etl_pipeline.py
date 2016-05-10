@@ -196,9 +196,14 @@ class ETLPipeline(object):
                 topic_arn=self.topic_arn,
                 pipeline_name=self.name,
             )
+        if self.frequency == 'on-demand':
+            scheduleType='ONDEMAND'
+        else:
+            scheduleType='cron'
         self.default = self.create_pipeline_object(
             object_class=DefaultObject,
             pipeline_log_uri=self.s3_log_dir,
+            scheduleType=scheduleType
         )
 
     @property
