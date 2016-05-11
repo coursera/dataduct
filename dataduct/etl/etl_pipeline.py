@@ -481,7 +481,9 @@ class ETLPipeline(object):
                     'input_path' not in step_param:
                 step_param['input_node'] = input_node
 
-            if is_teardown:
+            # if is_teardown:
+            ## Instead of just teardown set sns for every step so as to get SNS alerts with error stack trace
+            if hasattr(self.sns,'fields'):
                 step_param['sns_object'] = self.sns
 
             try:
