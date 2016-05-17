@@ -3,6 +3,7 @@ Pipeline object class for ShellCommandActivity
 """
 
 from .activity import Activity
+from .precondition import Precondition
 from ..config import Config
 from .schedule import Schedule
 from ..utils import constants as const
@@ -29,7 +30,8 @@ class ShellCommandActivity(Activity):
                  command=None,
                  max_retries=None,
                  depends_on=None,
-                 additional_s3_files=None):
+                 additional_s3_files=None,
+                 precondition=None):
         """Constructor for the ShellCommandActivity class
 
         Args:
@@ -55,6 +57,10 @@ class ShellCommandActivity(Activity):
         if command is not None and script_uri is not None:
             raise ETLInputError('command and script both can not be provided')
 
+        if precondition and not isinstance(precondition, Precondition):
+            raise ETLInputError(
+                    'Input precondition must be of the type Precondition')
+
         # Set default values
         if depends_on is None:
             depends_on = []
@@ -77,7 +83,8 @@ class ShellCommandActivity(Activity):
             schedule=schedule,
             scriptUri=script_uri,
             scriptArgument=script_arguments,
-            command=command
+            command=command,
+            precondition=precondition
         )
 
         # Add the additional s3 files
