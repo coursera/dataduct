@@ -42,7 +42,7 @@ class SNSAlarm(PipelineObject):
                 'Error Stack Trace: #{node.errorStackTrace}'
             ])
 
-        subject = 'Data Pipeline %s failed' % pipeline_name
+        subject = 'Data Pipeline %s #{node.@status}' % pipeline_name
 
         if topic_arn is None:
             topic_arn = SNS_TOPIC_ARN_FAILURE
