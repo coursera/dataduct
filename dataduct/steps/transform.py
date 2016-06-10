@@ -166,7 +166,7 @@ class TransformStep(ETLStep):
     def input_format(key, value):
         """Format the key and value to command line arguments
         """
-        return ''.join('--', key, '=', value)
+        return ''.join(['--', key, '=', value])
 
     @classmethod
     def arguments_processor(cls, etl, input_args):
