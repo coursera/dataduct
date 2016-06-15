@@ -49,6 +49,7 @@ def script_runner():
     input_file = os.path.join(input_src_dir, args.script_name)
     result = run_command([input_file] + ext_script_args)
     if result != 0:
+        print "Result: ", result
         raise Exception("Script failed.")
 
 
