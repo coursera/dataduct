@@ -45,13 +45,14 @@ def read_from_s3(s3_path):
     return key.get_contents_as_string()
 
 
-def upload_to_s3(s3_path, file_name=None, file_text=None):
+def upload_to_s3(s3_path, file_name=None, file_text=None, acl='private'):
     """Uploads a file to S3
 
     Args:
         s3_path(S3Path): Output path of the file to be uploaded
         file_name(str): Name of the file to be uploaded to s3
         file_text(str): Contents of the file to be uploaded
+        acl(str): ACL policy of the file on S3
     """
     if not isinstance(s3_path, S3Path):
         raise ETLInputError('Input path should be of type S3Path')
@@ -82,10 +83,10 @@ def upload_to_s3(s3_path, file_name=None, file_text=None):
     key = bucket.new_key(key_name)
     if file_name:
         key.set_contents_from_filename(
-            file_name, cb=cb, num_cb=PROGRESS_SECTIONS)
+            file_name, cb=cb, num_cb=PROGRESS_SECTIONS, policy=acl)
     else:
         key.set_contents_from_string(
-            file_text, cb=cb, num_cb=PROGRESS_SECTIONS)
+            file_text, cb=cb, num_cb=PROGRESS_SECTIONS, policy=acl)
 
 
 def download_from_s3(s3_path, local_path):
