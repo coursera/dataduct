@@ -47,11 +47,11 @@ def read_from_s3(s3_path):
     return key.get_contents_as_string()
 
 
-def _multipart_upload(bucket, key, file_path):
+def _multipart_upload(bucket, key_name, file_path):
     """Multipart upload for really large files
     """
     filename = os.path.basename(file_path)
-    mp = bucket.initiate_multipart_upload(filename)
+    mp = bucket.initiate_multipart_upload(key_name)
     source_size = os.stat(file_path).st_size
     chunks_count = int(math.ceil(source_size / float(CHUNK_SIZE)))
 
@@ -110,7 +110,7 @@ def upload_to_s3(s3_path, file_name=None, file_text=None, acl='private'):
     key = bucket.new_key(key_name)
     if file_name:
         if source_size > LARGE_FILE_LIMIT:
-            _multipart_upload(bucket, key, file_name)
+            _multipart_upload(bucket, key_name, file_name)
         else:
             if source_size > CHUNK_SIZE:
                 bar = pyprind.ProgPercent(
