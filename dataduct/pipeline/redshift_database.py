@@ -11,11 +11,19 @@ config = Config()
 if not hasattr(config, 'redshift'):
     raise ETLConfigError('Redshift credentials missing from config')
 
+CLUSTER_ID = None
+CONNECTION_STRING = None
 DATABASE_NAME = config.redshift['DATABASE_NAME']
-CLUSTER_ID = config.redshift['CLUSTER_ID']
 USERNAME = config.redshift['USERNAME']
 PASSWORD = config.redshift['PASSWORD']
 
+
+if 'CLUSTER_ID' in config.redshift and 'CONNECTION_STRING' in config.redshift:
+    raise ETLConfigError('Redshift credentials - either CLUSTER_ID or CONNECTION_STRING is required in config')
+elif 'CLUSTER_ID' in config.redshift:
+    CLUSTER_ID = config.redshift['CLUSTER_ID']
+elif 'CONNECTION_STRING' in config.redshift:
+    CONNECTION_STRING = config.redshift['CONNECTION_STRING']
 
 class RedshiftDatabase(PipelineObject):
     """Redshift resource class
@@ -25,6 +33,7 @@ class RedshiftDatabase(PipelineObject):
                  id,
                  database_name=DATABASE_NAME,
                  cluster_id=CLUSTER_ID,
+                 connection_string=CONNECTION_STRING,
                  username=USERNAME,
                  password=PASSWORD):
         """Constructor for the RedshiftDatabase class
@@ -33,6 +42,7 @@ class RedshiftDatabase(PipelineObject):
             id(str): id of the object
             database_name(str): host name of the database
             cluster_id(str): identifier for the redshift database across aws
+            connection_string(str): JDBC connection string of the Redshift.
             username(str): username for the database
             password(str): password for the database
         """
@@ -41,8 +51,13 @@ class RedshiftDatabase(PipelineObject):
             'id': id,
             'type': 'RedshiftDatabase',
             'databaseName': database_name,
-            'clusterId': cluster_id,
             'username': username,
-            '*password': password,
+            '*password': password
         }
+
+        if CLUSTER_ID:
+            kwargs['clusterId'] = CLUSTER_ID
+        else:
+            kwargs['connectionString'] = CONNECTION_STRING
+
         super(RedshiftDatabase, self).__init__(**kwargs)
