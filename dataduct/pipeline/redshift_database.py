@@ -55,8 +55,9 @@ class RedshiftDatabase(PipelineObject):
             '*password': password
         }
 
-        if 'CLUSTER_ID' in config.redshift:
-            kwargs['clusterId'] = config.redshift['CLUSTER_ID']
+        if CLUSTER_ID:
+            kwargs['clusterId'] = CLUSTER_ID
         else:
-            kwargs['connectionString'] = config.redshift['CONNECTION_STRING']
+            kwargs['connectionString'] = CONNECTION_STRING
+
         super(RedshiftDatabase, self).__init__(**kwargs)
