@@ -18,12 +18,14 @@ USERNAME = config.redshift['USERNAME']
 PASSWORD = config.redshift['PASSWORD']
 
 
+#If both are there, we will pick the Connection String. Cluster ID is required for the Redshift shell to work
 if 'CLUSTER_ID' in config.redshift and 'CONNECTION_STRING' in config.redshift:
-    raise ETLConfigError('Redshift credentials - either CLUSTER_ID or CONNECTION_STRING is required in config')
+    CONNECTION_STRING = config.redshift['CONNECTION_STRING'] 
 elif 'CLUSTER_ID' in config.redshift:
     CLUSTER_ID = config.redshift['CLUSTER_ID']
 elif 'CONNECTION_STRING' in config.redshift:
-    CONNECTION_STRING = config.redshift['CONNECTION_STRING']
+    raise ETLConfigError('Redshift credentials - CLUSTER_ID is also required while connecting using CONNECTION_STRING.')
+
 
 class RedshiftDatabase(PipelineObject):
     """Redshift resource class
