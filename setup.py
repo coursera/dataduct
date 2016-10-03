@@ -22,7 +22,7 @@ setup(
     install_requires=[
         'boto>=2.38',
         'MySQL-python>=1.2.3',
-        'pandas==0.18.0',
+        'pandas==0.18.1',
         'psycopg2>=2.6',
         'pyparsing>=1.5.6',
         'pytimeparse>=1.1.4',
