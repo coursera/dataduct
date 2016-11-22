@@ -21,3 +21,5 @@
 
 # pycharm or intellij
 .idea/
+
+.DS_Store
