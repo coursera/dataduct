@@ -14,6 +14,22 @@ CHUNK_SIZE = 100*1024*1024  # 100mb
 LARGE_FILE_LIMIT = 5000*1024*1024  # 5gb
 PROGRESS_SECTIONS = 10
 
+# ----------------------------------------------------------------
+# Fix for ssl issue with where bucket name has dots in it
+
+try:
+    import ssl
+    _old_match_hostname = ssl.match_hostname
+
+    def _new_match_hostname(cert, hostname):
+        if hostname.endswith('.s3.amazonaws.com'):
+            pos = hostname.find('.s3.amazonaws.com')
+            hostname = hostname[:pos].replace('.', '') + hostname[pos:]
+        return _old_match_hostname(cert, hostname)
+
+    ssl.match_hostname = _new_match_hostname
+except Exception:
+    pass
 
 def get_s3_bucket(bucket_name):
     """Returns an S3 bucket object from boto
