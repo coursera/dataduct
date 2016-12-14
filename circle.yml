@@ -1,0 +1,56 @@
+machine:
+  python:
+    version: 2.7.12
+
+dependencies:
+  pre:
+    - sudo apt-get update; sudo apt-get install graphviz
+    - pip install coveralls
+    - pip install -r requirements.txt
+    - mkdir ~/.dataduct
+    - |
+      echo "
+      etl:
+        ROLE: DataPipelineDefaultRole
+        RESOURCE_ROLE: DataPipelineDefaultResourceRole
+        S3_ETL_BUCKET: FILL_ME_IN
+      ec2:
+        CORE_INSTANCE_TYPE: m1.large
+      emr:
+        CLUSTER_AMI: 2.4.7
+      redshift:
+        DATABASE_NAME: FILL_ME_IN
+        CLUSTER_ID: FILL_ME_IN
+        USERNAME: FILL_ME_IN
+        PASSWORD: FILL_ME_IN
+      postgres:
+        DATABASE_NAME: FILL_ME_IN
+        RDS_INSTANCE_ID: FILL_ME_IN
+        USERNAME: FILL_ME_IN
+        PASSWORD: FILL_ME_IN
+        REGION: FILL_ME_IN
+      mysql:
+        DATABASE_KEY:
+          HOST: FILL_ME_IN
+          USERNAME: FILL_ME_IN
+          PASSWORD: FILL_ME_IN" > ~/.dataduct/dataduct.cfg
+    - |
+      echo "
+      [distutils]
+      index-servers = pypi
+      [pypi]
+      repository: $PYPI_REPOSITORY
+      username: $PYPI_USERNAME
+      password: $PYPI_PASSWORD" > ~/.pypirc
+
+test:
+  override:
+    - nosetests --with-coverage --cover-package=. --cover-erase
+  post:
+    - coveralls
+
+deployment:
+  pypi:
+    branch: /.*/
+    commands:
+      - python setup.py sdist upload -r pypi
