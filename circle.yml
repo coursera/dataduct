@@ -46,8 +46,8 @@ dependencies:
 test:
   override:
     - nosetests --with-coverage --cover-package=. --cover-erase
-  post:
-    - coveralls
+#  post:
+#    - coveralls
 
 deployment:
   pypi:
