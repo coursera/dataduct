@@ -1,6 +1,8 @@
 """Script that parses the pipeline definition and has action functions
 """
+import os
 import yaml
+import re
 
 from ..pipeline import Activity
 from ..pipeline import MysqlNode
@@ -13,6 +15,15 @@ from .etl_pipeline import ETLPipeline
 
 import logging
 logger = logging.getLogger(__name__)
+
+
+def replace_env_vars(string):
+    match = re.search(r'%{(\w+)}', string, re.MULTILINE)
+    if match:
+        for env_name in match.groups():
+            string = string.replace('%{'+env_name+'}', os.getenv(env_name, ''))
+
+    return string
 
 
 def read_pipeline_definition(file_path):
@@ -34,7 +45,7 @@ def read_pipeline_definition(file_path):
     if extension not in ['yml', 'yaml']:
         raise ETLInputError('Pipeline definition should have a yml or yaml extention')
     with open(file_path) as f:
-        definition = yaml.load(f.read())
+        definition = yaml.load(replace_env_vars(f.read()))
 
         # remove the variables key from the pipeline definition
         # http://stackoverflow.com/questions/4150782/using-yaml-with-variables
