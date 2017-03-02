@@ -2,12 +2,13 @@
 """
 import os
 
+import mock
 import unittest
 from testfixtures import TempDirectory
 from nose.tools import raises
 from nose.tools import eq_
 
-from ..etl_actions import read_pipeline_definition
+from ..etl_actions import read_pipeline_definition, replace_env_vars
 from ..etl_actions import create_pipeline
 from ...utils.exceptions import ETLInputError
 
@@ -15,6 +16,7 @@ from ...utils.exceptions import ETLInputError
 class EtlActionsTests(unittest.TestCase):
     """Tests for the ETL actions
     """
+    table = 'test_table_name'
 
     def setUp(self):
         """Setup text fixtures
@@ -33,7 +35,7 @@ class EtlActionsTests(unittest.TestCase):
             '    path: data/test_table1.tsv',
             '-   step_type: load-redshift',
             '    schema: dev',
-            '    table: test_table',
+            '    table: \'%{table}\'',
         ])
         # Definition has no description field
         self.test_definition = {
@@ -48,7 +50,7 @@ class EtlActionsTests(unittest.TestCase):
             }, {
                 'step_type': 'load-redshift',
                 'schema': 'dev',
-                'table': 'test_table',
+                'table': self.table,
             }],
         }
 
@@ -60,6 +62,14 @@ class EtlActionsTests(unittest.TestCase):
         """
         read_pipeline_definition("name.txt")
 
+    @mock.patch.dict(os.environ, {'table': table})
+    def test_replace_env_vars(self):
+        """Test replace variables in string with env vars
+        """
+        test_string = '%{table}'
+        assert replace_env_vars(test_string) == self.table
+
+    @mock.patch.dict(os.environ, {'table': table})
     def test_read_pipeline_definition(self):
         """Test if the pipeline definition is parsed correctly
         """
@@ -69,6 +79,7 @@ class EtlActionsTests(unittest.TestCase):
                 os.path.join(directory.path, 'test_definition.yaml'))
             eq_(result, self.test_definition)
 
+    @mock.patch.dict(os.environ, {'table': table})
     def test_create_pipeline(self):
         """Test if simple pipeline creation is correct
         """
