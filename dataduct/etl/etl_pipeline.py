@@ -193,12 +193,17 @@ class ETLPipeline(object):
         else:
             self.sns = self.create_pipeline_object(
                 object_class=SNSAlarm,
-                topic_arn=self.topic_arn,
+                topic_arn=self.topic_arn.replace('all:',''),
                 pipeline_name=self.name,
             )
+        if self.frequency == 'on-demand':
+            scheduleType='ONDEMAND'
+        else:
+            scheduleType='cron'
         self.default = self.create_pipeline_object(
             object_class=DefaultObject,
             pipeline_log_uri=self.s3_log_dir,
+            scheduleType=scheduleType
         )
 
     @property
@@ -476,8 +481,12 @@ class ETLPipeline(object):
                     'input_path' not in step_param:
                 step_param['input_node'] = input_node
 
-            if is_teardown:
-                step_param['sns_object'] = self.sns
+            if hasattr(self.sns,'fields'):
+                if self.topic_arn.startswith("all:"):
+                    ## Instead of just teardown set sns for every step so as to get SNS alerts with error stack trace
+                    step_param['sns_object'] = self.sns
+                elif is_teardown:
+                    step_param['sns_object'] = self.sns
 
             try:
                 step_class = step_param.pop('step_class')

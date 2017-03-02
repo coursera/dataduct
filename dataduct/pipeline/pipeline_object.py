@@ -8,7 +8,7 @@ from ..s3 import S3File
 from ..s3 import S3Path
 from ..utils.exceptions import ETLInputError
 
-
+scheduleType = ''
 class PipelineObject(object):
     """DataPipeline class with steps and metadata.
 
@@ -56,12 +56,15 @@ class PipelineObject(object):
         Returns:
             result(list of S3Files): List of files to be uploaded to s3
         """
-        result = self.additional_s3_files
-        for _, values in self.fields.iteritems():
-            for value in values:
-                if isinstance(value, S3File) or isinstance(value, S3Directory):
-                    result.append(value)
-        return result
+        if hasattr(self,'additional_s3_files'):
+            result = self.additional_s3_files
+            for _, values in self.fields.iteritems():
+                for value in values:
+                    if isinstance(value, S3File) or isinstance(value, S3Directory):
+                        result.append(value)
+            return result
+        else:
+            return []
 
     def __getitem__(self, key):
         """Fetch the items associated with a key
@@ -130,16 +133,25 @@ class PipelineObject(object):
             result: The AWS-readable dict format of the object
         """
         fields = []
-        for key, values in self.fields.iteritems():
-            for value in values:
-                if isinstance(value, PipelineObject):
-                    fields.append({'key': key, 'refValue': value.id})
-                elif isinstance(value, S3Path):
-                    fields.append({'key': key, 'stringValue': value.uri})
-                elif isinstance(value, S3File) or \
-                        isinstance(value, S3Directory):
-                    fields.append({'key': key,
-                                   'stringValue': value.s3_path.uri})
-                else:
-                    fields.append({'key': key, 'stringValue': str(value)})
-        return {'id': self._id, 'name': self._id, 'fields': fields}
+        global scheduleType
+        if hasattr(self, 'fields'):
+            for key, values in self.fields.iteritems():
+                for value in values:
+                    if isinstance(value, PipelineObject):
+                        if scheduleType == 'ONDEMAND'and key == 'schedule' :
+                            pass
+                        else:
+                            fields.append({'key': key, 'refValue': value.id})
+                    elif isinstance(value, S3Path):
+                        fields.append({'key': key, 'stringValue': value.uri})
+                    elif isinstance(value, S3File) or \
+                            isinstance(value, S3Directory):
+                        fields.append({'key': key,
+                                       'stringValue': value.s3_path.uri})
+                    else:
+                        if key == 'scheduleType' and str(value) == 'ONDEMAND':
+                            scheduleType = 'ONDEMAND'
+                        fields.append({'key': key, 'stringValue': str(value)})
+            return {'id': self._id, 'name': self._id, 'fields': fields}
+        else:
+            return None
