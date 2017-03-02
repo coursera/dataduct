@@ -24,7 +24,7 @@ setup(
         'MySQL-python>=1.2.3',
         'matplotlib==1.5.3',
         'pandas==0.18.1',
-        'psycopg2==2.6.2',
+        'psycopg2==2.6.0',
         'pyparsing>=1.5.6',
         'pytimeparse>=1.1.4',
         'PyYAML>=3.11',
