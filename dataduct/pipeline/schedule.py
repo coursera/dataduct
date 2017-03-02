@@ -88,7 +88,7 @@ class Schedule(PipelineObject):
         start_time = current_time.replace(minute=load_minutes)
         start_time = start_time.replace(hour=load_hour, second=0)
 
-        if current_time.hour < load_hour:
+        if current_time.hour > load_hour:
             if frequency == 'one-time':
                 time_delta -= timedelta(days=1)
             else:
