@@ -181,6 +181,7 @@ ETL
         ROLE: FILL_ME_IN
         S3_BASE_PATH: dev
         S3_ETL_BUCKET: FILL_ME_IN
+        DEFAULT_TOPIC_ARN: 'arn:aws:sns:example_arn'
         SNS_TOPIC_ARN_FAILURE: null
         SNS_TOPIC_ARN_WARNING: null
         FREQUENCY_OVERRIDE: one-time
@@ -222,6 +223,8 @@ level. The parameters are explained below:
    or across production and dev
 -  ``S3_ETL_BUCKET``: S3 bucket to use for DP data, logs, source code
    etc.
+-  ``DEFAULT_TOPIC_ARN``: default ARN to use for pipelines. Overridden if
+   specified in pipeline yaml definition.
 -  ``SNS_TOPIC_ARN_FAILURE``: SNS to trigger for failed steps or
    pipelines
 -  ``SNS_TOPIC_ARN_WARNING``: SNS to trigger for failed QA checks
