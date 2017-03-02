@@ -12,6 +12,7 @@ class Precondition(PipelineObject):
     def __init__(self,
                  id,
                  is_directory=True,
+                 s3Prefix=None,
                  **kwargs):
         """Constructor for the Precondition class
 
@@ -25,11 +26,11 @@ class Precondition(PipelineObject):
             super(Precondition, self).__init__(
                 id=id,
                 type='S3PrefixNotEmpty',
-                s3Prefix="#{node.directoryPath}",
+                s3Prefix=s3Prefix if s3Prefix is not None else "#{node.directoryPath}",
             )
         else:
             super(Precondition, self).__init__(
                 id=id,
                 type='S3KeyExists',
-                s3Prefix="#{node.filePath}",
+                s3Prefix=s3Prefix if s3Prefix is not None else "#{node.filePath}",
             )
