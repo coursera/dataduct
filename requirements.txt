@@ -2,7 +2,7 @@ boto>=2.34.0
 Sphinx>=1.2.3
 sphinx-rtd-theme>=0.1.6
 pandas>=0.14.1
-psycopg2
+psycopg2==2.6.2
 MySQL-python
 PyYAML
 coverage
