@@ -17,6 +17,7 @@ INSTANCE_TYPE = config.ec2.get('INSTANCE_TYPE', const.M1_LARGE)
 ETL_AMI = config.ec2.get('ETL_AMI', const.NONE)
 SECURITY_GROUP = config.ec2.get('SECURITY_GROUP', const.NONE)
 SECURITY_GROUP_ID = config.ec2.get('SECURITY_GROUP_ID', const.NONE)
+SPOT_BID_PRICE = config.ec2.get('SPOT_BID_PRICE', const.NONE)
 SUBNET_ID = config.ec2.get('SUBNET_ID', const.NONE)
 KEY_PAIR = config.etl.get('KEY_PAIR', const.NONE)
 RETRY_DELAY = config.etl.get('RETRY_DELAY', const.DEFAULT_DELAY)
@@ -35,6 +36,7 @@ class Ec2Resource(PipelineObject):
                  ami=ETL_AMI,
                  security_group=SECURITY_GROUP,
                  security_group_id=SECURITY_GROUP_ID,
+                 spot_bid_price=SPOT_BID_PRICE,
                  subnet_id=SUBNET_ID,
                  **kwargs):
         """Constructor for the Ec2Resource class
@@ -47,6 +49,7 @@ class Ec2Resource(PipelineObject):
             instance_type(str): machine type to be used eg. m1.large
             ami(str): ami id for the ec2 resource
             retry_delay(str): time delay between step retries
+            spot_bid_price(str): max spot bid price for resource e.g 0.04
             **kwargs(optional): Keyword arguments directly passed to base class
         """
 
@@ -72,5 +75,6 @@ class Ec2Resource(PipelineObject):
             retryDelay=RETRY_DELAY,
             securityGroups=security_group,
             securityGroupIds=security_group_id,
+            spotBidPrice=spot_bid_price,
             subnetId=subnet_id
         )
