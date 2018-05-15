@@ -16,7 +16,7 @@ class PrimaryKeyCheckStep(QATransformStep):
     """
 
     def __init__(self, id, table_definition, script_arguments=None,
-                 log_to_s3=False, **kwargs):
+                 log_to_s3=False, command=None, script=None, **kwargs):
         """Constructor for the PrimaryKeyCheckStep class
 
         Args:
@@ -36,6 +36,9 @@ class PrimaryKeyCheckStep(QATransformStep):
         if log_to_s3:
             script_arguments.append('--log_to_s3')
 
+        if script is None and command is None:
+            command = const.PK_CHECK_COMMAND
+
         super(PrimaryKeyCheckStep, self).__init__(
-            id=id, command=const.PK_CHECK_COMMAND,
+            id=id, command=command, script=script,
             script_arguments=script_arguments, **kwargs)

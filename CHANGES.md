@@ -1,5 +1,11 @@
 # Changes in dataduct
 
+### 0.5.0
+- Cleanup commands being passed in QA steps
+- Add support for postgres
+- Status bar for uploading large files
+- Minor bug fixes
+
 ### 0.4.0
 - Support for starting database shell from dataduct cli
 - Fix bug in logger configuration

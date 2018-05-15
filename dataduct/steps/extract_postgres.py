@@ -4,7 +4,8 @@ ETL step wrapper to extract data from RDS to S3
 from ..config import Config
 from .etl_step import ETLStep
 from ..pipeline import CopyActivity
-from ..pipeline import MysqlNode
+from ..pipeline import PostgresNode
+from ..pipeline import PostgresDatabase
 from ..pipeline import PipelineObject
 from ..pipeline import ShellCommandActivity
 from ..utils.helpers import exactly_one
@@ -12,38 +13,34 @@ from ..utils.exceptions import ETLInputError
 from ..database import SelectStatement
 
 config = Config()
-if not hasattr(config, 'mysql'):
-    raise ETLInputError('MySQL config not specified in ETL')
+if not hasattr(config, 'postgres'):
+    raise ETLInputError('Postgres config not specified in ETL')
 
-MYSQL_CONFIG = config.mysql
+POSTGRES_CONFIG = config.postgres
 
 
-class ExtractRdsStep(ETLStep):
-    """Extract Redshift Step class that helps get data out of redshift
+class ExtractPostgresStep(ETLStep):
+    """Extract Postgres Step class that helps get data out of postgres
     """
 
     def __init__(self,
                  table=None,
                  sql=None,
-                 host_name=None,
-                 database=None,
                  output_path=None,
-                 splits=1,
                  **kwargs):
-        """Constructor for the ExtractRdsStep class
+        """Constructor for the ExtractPostgresStep class
 
         Args:
             schema(str): schema from which table should be extracted
             table(path): table name for extract
-            insert_mode(str): insert mode for redshift copy activity
-            database(MysqlNode): database to excute the query
-            splits(int): Number of files to split the output to.
+            sql(str): sql query to be executed
+            output_path(str): s3 path where sql output should be saved
             **kwargs(optional): Keyword arguments directly passed to base class
         """
         if not exactly_one(table, sql):
             raise ETLInputError('Only one of table, sql needed')
 
-        super(ExtractRdsStep, self).__init__(**kwargs)
+        super(ExtractPostgresStep, self).__init__(**kwargs)
 
         if table:
             sql = 'SELECT * FROM %s;' % table
@@ -52,19 +49,29 @@ class ExtractRdsStep(ETLStep):
         else:
             raise ETLInputError('Provide a sql statement or a table name')
 
-        host = MYSQL_CONFIG[host_name]['HOST']
-        user = MYSQL_CONFIG[host_name]['USERNAME']
-        password = MYSQL_CONFIG[host_name]['PASSWORD']
+        region = POSTGRES_CONFIG['REGION']
+        rds_instance_id = POSTGRES_CONFIG['RDS_INSTANCE_ID']
+        user = POSTGRES_CONFIG['USERNAME']
+        password = POSTGRES_CONFIG['PASSWORD']
+
+        database_node = self.create_pipeline_object(
+                    object_class=PostgresDatabase,
+                    region=region,
+                    rds_instance_id=rds_instance_id,
+                    username=user,
+                    password=password,
+        )
 
         input_node = self.create_pipeline_object(
-            object_class=MysqlNode,
+            object_class=PostgresNode,
             schedule=self.schedule,
-            host=host,
-            database=database,
+            database=database_node,
             table=table,
             username=user,
             password=password,
-            sql=sql,
+            select_query=sql,
+            insert_query=None,
+            host=rds_instance_id,
         )
 
         s3_format = self.create_pipeline_object(
@@ -78,7 +85,6 @@ class ExtractRdsStep(ETLStep):
             object_class=CopyActivity,
             schedule=self.schedule,
             resource=self.resource,
-            worker_group=self.worker_group,
             input_node=input_node,
             output_node=intermediate_node,
             depends_on=self.depends_on,
@@ -90,18 +96,12 @@ class ExtractRdsStep(ETLStep):
 
         # This shouldn't be necessary but -
         # AWS uses \\n as null, so we need to remove it
-        command = ' '.join(["[[ -z $(find ${INPUT1_STAGING_DIR} -maxdepth 1 ! \
-                           -path ${INPUT1_STAGING_DIR} -name '*' -size +0) ]] \
-                           && touch ${OUTPUT1_STAGING_DIR}/part-0 ",
-                           "|| cat",
+        command = ' '.join(["cat",
                             "${INPUT1_STAGING_DIR}/*",
                             "| sed 's/\\\\\\\\n/NULL/g'",  # replace \\n
                             # get rid of control characters
                             "| tr -d '\\\\000'",
-                            # split into `splits` number of equal sized files
-                            ("| split -a 4 -d -l $((($(cat ${{INPUT1_STAGING_DIR}}/* | wc -l) + \
-                            {splits} - 1) / {splits})) - ${{OUTPUT1_STAGING_DIR}}/part-"
-                                .format(splits=splits))])
+                            "> ${OUTPUT1_STAGING_DIR}/part-0"])
 
         self.create_pipeline_object(
             object_class=ShellCommandActivity,
@@ -110,7 +110,6 @@ class ExtractRdsStep(ETLStep):
             command=command,
             max_retries=self.max_retries,
             resource=self.resource,
-            worker_group=self.worker_group,
             schedule=self.schedule,
         )
 
@@ -124,5 +123,6 @@ class ExtractRdsStep(ETLStep):
         """
         input_args = cls.pop_inputs(input_args)
         step_args = cls.base_arguments_processor(etl, input_args)
+        step_args['resource'] = etl.ec2_resource
 
         return step_args

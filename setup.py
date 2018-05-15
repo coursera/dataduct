@@ -22,12 +22,14 @@ setup(
     install_requires=[
         'boto>=2.38',
         'MySQL-python>=1.2.3',
-        'pandas>=0.14',
-        'psycopg2>=2.6',
+        'matplotlib==1.5.3',
+        'pandas==0.18.1',
+        'psycopg2==2.6.0',
         'pyparsing>=1.5.6',
         'pytimeparse>=1.1.4',
         'PyYAML>=3.11',
-        'testfixtures>=4.1.2'
+        'testfixtures>=4.1.2',
+        'pyprind'
     ],
     scripts=['bin/dataduct'],
     classifiers=[

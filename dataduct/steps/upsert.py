@@ -15,7 +15,7 @@ class UpsertStep(CreateUpdateSqlStep):
 
     def __init__(self, destination, sql=None, script=None, source=None,
                  enforce_primary_key=True, delete_existing=False, history=None,
-                 analyze_table=True, **kwargs):
+                 analyze_table=True, filter_clause=None, **kwargs):
         """Constructor for the UpsertStep class
 
         Args:
@@ -35,7 +35,7 @@ class UpsertStep(CreateUpdateSqlStep):
 
         # Create the destination table if doesn't exist
         sql_script = dest.upsert_script(source_relation, enforce_primary_key,
-                                        delete_existing)
+                                        delete_existing, filter_clause)
 
         if history:
             hist = HistoryTable(SqlScript(

@@ -27,6 +27,7 @@ class S3Node(PipelineObject):
                  s3_object,
                  precondition=None,
                  format=None,
+                 compression=None,
                  **kwargs):
         """Constructor for the S3Node class
 
@@ -58,6 +59,12 @@ class S3Node(PipelineObject):
             additional_args['directoryPath'] = s3_object
         else:
             additional_args['filePath'] = s3_object
+
+        ### only gzip and none supported here, per aws s3datanode reqs
+        if compression == "gzip":
+            additional_args['compression'] = "gzip"
+        else:
+            additional_args['compression'] = "none"
 
         # Save the s3_object variable
         self._s3_object = s3_object

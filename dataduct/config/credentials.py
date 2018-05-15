@@ -41,7 +41,11 @@ def get_aws_credentials_from_iam():
 
 
 def get_aws_credentials_from_file(filename=None):
-    """Get the aws from credential files
+    """Get the AWS credentials from boto config files
+
+    Tries to load from the specified filename, if applicable, else follows what
+    boto does by following the order specified at
+    http://boto.cloudhackers.com/en/latest/boto_config_tut.html#details
     """
     config = SafeConfigParser()
     cred_file = None
@@ -49,10 +53,10 @@ def get_aws_credentials_from_file(filename=None):
         cred_file = filename
     elif os.path.isfile('/etc/boto.cfg'):
         cred_file = '/etc/boto.cfg'
-    elif os.path.isfile(os.path.expanduser('~/.boto')):
-        cred_file = os.path.expanduser('~/.boto')
     elif os.path.isfile(os.path.expanduser('~/.aws/credentials')):
         cred_file = os.path.expanduser('~/.aws/credentials')
+    elif os.path.isfile(os.path.expanduser('~/.boto')):
+        cred_file = os.path.expanduser('~/.boto')
     else:
         raise Exception("Cannot find a credentials file")
 

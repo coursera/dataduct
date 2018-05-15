@@ -215,7 +215,7 @@ class Table(Relation):
 
         return SqlScript(sql)
 
-    def _source_sql(self, source_relation):
+    def _source_sql(self, source_relation, filter_clause=None):
         """Get the source sql based on the type of the source specified
         """
         if not (isinstance(source_relation, Relation) or
@@ -230,13 +230,16 @@ class Table(Relation):
         else:
             source_sql = source_relation.full_name
 
+        if filter_clause is not None:
+            source_sql = source_sql + ' ' + filter_clause
+
         return source_sql
 
-    def insert_script(self, source_relation):
+    def insert_script(self, source_relation, filter_clause=None):
         """Sql Script to insert into the table while avoiding PK violations
         """
         sql = 'INSERT INTO %s (SELECT * FROM %s)' % (
-            self.full_name, self._source_sql(source_relation))
+            self.full_name, self._source_sql(source_relation, filter_clause))
         return SqlScript(sql)
 
     def delete_matching_rows_script(self, source_relation):
@@ -294,7 +297,7 @@ class Table(Relation):
         return script
 
     def upsert_script(self, source_relation, enforce_primary_key=True,
-                      delete_existing=False):
+                      delete_existing=False, filter_clause=None):
         """Sql script to upsert into a table
 
         The script first copies all the source data into a temporary table.
@@ -308,7 +311,7 @@ class Table(Relation):
 
         # Create a temporary clone from the script
         temp_table = self.__class__(script)
-        script.append(temp_table.insert_script(source_relation))
+        script.append(temp_table.insert_script(source_relation, filter_clause))
         if enforce_primary_key:
             script.append(temp_table.de_duplication_script())
 

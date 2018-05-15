@@ -2,10 +2,17 @@
 Shared utility functions
 """
 import boto.s3
+import math
 import os
+import pyprind
 
 from ..utils.exceptions import ETLInputError
 from .s3_path import S3Path
+
+
+CHUNK_SIZE = 100*1024*1024  # 100mb
+LARGE_FILE_LIMIT = 5000*1024*1024  # 5gb
+PROGRESS_SECTIONS = 10
 
 
 def get_s3_bucket(bucket_name):
@@ -40,19 +47,59 @@ def read_from_s3(s3_path):
     return key.get_contents_as_string()
 
 
-def upload_to_s3(s3_path, file_name=None, file_text=None):
+def _multipart_upload(bucket, key_name, file_path):
+    """Multipart upload for really large files
+    """
+    filename = os.path.basename(file_path)
+    mp = bucket.initiate_multipart_upload(key_name)
+    source_size = os.stat(file_path).st_size
+    chunks_count = int(math.ceil(source_size / float(CHUNK_SIZE)))
+
+    print 'Starting the multipart upload'
+
+    bar = pyprind.ProgPercent(chunks_count, monitor=True,
+        title='Uploading %s' % file_path)
+
+    for i in range(chunks_count):
+        offset = i * CHUNK_SIZE
+        remaining_bytes = source_size - offset
+        bytes = min([CHUNK_SIZE, remaining_bytes])
+        part_num = i + 1
+
+        with open(file_path, 'r') as fp:
+            fp.seek(offset)
+            mp.upload_part_from_file(fp=fp, part_num=part_num, size=bytes)
+
+        bar.update()
+
+    if len(mp.get_all_parts()) == chunks_count:
+        mp.complete_upload()
+        print "upload_file done"
+    else:
+        mp.cancel_upload()
+        raise "upload_file failed"
+
+def upload_to_s3(s3_path, file_name=None, file_text=None, acl='private'):
     """Uploads a file to S3
 
     Args:
         s3_path(S3Path): Output path of the file to be uploaded
         file_name(str): Name of the file to be uploaded to s3
         file_text(str): Contents of the file to be uploaded
+        acl(str): ACL policy of the file on S3
     """
     if not isinstance(s3_path, S3Path):
         raise ETLInputError('Input path should be of type S3Path')
 
     if not any([file_name, file_text]):
         raise ETLInputError('File_name or text should be given')
+
+    if file_name:
+        source_size = os.stat(file_name).st_size
+    else:
+        source_size = len(file_text)
+    bar = None
+    cb = None
 
     bucket = get_s3_bucket(s3_path.bucket)
     if s3_path.is_directory:
@@ -62,9 +109,21 @@ def upload_to_s3(s3_path, file_name=None, file_text=None):
 
     key = bucket.new_key(key_name)
     if file_name:
-        key.set_contents_from_filename(file_name)
+        if source_size > LARGE_FILE_LIMIT:
+            _multipart_upload(bucket, key_name, file_name)
+        else:
+            if source_size > CHUNK_SIZE:
+                bar = pyprind.ProgPercent(
+                    PROGRESS_SECTIONS, monitor=True,
+                    title='Uploading %s' % file_name)
+                def _callback(current, total):
+                    bar.update()
+                cb = _callback
+            key.set_contents_from_filename(
+                file_name, cb=cb, num_cb=PROGRESS_SECTIONS, policy=acl)
     else:
-        key.set_contents_from_string(file_text)
+        key.set_contents_from_string(
+            file_text, cb=cb, num_cb=PROGRESS_SECTIONS, policy=acl)
 
 
 def download_from_s3(s3_path, local_path):
